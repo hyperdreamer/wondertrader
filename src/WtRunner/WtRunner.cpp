@@ -20,21 +20,16 @@
 #include "../WTSUtils/SignalHook.hpp"
 #include "../Share/StrUtil.hpp"
 
-
 const char* getBinDir()
 {
 	static std::string basePath;
-	if (basePath.empty())
-	{
+	if (basePath.empty()) {
 		basePath = boost::filesystem::initial_path<boost::filesystem::path>().string();
-
 		basePath = StrUtil::standardisePath(basePath);
 	}
 
 	return basePath.c_str();
 }
-
-
 
 WtRunner::WtRunner()
 	: _data_store(NULL)
@@ -51,7 +46,6 @@ WtRunner::WtRunner()
 #endif
 }
 
-
 WtRunner::~WtRunner()
 {
 }
@@ -59,10 +53,9 @@ WtRunner::~WtRunner()
 bool WtRunner::init()
 {
 	std::string path = "logcfg.json";
-	if(!StdFile::exists(path.c_str()))
-		path = "logcfg.yaml";
-	WTSLogger::init(path.c_str());
+	if(!StdFile::exists(path.c_str())) path = "logcfg.yaml";
 
+	WTSLogger::init(path.c_str());
 	WtHelper::setInstDir(getBinDir());
 
 	return true;

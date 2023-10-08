@@ -26,10 +26,9 @@ int main()
 
 	WtRunner runner;
 	runner.init();
-
 	runner.config();
-
 	runner.run(false);
+
 	return 0;
 }
 

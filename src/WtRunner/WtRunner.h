@@ -45,13 +45,8 @@ public:
 	~WtRunner();
 
 public:
-	/*
-	 *	≥ı ºªØ
-	 */
-	bool init();
-
+    bool init();
 	bool config();
-
 	void run(bool bAsync = false);
 
 private:
@@ -66,9 +61,7 @@ private:
 
 	bool initEngine();
 
-//////////////////////////////////////////////////////////////////////////
-//ILogHandler
-public:
+public: //ILogHandler
 	virtual void handleLogAppend(WTSLogLevel ll, const char* msg) override;
 
 private:
