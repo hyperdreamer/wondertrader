@@ -9,8 +9,7 @@ NS_WTP_END
 
 USING_NS_WTP;
 
-class WTSCfgLoader
-{
+class WTSCfgLoader {
 	static WTSVariant*	load_from_json(const char* content);
 	static WTSVariant*	load_from_yaml(const char* content);
 

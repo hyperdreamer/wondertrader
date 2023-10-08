@@ -34,15 +34,13 @@ NS_WTP_BEGIN
  *	和Json不同的地方在于,WTSVariant满足WT系统内的派生关系
  *	可以通过引用计数管理数据,从而减少数据复制
  */
-class WTSVariant : public WTSObject
-{
+class WTSVariant : public WTSObject {
 public:
 	typedef WTSArray					ChildrenArray;
 	typedef WTSHashMap<std::string>		ChildrenMap;
 	typedef std::vector<std::string>	MemberNames;
-
-	typedef enum
-	{
+    /***************************************************************/
+	typedef enum {
 		VT_Null,
 		VT_Array,
 		VT_Int32,
@@ -53,8 +51,7 @@ public:
 		VT_Real,
 		VT_Boolean,
 		VT_Object
-	}ValueType;
-
+	} ValueType;
 
 protected:
 	WTSVariant() :_type(VT_Null){}
