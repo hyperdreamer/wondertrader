@@ -13,3 +13,5 @@
 cmake-build*
 build*
 .idea
+tags
+mydeps
