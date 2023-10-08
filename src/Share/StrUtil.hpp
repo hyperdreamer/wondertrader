@@ -292,7 +292,7 @@ public:
 	static inline std::string standardisePath(const std::string& init, bool bIsDir = true)
 	{
 		std::string path = init;
-#ifdef _WIN32
+#if _WIN32
 		std::replace(path.begin(), path.end(), '\\', '/');
 #endif
 		if (path[path.length()-1] != '/' && bIsDir) path += '/';
