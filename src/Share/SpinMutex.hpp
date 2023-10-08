@@ -5,34 +5,30 @@
 #include <windows.h>
 #endif
 
-class SpinMutex
-{
+class SpinMutex {
 private:
-	std::atomic<bool> flag = { false };
+    std::atomic<bool> flag = { false };
 
 public:
-	void lock()
-	{
-		for (;;)
-		{
-			if (!flag.exchange(true, std::memory_order_acquire))
-				break;
-
-			while (flag.load(std::memory_order_relaxed))
-			{
+    void lock()
+    {
+        for (;;) {
+            if (!flag.exchange(true, std::memory_order_acquire)) break;
+         
+            while (flag.load(std::memory_order_relaxed)) {
 #ifdef _MSC_VER
-				_mm_pause();
+                _mm_pause();
 #else
-				__builtin_ia32_pause();
+                __builtin_ia32_pause();
 #endif
-			}
-		}
-	}
+            }
+        }
+    }
 
-	void unlock()
-	{
-		flag.store(false, std::memory_order_release);
-	}
+    void unlock()
+    {
+        flag.store(false, std::memory_order_release);
+    }
 };
 
 class SpinLock
