@@ -226,7 +226,7 @@ WTSVariant* WTSCfgLoader::load_from_file(const char* filename)
 #else // Linuxœ¬µ√ «UTF8
     if (!isUTF8) content = ChartoUTF8(content);
 #endif
-
+    //////////////////////////////////////////////////////////////////////////
     if (StrUtil::endsWith(filename, ".json")) return load_from_json(content.c_str());
     /***************************************************************/
     if (StrUtil::endsWith(filename, ".yaml") || StrUtil::endsWith(filename, ".yml"))

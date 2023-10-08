@@ -17,40 +17,31 @@
 #include "../Share/SpinMutex.hpp"
 
 NS_WTP_BEGIN
-class WTSObject
-{
+class WTSObject {
 public:
-	WTSObject() :m_uRefs(1){}
-	virtual ~WTSObject(){}
+    WTSObject() :m_uRefs(1) {}
+    virtual ~WTSObject() {}
+    //////////////////////////////////////////////////////////////////////////
+    inline uint32_t	retain() { return m_uRefs.fetch_add(1) + 1; }
 
-public:
-	inline uint32_t		retain(){ return m_uRefs.fetch_add(1) + 1; }
+    virtual void release()
+    {
+        if (m_uRefs == 0) return;
+     
+        try {
+            uint32_t cnt = m_uRefs.fetch_sub(1);
+            if (cnt == 1) delete this;
+        }
+        catch(...) {
+            // nothing
+        }
+    }
 
-	virtual void	release()
-	{
-		if (m_uRefs == 0)
-			return;
-
-		try
-		{
-			uint32_t cnt = m_uRefs.fetch_sub(1);
-			if (cnt == 1)
-			{
-				delete this;
-			}
-		}
-		catch(...)
-		{
-
-		}
-	}
-
-	inline bool			isSingleRefs() { return m_uRefs == 1; }
-
-	inline uint32_t		retainCount() { return m_uRefs; }
+    inline bool	isSingleRefs() { return m_uRefs == 1; }
+    inline uint32_t	retainCount() { return m_uRefs; }
 
 protected:
-	volatile std::atomic<uint32_t>	m_uRefs;
+    volatile std::atomic<uint32_t>m_uRefs;
 };
 
 template<typename T>

@@ -29,259 +29,242 @@ NS_WTP_BEGIN
  *	所有WTSObject的派生类都可以使用
  *	用于平台内使用
  */
-class WTSArray : public WTSObject
-{
+class WTSArray : public WTSObject {
 public:
-	/*
-	 *	数组迭代器
-	 */
-	typedef std::vector<WTSObject*>::iterator Iterator;
-	typedef std::vector<WTSObject*>::const_iterator ConstIterator;
+    /*
+     *	数组迭代器
+     */
+    typedef std::vector<WTSObject*>::iterator Iterator;
+    typedef std::vector<WTSObject*>::const_iterator ConstIterator;
+    /***************************************************************/
+    typedef std::vector<WTSObject*>::reverse_iterator ReverseIterator;
+    typedef std::vector<WTSObject*>::const_reverse_iterator ConstReverseIterator;
+    /***************************************************************/
+    typedef std::function<bool(WTSObject*, WTSObject*)>	SortFunc;
 
-	typedef std::vector<WTSObject*>::reverse_iterator ReverseIterator;
-	typedef std::vector<WTSObject*>::const_reverse_iterator ConstReverseIterator;
+public:
+    /*
+     *	创建数组对象
+     */
+    static WTSArray* create()
+    {
+        WTSArray* pRet = new WTSArray();
+        return pRet;
+    }
 
-	typedef std::function<bool(WTSObject*, WTSObject*)>	SortFunc;
+    /*
+     *	读取数组长度
+     */
+    uint32_t size() const{ return (uint32_t) _vec.size(); }
 
-	/*
-	 *	创建数组对象
-	 */
-	static WTSArray* create()
-	{
-		WTSArray* pRet = new WTSArray();
-		return pRet;
-	}
+    /*
+     *	清空数组,并重新分配空间
+     *	调用该函数会预先分配长度
+     *	预先分配好的数据都是NULL
+     */
+    void resize(uint32_t _size)
+    {
+        if(!_vec.empty()) clear();
+        _vec.resize(_size, NULL);
+    }
 
-	/*
-	 *	读取数组长度
-	 */
-	uint32_t size() const{ return (uint32_t)_vec.size(); }
+    /*
+     *	读取数组指定位置的数据
+     *	对比grab接口,at接口只取得数据
+     *	不增加数据的引用计数
+     *	grab接口读取数据以后,增加引用计数
+     */
+    WTSObject* at(uint32_t idx)
+    {
+        if(idx < 0 || idx >= _vec.size()) return NULL;
+     
+        WTSObject* pRet = _vec.at(idx);
+        return pRet;
+    }
 
-	/*
-	 *	清空数组,并重新分配空间
-	 *	调用该函数会预先分配长度
-	 *	预先分配好的数据都是NULL
-	 */
-	void resize(uint32_t _size)
-	{
-		if(!_vec.empty())
-			clear();
+    uint32_t idxOf(WTSObject* obj)
+    {
+        if (obj == NULL) return -1;
+     
+        uint32_t idx = 0;
+        for (auto it = _vec.begin(); it != _vec.end(); ++it, ++idx)
+            if (obj == *it) return idx;
+        return -1;  // not found
+    }
 
-		_vec.resize(_size, NULL);
-	}
+    template<typename T> 
+    T* at(uint32_t idx)
+    {
+        if(idx < 0 || idx >= _vec.size()) return NULL;
+     
+        WTSObject* pRet = _vec.at(idx);
+        return static_cast<T*>(pRet);
+    }
 
-	/*
-	 *	读取数组指定位置的数据
-	 *	对比grab接口,at接口只取得数据
-	 *	不增加数据的引用计数
-	 *	grab接口读取数据以后,增加引用计数
-	 */
-	WTSObject* at(uint32_t idx)
-	{
-		if(idx <0 || idx >= _vec.size())
-			return NULL;
+    /*
+     *	[]操作符重载
+     *	用法同at函数
+     */
+    WTSObject* operator [](uint32_t idx)
+    {
+        if(idx < 0 || idx >= _vec.size()) return NULL;
+     
+        WTSObject* pRet = _vec.at(idx);
+        return pRet;
+    }
 
-		WTSObject* pRet = _vec.at(idx);
-		return pRet;
-	}
+    /*
+     *	读取数组指定位置的数据
+     *	增加引用计数
+     */
+    WTSObject* grab(uint32_t idx)
+    {
+        if(idx < 0 || idx >= _vec.size()) return NULL;
+     
+        WTSObject* pRet = _vec.at(idx);
+        if (pRet) pRet->retain();
+     
+        return pRet;
+    }
 
-	uint32_t idxOf(WTSObject* obj)
-	{
-		if (obj == NULL)
-			return -1;
+    /*
+     *	数组末尾追加数据
+     *	数据自动增加引用计数
+     */
+    void append(WTSObject* obj, bool bAutoRetain = true)
+    {
+        if (bAutoRetain && obj) obj->retain();
+     
+        _vec.emplace_back(obj);
+    }
 
-		uint32_t idx = 0;
-		auto it = _vec.begin();
-		for (; it != _vec.end(); it++, idx++)
-		{
-			if (obj == (*it))
-				return idx;
-		}
+    /*
+     *	设置指定位置的数据
+     *	如果该位置已有数据,则释放掉
+     *	新数据引用计数增加
+     */
+    void set(uint32_t idx, WTSObject* obj, bool bAutoRetain = true)
+    {
+        if(idx >= _vec.size() || obj == NULL) return;
+     
+        if(bAutoRetain) obj->retain();
 
-		return -1;
-	}
+        WTSObject* oldObj = _vec.at(idx);
+        if(oldObj) oldObj->release();
 
-	template<typename T> 
-	T* at(uint32_t idx)
-	{
-		if(idx <0 || idx >= _vec.size())
-			return NULL;
+        _vec[idx] = obj;
+    }
 
-		WTSObject* pRet = _vec.at(idx);
-		return static_cast<T*>(pRet);
-	}
+    void append(WTSArray* ay)
+    {
+        if(ay == NULL)
+            return;
 
-	/*
-	 *	[]操作符重载
-	 *	用法同at函数
-	 */
-	WTSObject* operator [](uint32_t idx)
-	{
-		if(idx <0 || idx >= _vec.size())
-			return NULL;
+        _vec.insert(_vec.end(), ay->_vec.begin(), ay->_vec.end());
+        ay->_vec.clear();
+    }
 
-		WTSObject* pRet = _vec.at(idx);
-		return pRet;
-	}
+    /*
+     *	数组清空
+     *	数组内所有数据释放引用
+     */
+    void clear()
+    {
+        {
+            std::vector<WTSObject*>::iterator it = _vec.begin();
+            for (; it != _vec.end(); it++)
+            {
+                WTSObject* obj = (*it);
+                if (obj)
+                    obj->release();
+            }
+        }
 
-	/*
-	 *	读取数组指定位置的数据
-	 *	增加引用计数
-	 */
-	WTSObject*	grab(uint32_t idx)
-	{
-		if(idx <0 || idx >= _vec.size())
-			return NULL;
+        _vec.clear();
+    }
 
-		WTSObject* pRet = _vec.at(idx);
-		if (pRet)
-			pRet->retain();
+    /*
+     *	释放数组对象,用法如WTSObject
+     *	不同的是,如果引用计数为1时
+     *	释放所有数据
+     */
+    virtual void release()
+    {
+        if (m_uRefs == 0)
+            return;
 
-		return pRet;
-	}
+        try
+        {
+            m_uRefs--;
+            if (m_uRefs == 0)
+            {
+                clear();
+                delete this;
+            }
+        }
+        catch(...)
+        {
 
-	/*
-	 *	数组末尾追加数据
-	 *	数据自动增加引用计数
-	 */
-	void append(WTSObject* obj, bool bAutoRetain = true)
-	{
-		if (bAutoRetain && obj)
-			obj->retain();
+        }
+    }
 
-		_vec.emplace_back(obj);
-	}
+    /*
+     *	取得数组对象起始位置的迭代器
+     */
+    Iterator begin()
+    {
+        return _vec.begin();
+    }
 
-	/*
-	 *	设置指定位置的数据
-	 *	如果该位置已有数据,则释放掉
-	 *	新数据引用计数增加
-	 */
-	void set(uint32_t idx, WTSObject* obj, bool bAutoRetain = true)
-	{
-		if(idx >= _vec.size() || obj == NULL)
-			return;
+    ConstIterator begin() const
+    {
+        return _vec.begin();
+    }
 
-		if(bAutoRetain)
-			obj->retain();
+    ReverseIterator rbegin()
+    {
+        return _vec.rbegin();
+    }
 
-		WTSObject* oldObj = _vec.at(idx);
-		if(oldObj)
-			oldObj->release();
+    ConstReverseIterator rbegin() const
+    {
+        return _vec.rbegin();
+    }
 
-		_vec[idx] = obj;
-	}
+    /*
+     *	取得数组对象末尾位置的迭代器
+     */
+    Iterator end()
+    {
+        return _vec.end();
+    }
 
-	void append(WTSArray* ay)
-	{
-		if(ay == NULL)
-			return;
+    ConstIterator end() const
+    {
+        return _vec.end();
+    }
 
-		_vec.insert(_vec.end(), ay->_vec.begin(), ay->_vec.end());
-		ay->_vec.clear();
-	}
+    ReverseIterator rend()
+    {
+        return _vec.rend();
+    }
 
-	/*
-	 *	数组清空
-	 *	数组内所有数据释放引用
-	 */
-	void clear()
-	{
-		{
-			std::vector<WTSObject*>::iterator it = _vec.begin();
-			for (; it != _vec.end(); it++)
-			{
-				WTSObject* obj = (*it);
-				if (obj)
-					obj->release();
-			}
-		}
-		
-		_vec.clear();
-	}
+    ConstReverseIterator rend() const
+    {
+        return _vec.rend();
+    }
 
-	/*
-	 *	释放数组对象,用法如WTSObject
-	 *	不同的是,如果引用计数为1时
-	 *	释放所有数据
-	 */
-	virtual void release()
-	{
-		if (m_uRefs == 0)
-			return;
-
-		try
-		{
-			m_uRefs--;
-			if (m_uRefs == 0)
-			{
-				clear();
-				delete this;
-			}
-		}
-		catch(...)
-		{
-
-		}
-	}
-
-	/*
-	 *	取得数组对象起始位置的迭代器
-	 */
-	Iterator begin()
-	{
-		return _vec.begin();
-	}
-
-	ConstIterator begin() const
-	{
-		return _vec.begin();
-	}
-
-	ReverseIterator rbegin()
-	{
-		return _vec.rbegin();
-	}
-
-	ConstReverseIterator rbegin() const
-	{
-		return _vec.rbegin();
-	}
-
-	/*
-	 *	取得数组对象末尾位置的迭代器
-	 */
-	Iterator end()
-	{
-		return _vec.end();
-	}
-
-	ConstIterator end() const
-	{
-		return _vec.end();
-	}
-
-	ReverseIterator rend()
-	{
-		return _vec.rend();
-	}
-
-	ConstReverseIterator rend() const
-	{
-		return _vec.rend();
-	}
-
-	void	sort(SortFunc func)
-	{
-		std::sort(_vec.begin(), _vec.end(), func);
-	}
+    void sort(SortFunc func)
+    {
+        std::sort(_vec.begin(), _vec.end(), func);
+    }
 
 protected:
-	WTSArray():_holding(false){}
-	virtual ~WTSArray(){}
+    WTSArray():_holding(false){}
+    virtual ~WTSArray(){}
 
-	std::vector<WTSObject*>	_vec;
-	std::atomic<bool>		_holding;
+    std::vector<WTSObject*>	_vec;
+    std::atomic<bool>		_holding;
 };
 
 
