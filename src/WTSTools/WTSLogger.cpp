@@ -200,21 +200,22 @@ void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
 	}
 }
 
-void WTSLogger::init(const char* propFile /* = "logcfg.json" */, bool isFile /* = true */, ILogHandler* handler /* = NULL */)
+/*
+ * @propFile: logcfg.json
+ * @isFile: true
+ * @ILogHandler: NULL
+ */
+void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
 {
-	if (m_bInited)
-		return;
-
-	if (isFile && !StdFile::exists(propFile))
-		return;
-
-	WTSVariant* cfg = isFile ? WTSCfgLoader::load_from_file(propFile) : WTSCfgLoader::load_from_content(propFile, false);
-	if (cfg == NULL)
-		return;
-
+	if (m_bInited) return;
+	if (isFile && !StdFile::exists(propFile)) return;
+    /***************************************************************/
+	WTSVariant* cfg = isFile ? WTSCfgLoader::load_from_file(propFile) 
+                             : WTSCfgLoader::load_from_content(propFile, false);
+	if (cfg == NULL) return;
+    //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 	auto keys = cfg->memberNames();
-	for (std::string& key : keys)
-	{
+	for (std::string& key : keys) {
 		WTSVariant* cfgItem = cfg->get(key.c_str());
 		if (key == DYN_PATTERN)
 		{
