@@ -31,12 +31,11 @@ public:
     }
 };
 
-class SpinLock
-{
+class SpinLock {
 public:
 	SpinLock(SpinMutex& mtx) :_mutex(mtx) { _mutex.lock(); }
-	SpinLock(const SpinLock&) = delete;
-	SpinLock& operator=(const SpinLock&) = delete;
+	SpinLock(const SpinLock&) = delete; // no obj-copy
+	SpinLock& operator=(const SpinLock&) = delete; // no obj-copy
 	~SpinLock() { _mutex.unlock(); }
 
 private:

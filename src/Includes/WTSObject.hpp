@@ -45,19 +45,18 @@ protected:
 };
 
 template<typename T>
-class WTSPoolObject : public WTSObject
-{
+class WTSPoolObject : public WTSObject {
 private:
 	typedef ObjectPool<T> MyPool;
-	MyPool*			_pool;
-	SpinMutex*	_mutex;
+	MyPool*	_pool;
+	SpinMutex* _mutex;
 
 public:
-	WTSPoolObject():_pool(NULL){}
+	WTSPoolObject() :_pool(NULL) {}
 	virtual ~WTSPoolObject() {}
 
 public:
-	static T*	allocate()
+	static T* allocate()
 	{
 		/*
 		 *	By Wesley @ 2022.06.14
