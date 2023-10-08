@@ -289,13 +289,13 @@ public:
 
 	/** Method for standardising paths - use forward slashes only, end with slash.
 	*/
-	static inline std::string standardisePath( const std::string &init, bool bIsDir = true)
+	static inline std::string standardisePath(const std::string& init, bool bIsDir = true)
 	{
 		std::string path = init;
-
-		std::replace( path.begin(), path.end(), '\\', '/' );
-		if (path[path.length() - 1] != '/' && bIsDir)
-			path += '/';
+#ifdef _WIN32
+		std::replace(path.begin(), path.end(), '\\', '/');
+#endif
+		if (path[path.length()-1] != '/' && bIsDir) path += '/';
 
 		return std::move(path);
 	}
