@@ -142,14 +142,10 @@ public:
 
     inline bool has(const char* key) const
     {
-        if (_type != VT_Object)
-            return false;
-
+        if (_type != VT_Object) return false;
+     
         auto it = _value._map->find(key);
-        if (it == _value._map->end())
-            return false;
-
-        return true;
+        return it != _value._map->end();
     }
 
     inline int32_t asInt32() const
