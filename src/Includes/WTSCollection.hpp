@@ -523,160 +523,147 @@ protected:
  *	所有WTSObject的派生类都适用
  */
 template <typename T, class Hash = std::hash<T>>
-class WTSHashMap : public WTSObject
-{
-protected:
-	WTSHashMap() {}
-	virtual ~WTSHashMap() {}
-
-	//std::unordered_map<T, WTSObject*>	_map;
-	wt_hashmap<T, WTSObject*, Hash>	_map;
+class WTSHashMap : public WTSObject {
+protected:  
+    WTSHashMap() {}     // it cannot be instantiated directly, but by create()
+    virtual ~WTSHashMap() {} // it cannot be deleted directly, but by release()
+                             //////////////////////////////////////////////////////////////////////////
+                             //std::unordered_map<T, WTSObject*>	_map;
+    typedef wt_hashmap<T, WTSObject*, Hash>	_MyMap;
+    _MyMap _map;
 
 public:
-	/*
-	 *	容器迭代器的定义
-	 */
-	typedef wt_hashmap<T, WTSObject*, Hash>		_MyType;
-	typedef typename _MyType::const_iterator	ConstIterator;
+    /*
+     *	容器迭代器的定义
+     */
+    typedef typename _MyMap::const_iterator	ConstIterator;
 
-	/*
-	 *	创建map容器
-	 */
-	static WTSHashMap<T, Hash>*	create()
-	{
-		WTSHashMap<T, Hash>* pRet = new WTSHashMap<T, Hash>();
-		return pRet;
-	}
+    /*
+     *	创建map容器
+     */
+    static WTSHashMap<T, Hash>*	create()
+    {
+        WTSHashMap<T, Hash>* pRet = new WTSHashMap<T, Hash>();
+        return pRet;
+    }
 
-	/*
-	 *	返回map容器的大小
-	 */
-	inline uint32_t size() const{return (uint32_t)_map.size();}
+    /*
+     *	返回map容器的大小
+     */
+    inline uint32_t size() const 
+    {
+        return (uint32_t) _map.size(); 
+    }
 
-	/*
-	 *	读取指定key对应的数据
-	 *	不增加数据的引用计数
-	 *	没有则返回NULL
-	 */
-	inline WTSObject* get(const T &_key)
-	{
-		auto it = _map.find(_key);
-		if(it == _map.end())
-			return NULL;
+    /*
+     *	读取指定key对应的数据
+     *	不增加数据的引用计数
+     *	没有则返回NULL
+     */
+    inline WTSObject* get(const T& _key)
+    {
+        auto it = _map.find(_key);
+        if(it == _map.end()) return NULL;
+        // it->first is the key, it->second is the value 
+        WTSObject* pRet = it->second;
+        return pRet;
+    }
 
-		WTSObject* pRet = it->second;
-		return pRet;
-	}
+    /*
+     *	读取指定key对应的数据
+     *	增加数据的引用计数
+     *	没有则返回NULL
+     */
+    inline WTSObject* grab(const T& _key)
+    {
+        auto it = _map.find(_key);
+        if(it == _map.end()) return NULL;
+     
+        WTSObject* pRet = it->second;
+        pRet->retain();
+        return pRet;
+    }
 
-	/*
-	 *	读取指定key对应的数据
-	 *	增加数据的引用计数
-	 *	没有则返回NULL
-	 */
-	inline WTSObject* grab(const T &_key)
-	{
-		auto it = _map.find(_key);
-		if(it == _map.end())
-			return NULL;
+    /*
+     *	新增一个数据,并增加数据引用计数
+     *	如果key存在,则将原有数据释放
+     */
+    inline void add(const T& _key, WTSObject* obj, bool bAutoRetain = true)
+    {
+        if (bAutoRetain && obj) obj->retain();
+     
+        WTSObject* pOldObj = NULL;
+        auto it = _map.find(_key);
+        if (it != _map.end()) pOldObj = it->second;
+        if (pOldObj) pOldObj->release();
+     
+        _map[_key] = obj;
+    }
 
-		WTSObject* pRet = it->second;
-		pRet->retain();
-		return pRet;
-	}
+    /*
+     *	根据key删除一个数据
+     *	如果key存在,则对应数据引用计数-1
+     */
+    inline void remove(const T& _key)
+    {
+        auto it = _map.find(_key);
+        if(it != _map.end()) {
+            it->second->release();
+            _map.erase(it);
+        }
+    }
 
-	/*
-	 *	新增一个数据,并增加数据引用计数
-	 *	如果key存在,则将原有数据释放
-	 */
-	inline void add(const T &_key, WTSObject* obj, bool bAutoRetain = true)
-	{
-		if (bAutoRetain && obj)
-			obj->retain();
+    /*
+     *	获取容器起始位置的迭代器
+     */
+    inline ConstIterator begin() const
+    {
+        return _map.begin();
+    }
 
-		WTSObject* pOldObj = NULL;
-		auto it = _map.find(_key);
-		if (it != _map.end())
-		{
-			pOldObj = it->second;
-		}
+    /*
+     *	获取容易末尾位置的迭代器
+     */
+    inline ConstIterator end() const
+    {
+        return _map.end();
+    }
 
-		_map[_key] = obj;
+    inline ConstIterator find(const T& key) const
+    {
+        return _map.find(key);
+    }
 
-		if (pOldObj) pOldObj->release();
-	}
+    /*
+     *	清空容器
+     *	容器内所有数据引用计数-1
+     */
+    inline void clear()
+    {
+        for (ConstIterator it = _map.begin(); it != _map.end(); ++it)
+            it->second->release();
+        _map.clear();
+    }
 
-	/*
-	 *	根据key删除一个数据
-	 *	如果key存在,则对应数据引用计数-1
-	 */
-	inline void remove(const T &_key)
-	{
-		auto it = _map.find(_key);
-		if(it != _map.end())
-		{
-			it->second->release();
-			_map.erase(it);
-		}
-	}
-
-	/*
-	 *	获取容器起始位置的迭代器
-	 */
-	inline ConstIterator begin() const
-	{
-		return _map.begin();
-	}
-
-	/*
-	 *	获取容易末尾位置的迭代器
-	 */
-	inline ConstIterator end() const
-	{
-		return _map.end();
-	}
-
-	inline ConstIterator find(const T& key) const
-	{
-		return _map.find(key);
-	}
-
-	/*
-	 *	清空容器
-	 *	容器内所有数据引用计数-1
-	 */
-	inline void clear()
-	{
-		ConstIterator it = _map.begin();
-		for(; it != _map.end(); it++)
-		{
-			it->second->release();
-		}
-		_map.clear();
-	}
-
-	/*
-	 *	释放容器对象
-	 *	如果容器引用计数为1,则清空所有数据
-	 */
-	virtual void release()
-	{
-		if (m_uRefs == 0)
-			return;
-
-		try
-		{
-			m_uRefs--;
-			if (m_uRefs == 0)
-			{
-				clear();
-				delete this;
-			}
-		}
-		catch (...)
-		{
-
-		}
-	}
+    /*
+     *	释放容器对象
+     *	如果容器引用计数为1,则清空所有数据
+     */
+    virtual void release()
+    {
+        if (!m_uRefs) return;
+        
+        try {
+            uint32_t cnt = m_uRefs.fetch_sub(1);
+            if (cnt == 1) {
+                clear();
+                delete this;
+            }
+        }
+        catch (...) {
+            // nothing
+        }
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////
