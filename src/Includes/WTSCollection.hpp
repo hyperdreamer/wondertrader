@@ -30,6 +30,10 @@ NS_WTP_BEGIN
  *	用于平台内使用
  */
 class WTSArray : public WTSObject {
+protected:
+    WTSArray() :_holding(false) {}
+    virtual ~WTSArray() {}
+
 public:
     /*
      *	数组迭代器
@@ -42,7 +46,6 @@ public:
     /***************************************************************/
     typedef std::function<bool(WTSObject*, WTSObject*)>	SortFunc;
 
-public:
     /*
      *	创建数组对象
      */
@@ -249,11 +252,8 @@ public:
     }
 
 protected:
-    WTSArray():_holding(false){}
-    virtual ~WTSArray(){}
-
     std::vector<WTSObject*>	_vec;
-    std::atomic<bool>		_holding;
+    std::atomic<bool> _holding;
 };
 
 
@@ -265,259 +265,261 @@ protected:
  *	所有WTSObject的派生类都适用
  */
 template <class T>
-class WTSMap : public WTSObject
-{
-public:
-	/*
-	 *	容器迭代器的定义
-	 */
-	typedef typename std::map<T, WTSObject*>	_MyType;
-	typedef typename _MyType::iterator			Iterator;
-	typedef typename _MyType::const_iterator	ConstIterator;
-	typedef typename _MyType::reverse_iterator			ReverseIterator;
-	typedef typename _MyType::const_reverse_iterator	ConstReverseIterator;
-
-	/*
-	 *	创建map容器
-	 */
-	static WTSMap<T>*	create()
-	{
-		WTSMap<T>* pRet = new WTSMap<T>();
-		return pRet;
-	}
-
-	/*
-	 *	返回map容器的大小
-	 */
-	uint32_t size() const{ return (uint32_t)_map.size(); }
-
-	/*
-	 *	读取指定key对应的数据
-	 *	不增加数据的引用计数
-	 *	没有则返回NULL
-	 */
-	WTSObject* get(const T &_key)
-	{
-		Iterator it = _map.find(_key);
-		if(it == _map.end())
-			return NULL;
-
-		WTSObject* pRet = it->second;
-		return pRet;
-	}
-
-	/*
-	 *	[]操作符重载
-	 *	用法同get函数
-	 */
-	WTSObject* operator[](const T &_key)
-	{
-		Iterator it = _map.find(_key);
-		if(it == _map.end())
-			return NULL;
-
-		WTSObject* pRet = it->second;
-		return pRet;
-	}
-
-	/*
-	 *	读取指定key对应的数据
-	 *	增加数据的引用计数
-	 *	没有则返回NULL
-	 */
-	WTSObject* grab(const T &_key)
-	{
-		Iterator it = _map.find(_key);
-		if(it == _map.end())
-			return NULL;
-
-		WTSObject* pRet = it->second;
-		if (pRet)
-			pRet->retain();
-
-		return pRet;
-	}
-
-	/*
-	 *	新增一个数据,并增加数据引用计数
-	 *	如果key存在,则将原有数据释放
-	 */
-	void add(T _key, WTSObject* obj, bool bAutoRetain = true)
-	{
-		if(bAutoRetain && obj)
-			obj->retain();
-
-		WTSObject* pOldObj = NULL;
-		Iterator it = _map.find(_key);
-		if(it != _map.end())
-		{
-			pOldObj = it->second;
-		}
-
-		_map[_key] = obj;
-
-		if (pOldObj) pOldObj->release();
-	}
-
-	/*
-	 *	根据key删除一个数据
-	 *	如果key存在,则对应数据引用计数-1
-	 */
-	void remove(T _key)
-	{
-		Iterator it = _map.find(_key);
-		if(it != _map.end())
-		{
-			WTSObject* obj = it->second;
-			_map.erase(it);
-			if (obj) obj->release();
-		}
-	}
-
-	/*
-	 *	获取容器起始位置的迭代器
-	 */
-	Iterator begin()
-	{
-		return _map.begin();
-	}
-
-	ConstIterator begin() const
-	{
-		return _map.begin();
-	}
-
-	/*
-	 *	获取容易末尾位置的迭代器
-	 */
-	Iterator end()
-	{
-		return _map.end();
-	}
-
-	ConstIterator end() const
-	{
-		return _map.end();
-	}
-
-	/*
-	 *	获取容器起始位置的迭代器
-	 */
-	ReverseIterator rbegin()
-	{
-		return _map.rbegin();
-	}
-
-	ConstReverseIterator rbegin() const
-	{
-		return _map.rbegin();
-	}
-
-	/*
-	 *	获取容易末尾位置的迭代器
-	 */
-	ReverseIterator rend()
-	{
-		return _map.rend();
-	}
-
-	ConstReverseIterator rend() const
-	{
-		return _map.rend();
-	}
-
-	Iterator find(const T& key)
-	{
-		return _map.find(key);
-	}
-
-	ConstIterator find(const T& key) const
-	{
-		return _map.find(key);
-	}
-
-	void erase(ConstIterator it)
-	{
-		_map.erase(it);
-	}
-
-	Iterator lower_bound(const T& key)
-	{
-		 return _map.lower_bound(key);
-	}
-
-	ConstIterator lower_bound(const T& key) const
-	{
-		return _map.lower_bound(key);
-	}
-
-	Iterator upper_bound(const T& key)
-	{
-	 	 return _map.upper_bound(key);
-	}
-	 
-	ConstIterator upper_bound(const T& key) const
-	{
-		return _map.upper_bound(key);
-	}
-
-	WTSObject* last() 
-	{
-		if(_map.empty())
-			return NULL;
-		
-		return _map.rbegin()->second;
-	}
-	
-
-	/*
-	 *	清空容器
-	 *	容器内所有数据引用计数-1
-	 */
-	void clear()
-	{
-		Iterator it = _map.begin();
-		for(; it != _map.end(); it++)
-		{
-			it->second->release();
-		}
-		_map.clear();
-	}
-
-	/*
-	 *	释放容器对象
-	 *	如果容器引用计数为1,则清空所有数据
-	 */
-	virtual void release()
-	{
-		if (m_uRefs == 0)
-			return;
-
-		try
-		{
-			m_uRefs--;
-			if (m_uRefs == 0)
-			{
-				clear();
-				delete this;
-			}
-		}
-		catch(...)
-		{
-
-		}
-	}
+class WTSMap : public WTSObject {
+protected:
+    WTSMap() {}
+    ~WTSMap() {}
 
 protected:
-	WTSMap(){}
-	~WTSMap(){}
+    typedef typename std::map<T, WTSObject*> _MapType;
 
-	std::map<T, WTSObject*>	_map;
+public:
+    /*
+     *	容器迭代器的定义
+     */
+    typedef typename _MapType::iterator			        Iterator;
+    typedef typename _MapType::const_iterator	        ConstIterator;
+    typedef typename _MapType::reverse_iterator		    ReverseIterator;
+    typedef typename _MapType::const_reverse_iterator	ConstReverseIterator;
+
+    /*
+     *	创建map容器
+     */
+    static WTSMap<T>*	create()
+    {
+        WTSMap<T>* pRet = new WTSMap<T>();
+        return pRet;
+    }
+
+    /*
+     *	返回map容器的大小
+     */
+    uint32_t size() const{ return (uint32_t)_map.size(); }
+
+    /*
+     *	读取指定key对应的数据
+     *	不增加数据的引用计数
+     *	没有则返回NULL
+     */
+    WTSObject* get(const T &_key)
+    {
+        Iterator it = _map.find(_key);
+        if(it == _map.end())
+            return NULL;
+
+        WTSObject* pRet = it->second;
+        return pRet;
+    }
+
+    /*
+     *	[]操作符重载
+     *	用法同get函数
+     */
+    WTSObject* operator[](const T &_key)
+    {
+        Iterator it = _map.find(_key);
+        if(it == _map.end())
+            return NULL;
+
+        WTSObject* pRet = it->second;
+        return pRet;
+    }
+
+    /*
+     *	读取指定key对应的数据
+     *	增加数据的引用计数
+     *	没有则返回NULL
+     */
+    WTSObject* grab(const T &_key)
+    {
+        Iterator it = _map.find(_key);
+        if(it == _map.end())
+            return NULL;
+
+        WTSObject* pRet = it->second;
+        if (pRet)
+            pRet->retain();
+
+        return pRet;
+    }
+
+    /*
+     *	新增一个数据,并增加数据引用计数
+     *	如果key存在,则将原有数据释放
+     */
+    void add(T _key, WTSObject* obj, bool bAutoRetain = true)
+    {
+        if(bAutoRetain && obj)
+            obj->retain();
+
+        WTSObject* pOldObj = NULL;
+        Iterator it = _map.find(_key);
+        if(it != _map.end())
+        {
+            pOldObj = it->second;
+        }
+
+        _map[_key] = obj;
+
+        if (pOldObj) pOldObj->release();
+    }
+
+    /*
+     *	根据key删除一个数据
+     *	如果key存在,则对应数据引用计数-1
+     */
+    void remove(T _key)
+    {
+        Iterator it = _map.find(_key);
+        if(it != _map.end())
+        {
+            WTSObject* obj = it->second;
+            _map.erase(it);
+            if (obj) obj->release();
+        }
+    }
+
+    /*
+     *	获取容器起始位置的迭代器
+     */
+    Iterator begin()
+    {
+        return _map.begin();
+    }
+
+    ConstIterator begin() const
+    {
+        return _map.begin();
+    }
+
+    /*
+     *	获取容易末尾位置的迭代器
+     */
+    Iterator end()
+    {
+        return _map.end();
+    }
+
+    ConstIterator end() const
+    {
+        return _map.end();
+    }
+
+    /*
+     *	获取容器起始位置的迭代器
+     */
+    ReverseIterator rbegin()
+    {
+        return _map.rbegin();
+    }
+
+    ConstReverseIterator rbegin() const
+    {
+        return _map.rbegin();
+    }
+
+    /*
+     *	获取容易末尾位置的迭代器
+     */
+    ReverseIterator rend()
+    {
+        return _map.rend();
+    }
+
+    ConstReverseIterator rend() const
+    {
+        return _map.rend();
+    }
+
+    Iterator find(const T& key)
+    {
+        return _map.find(key);
+    }
+
+    ConstIterator find(const T& key) const
+    {
+        return _map.find(key);
+    }
+
+    void erase(ConstIterator it)
+    {
+        _map.erase(it);
+    }
+
+    Iterator lower_bound(const T& key)
+    {
+        return _map.lower_bound(key);
+    }
+
+    ConstIterator lower_bound(const T& key) const
+    {
+        return _map.lower_bound(key);
+    }
+
+    Iterator upper_bound(const T& key)
+    {
+        return _map.upper_bound(key);
+    }
+
+    ConstIterator upper_bound(const T& key) const
+    {
+        return _map.upper_bound(key);
+    }
+
+    WTSObject* last() 
+    {
+        if(_map.empty())
+            return NULL;
+
+        return _map.rbegin()->second;
+    }
+
+
+    /*
+     *	清空容器
+     *	容器内所有数据引用计数-1
+     */
+    void clear()
+    {
+        Iterator it = _map.begin();
+        for(; it != _map.end(); it++)
+        {
+            it->second->release();
+        }
+        _map.clear();
+    }
+
+    /*
+     *	释放容器对象
+     *	如果容器引用计数为1,则清空所有数据
+     */
+    virtual void release()
+    {
+        if (m_uRefs == 0)
+            return;
+
+        try
+        {
+            m_uRefs--;
+            if (m_uRefs == 0)
+            {
+                clear();
+                delete this;
+            }
+        }
+        catch(...)
+        {
+
+        }
+    }
+
+protected:
+    std::map<T, WTSObject*>	_map;
 };
 
 /*
  *	map容器
- *	内部采用std:map实现
+ *	内部采用ankerl::unordered_dense::map实现
  *	模版类型为key类型
  *	数据使用WTSObject指针对象
  *	所有WTSObject的派生类都适用
@@ -527,16 +529,15 @@ class WTSHashMap : public WTSObject {
 protected:  
     WTSHashMap() {}     // it cannot be instantiated directly, but by create()
     virtual ~WTSHashMap() {} // it cannot be deleted directly, but by release()
-                             //////////////////////////////////////////////////////////////////////////
-                             //std::unordered_map<T, WTSObject*>	_map;
-    typedef wt_hashmap<T, WTSObject*, Hash>	_MyMap;
-    _MyMap _map;
+
+protected:
+    typedef wt_hashmap<T, WTSObject*, Hash>	_MapType;
 
 public:
     /*
      *	容器迭代器的定义
      */
-    typedef typename _MyMap::const_iterator	ConstIterator;
+    typedef typename _MapType::const_iterator	ConstIterator;
 
     /*
      *	创建map容器
@@ -664,6 +665,10 @@ public:
             // nothing
         }
     }
+
+protected:
+    //std::unordered_map<T, WTSObject*>	_map;
+    _MapType _map;
 };
 
 //////////////////////////////////////////////////////////////////////////
