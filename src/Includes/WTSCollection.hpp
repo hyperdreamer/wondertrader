@@ -84,7 +84,7 @@ public:
 
     uint32_t idxOf(WTSObject* obj)
     {
-        if (obj == NULL) return -1;
+        if (!obj) return -1;
      
         uint32_t idx = 0;
         for (auto it = _vec.begin(); it != _vec.end(); ++it, ++idx)
@@ -140,26 +140,24 @@ public:
 
     /*
      *	设置指定位置的数据
-     *	如果该位置已有数据,则释放掉
-     *	新数据引用计数增加
+     *	如果该位置已有数据,则释放掉新数据引用计数增加
      */
     void set(uint32_t idx, WTSObject* obj, bool bAutoRetain = true)
     {
-        if(idx >= _vec.size() || obj == NULL) return;
+        if(idx >= _vec.size() || !obj) return;
      
         if(bAutoRetain) obj->retain();
-
+     
         WTSObject* oldObj = _vec.at(idx);
         if(oldObj) oldObj->release();
-
+      
         _vec[idx] = obj;
     }
 
     void append(WTSArray* ay)
     {
-        if(ay == NULL)
-            return;
-
+        if(!ay) return;
+     
         _vec.insert(_vec.end(), ay->_vec.begin(), ay->_vec.end());
         ay->_vec.clear();
     }
@@ -170,41 +168,32 @@ public:
      */
     void clear()
     {
-        {
-            std::vector<WTSObject*>::iterator it = _vec.begin();
-            for (; it != _vec.end(); it++)
-            {
-                WTSObject* obj = (*it);
-                if (obj)
-                    obj->release();
-            }
+        std::vector<WTSObject*>::iterator it;
+        for (it = _vec.begin(); it != _vec.end(); ++it) {
+            WTSObject* obj = *it;
+            if (obj) obj->release();
         }
-
+     
         _vec.clear();
     }
 
     /*
      *	释放数组对象,用法如WTSObject
-     *	不同的是,如果引用计数为1时
-     *	释放所有数据
+     *	不同的是,如果引用计数为1时释放所有数据
      */
     virtual void release()
     {
-        if (m_uRefs == 0)
-            return;
-
-        try
-        {
-            m_uRefs--;
-            if (m_uRefs == 0)
-            {
+        if (!m_uRefs) return;
+     
+        try {
+            uint32_t cnt = m_uRefs.fetch_sub(1);
+            if (cnt == 1) {
                 clear();
                 delete this;
             }
         }
-        catch(...)
-        {
-
+        catch(...) {
+            // nothing
         }
     }
 
