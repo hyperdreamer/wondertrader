@@ -41,7 +41,7 @@ public:
     inline uint32_t	retainCount() { return m_uRefs; }
 
 protected:
-    volatile std::atomic<uint32_t>m_uRefs;
+    volatile std::atomic<uint32_t> m_uRefs;
 };
 
 template<typename T>
