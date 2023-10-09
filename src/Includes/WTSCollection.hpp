@@ -67,7 +67,7 @@ public:
      */
     void resize(uint32_t _size)
     {
-        if(!_vec.empty()) clear();
+        if (!_vec.empty()) clear();
         _vec.resize(_size, NULL);
     }
 
@@ -79,7 +79,7 @@ public:
      */
     WTSObject* at(uint32_t idx)
     {
-        if(idx < 0 || idx >= _vec.size()) return NULL;
+        if (idx < 0 || idx >= _vec.size()) return NULL;
      
         WTSObject* pRet = _vec.at(idx);
         return pRet;
@@ -98,7 +98,7 @@ public:
     template<typename T> 
     T* at(uint32_t idx)
     {
-        if(idx < 0 || idx >= _vec.size()) return NULL;
+        if (idx < 0 || idx >= _vec.size()) return NULL;
      
         WTSObject* pRet = _vec.at(idx);
         return static_cast<T*>(pRet);
@@ -110,7 +110,7 @@ public:
      */
     WTSObject* operator [](uint32_t idx)
     {
-        if(idx < 0 || idx >= _vec.size()) return NULL;
+        if (idx < 0 || idx >= _vec.size()) return NULL;
      
         WTSObject* pRet = _vec.at(idx);
         return pRet;
@@ -122,7 +122,7 @@ public:
      */
     WTSObject* grab(uint32_t idx)
     {
-        if(idx < 0 || idx >= _vec.size()) return NULL;
+        if (idx < 0 || idx >= _vec.size()) return NULL;
      
         WTSObject* pRet = _vec.at(idx);
         if (pRet) pRet->retain();
@@ -147,19 +147,19 @@ public:
      */
     void set(uint32_t idx, WTSObject* obj, bool bAutoRetain = true)
     {
-        if(idx >= _vec.size() || !obj) return;
+        if (idx >= _vec.size() || !obj) return;
      
-        if(bAutoRetain) obj->retain();
+        if (bAutoRetain) obj->retain();
      
         WTSObject* oldObj = _vec.at(idx);
-        if(oldObj) oldObj->release();
+        if (oldObj) oldObj->release();
       
         _vec[idx] = obj;
     }
 
     void append(WTSArray* ay)
     {
-        if(!ay) return;
+        if (!ay) return;
      
         _vec.insert(_vec.end(), ay->_vec.begin(), ay->_vec.end());
         ay->_vec.clear();
@@ -285,7 +285,7 @@ public:
     /*
      *	创建map容器
      */
-    static WTSMap<T>*	create()
+    static WTSMap<T>* create()
     {
         WTSMap<T>* pRet = new WTSMap<T>();
         return pRet;
@@ -294,19 +294,21 @@ public:
     /*
      *	返回map容器的大小
      */
-    uint32_t size() const{ return (uint32_t)_map.size(); }
+    inline uint32_t size() const 
+    {
+        return (uint32_t) _map.size(); 
+    }
 
     /*
      *	读取指定key对应的数据
      *	不增加数据的引用计数
      *	没有则返回NULL
      */
-    WTSObject* get(const T &_key)
+    inline WTSObject* get(const T& _key)
     {
         Iterator it = _map.find(_key);
-        if(it == _map.end())
-            return NULL;
-
+        if (it == _map.end()) return NULL;
+     
         WTSObject* pRet = it->second;
         return pRet;
     }
@@ -315,14 +317,9 @@ public:
      *	[]操作符重载
      *	用法同get函数
      */
-    WTSObject* operator[](const T &_key)
+    WTSObject* operator[](const T& _key)
     {
-        Iterator it = _map.find(_key);
-        if(it == _map.end())
-            return NULL;
-
-        WTSObject* pRet = it->second;
-        return pRet;
+        return get(_key);
     }
 
     /*
@@ -330,16 +327,13 @@ public:
      *	增加数据的引用计数
      *	没有则返回NULL
      */
-    WTSObject* grab(const T &_key)
+    inline WTSObject* grab(const T& _key)
     {
         Iterator it = _map.find(_key);
-        if(it == _map.end())
-            return NULL;
-
+        if (it == _map.end()) return NULL;
+     
         WTSObject* pRet = it->second;
-        if (pRet)
-            pRet->retain();
-
+        if (pRet) pRet->retain();
         return pRet;
     }
 
@@ -347,32 +341,26 @@ public:
      *	新增一个数据,并增加数据引用计数
      *	如果key存在,则将原有数据释放
      */
-    void add(T _key, WTSObject* obj, bool bAutoRetain = true)
+    inline void add(T _key, WTSObject* obj, bool bAutoRetain = true)
     {
-        if(bAutoRetain && obj)
-            obj->retain();
-
+        if (bAutoRetain && obj) obj->retain();
+     
         WTSObject* pOldObj = NULL;
         Iterator it = _map.find(_key);
-        if(it != _map.end())
-        {
-            pOldObj = it->second;
-        }
-
-        _map[_key] = obj;
-
+        if (it != _map.end()) pOldObj = it->second;
         if (pOldObj) pOldObj->release();
+     
+        _map[_key] = obj;   // obj can be NULL
     }
 
     /*
      *	根据key删除一个数据
      *	如果key存在,则对应数据引用计数-1
      */
-    void remove(T _key)
+    inline void remove(const T& _key)
     {
         Iterator it = _map.find(_key);
-        if(it != _map.end())
-        {
+        if (it != _map.end()) {
             WTSObject* obj = it->second;
             _map.erase(it);
             if (obj) obj->release();
@@ -382,12 +370,12 @@ public:
     /*
      *	获取容器起始位置的迭代器
      */
-    Iterator begin()
+    inline Iterator begin()
     {
         return _map.begin();
     }
 
-    ConstIterator begin() const
+    inline ConstIterator begin() const
     {
         return _map.begin();
     }
@@ -395,12 +383,12 @@ public:
     /*
      *	获取容易末尾位置的迭代器
      */
-    Iterator end()
+    inline Iterator end()
     {
         return _map.end();
     }
 
-    ConstIterator end() const
+    inline ConstIterator end() const
     {
         return _map.end();
     }
@@ -408,12 +396,12 @@ public:
     /*
      *	获取容器起始位置的迭代器
      */
-    ReverseIterator rbegin()
+    inline ReverseIterator rbegin()
     {
         return _map.rbegin();
     }
 
-    ConstReverseIterator rbegin() const
+    inline ConstReverseIterator rbegin() const
     {
         return _map.rbegin();
     }
@@ -421,70 +409,66 @@ public:
     /*
      *	获取容易末尾位置的迭代器
      */
-    ReverseIterator rend()
+    inline ReverseIterator rend()
     {
         return _map.rend();
     }
 
-    ConstReverseIterator rend() const
+    inline ConstReverseIterator rend() const
     {
         return _map.rend();
     }
 
-    Iterator find(const T& key)
+    inline Iterator find(const T& key)
     {
         return _map.find(key);
     }
 
-    ConstIterator find(const T& key) const
+    inline ConstIterator find(const T& key) const
     {
         return _map.find(key);
     }
 
-    void erase(ConstIterator it)
+    inline void erase(ConstIterator it)
     {
         _map.erase(it);
     }
 
-    Iterator lower_bound(const T& key)
+    inline Iterator lower_bound(const T& key)
     {
         return _map.lower_bound(key);
     }
 
-    ConstIterator lower_bound(const T& key) const
+    inline ConstIterator lower_bound(const T& key) const
     {
         return _map.lower_bound(key);
     }
 
-    Iterator upper_bound(const T& key)
+    inline Iterator upper_bound(const T& key)
     {
         return _map.upper_bound(key);
     }
 
-    ConstIterator upper_bound(const T& key) const
+    inline ConstIterator upper_bound(const T& key) const
     {
         return _map.upper_bound(key);
     }
 
-    WTSObject* last() 
+    inline WTSObject* last() 
     {
-        if(_map.empty())
-            return NULL;
-
+        if (_map.empty()) return NULL;
         return _map.rbegin()->second;
     }
-
 
     /*
      *	清空容器
      *	容器内所有数据引用计数-1
      */
-    void clear()
+    inline void clear()
     {
-        Iterator it = _map.begin();
-        for(; it != _map.end(); it++)
-        {
-            it->second->release();
+        for(Iterator it = _map.begin(); it != _map.end(); ++it) {
+            WTSObject* obj = it->second;
+            if (obj) obj->release();
         }
         _map.clear();
     }
@@ -495,21 +479,17 @@ public:
      */
     virtual void release()
     {
-        if (m_uRefs == 0)
-            return;
-
-        try
-        {
-            m_uRefs--;
-            if (m_uRefs == 0)
-            {
+        if (!m_uRefs) return;
+     
+        try {
+            uint32_t cnt = m_uRefs.fetch_sub(1);
+            if (cnt == 1) {
                 clear();
                 delete this;
             }
         }
-        catch(...)
-        {
-
+        catch (...) {
+            // nothing
         }
     }
 
@@ -537,7 +517,7 @@ public:
     /*
      *	容器迭代器的定义
      */
-    typedef typename _MapType::const_iterator	ConstIterator;
+    typedef typename _MapType::const_iterator ConstIterator;
 
     /*
      *	创建map容器
@@ -564,10 +544,19 @@ public:
     inline WTSObject* get(const T& _key)
     {
         auto it = _map.find(_key);
-        if(it == _map.end()) return NULL;
+        if (it == _map.end()) return NULL;
         // it->first is the key, it->second is the value 
         WTSObject* pRet = it->second;
         return pRet;
+    }
+
+    /*
+     *	[]操作符重载
+     *	用法同get函数
+     */
+    WTSObject* operator[](const T& _key)
+    {
+        return get(_key);
     }
 
     /*
@@ -578,7 +567,7 @@ public:
     inline WTSObject* grab(const T& _key)
     {
         auto it = _map.find(_key);
-        if(it == _map.end()) return NULL;
+        if (it == _map.end()) return NULL;
      
         WTSObject* pRet = it->second;
         pRet->retain();
@@ -598,7 +587,7 @@ public:
         if (it != _map.end()) pOldObj = it->second;
         if (pOldObj) pOldObj->release();
      
-        _map[_key] = obj;
+        _map[_key] = obj;   // obj can be NULL
     }
 
     /*
@@ -608,9 +597,10 @@ public:
     inline void remove(const T& _key)
     {
         auto it = _map.find(_key);
-        if(it != _map.end()) {
-            it->second->release();
+        if (it != _map.end()) {
+            WTSObject* obj = it->second;
             _map.erase(it);
+            if (obj) obj->release();
         }
     }
 
@@ -641,8 +631,10 @@ public:
      */
     inline void clear()
     {
-        for (ConstIterator it = _map.begin(); it != _map.end(); ++it)
-            it->second->release();
+        for (auto it = _map.begin(); it != _map.end(); ++it) {
+            WTSObject* obj = it->second;
+            if (obj) obj->release();
+        }
         _map.clear();
     }
 
@@ -700,11 +692,11 @@ public:
 
 	WTSObject* front(bool bRetain = true)
 	{
-		if(_queue.empty())
+		if (_queue.empty())
 			return NULL;
 
 		WTSObject* obj = _queue.front();
-		if(bRetain)
+		if (bRetain)
 			obj->retain();
 
 		return obj;
@@ -712,11 +704,11 @@ public:
 
 	WTSObject* back(bool bRetain = true)
 	{
-		if(_queue.empty())
+		if (_queue.empty())
 			return NULL;
 
 		WTSObject* obj = _queue.back();
-		if(bRetain)
+		if (bRetain)
 			obj->retain();
 
 		return obj;
