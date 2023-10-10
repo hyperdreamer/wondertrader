@@ -109,17 +109,16 @@ bool json_to_variant(const rj::Value& root, WTSVariant* params)
 
 WTSVariant* WTSCfgLoader::load_from_json(const char* content)
 {
-	rj::Document root;
-	root.Parse(content);
-	if (root.HasParseError()) return NULL;
+    rj::Document root;
+    root.Parse(content);
+    if (root.HasParseError()) return NULL;
 
-	WTSVariant* ret = WTSVariant::createObject();
-	if (!json_to_variant(root, ret)) {
-		ret->release();
-		return NULL;
-	}
-
-	return ret;
+    WTSVariant* ret = WTSVariant::createObject();
+    if (!json_to_variant(root, ret)) {
+        ret->release();
+        return NULL;
+    }
+    return ret;
 }
 
 #include "../WTSUtils/yamlcpp/yaml.h"

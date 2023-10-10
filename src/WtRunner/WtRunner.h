@@ -40,11 +40,11 @@ USING_NS_WTP;
 
 class WtRunner : public ILogHandler {
 public:
-	WtRunner();
-	~WtRunner();
+	WtRunner(); // overwrite os's default constructor to WTSLogger::error()
+	~WtRunner() {}
 
 public:
-    bool init();
+    bool init(); // load log config and set install dir
 	bool config();
 	void run(bool bAsync = false);
 
