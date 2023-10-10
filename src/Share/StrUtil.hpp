@@ -265,27 +265,25 @@ public:
 	 *	@ignroreCaseÊÇ·ñºöÂÔ´óĞ¡Ğ´
 	 */
 	static inline bool endsWith(const char* str, const char* pattern, bool ignoreCase = true)
-	{
-		size_t thisLen = strlen(str);
-		size_t patternLen = strlen(pattern);
-		if (thisLen < patternLen || patternLen == 0)
-			return false;
-
-		const char* s = str + (thisLen - patternLen);
-
-		if (ignoreCase)
-		{
+    {
+        size_t thisLen = strlen(str);
+        size_t patternLen = strlen(pattern);
+        if (thisLen < patternLen || patternLen == 0) return false;
+     
+        const char* s = str + (thisLen - patternLen);
+     
+        if (ignoreCase) {
 #ifdef _MSC_VER
-			return _strnicmp(s, pattern, patternLen) == 0;
+            //return _strnicmp(s, pattern, patternLen) == 0;
+            return !_strnicmp(s, pattern, patternLen);
 #else
-			return strncasecmp(s, pattern, patternLen) == 0;
+            //return strncasecmp(s, pattern, patternLen) == 0;
+            return !strncasecmp(s, pattern, patternLen);
 #endif
-		}
-		else
-		{
-			return strncmp(s, pattern, patternLen) == 0;
-		}
-	}
+        }
+        //return strncmp(s, pattern, patternLen) == 0;
+        return !strncmp(s, pattern, patternLen);
+    }
 
 	/** Method for standardising paths - use forward slashes only, end with slash.
 	*/

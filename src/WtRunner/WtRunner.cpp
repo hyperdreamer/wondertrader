@@ -45,217 +45,213 @@ WtRunner::WtRunner()
 #endif
 }
 
-WtRunner::~WtRunner() {}
-
 bool WtRunner::init()
 {
-	std::string path = "logcfg.json";
-	if(!StdFile::exists(path.c_str())) path = "logcfg.yaml";
+    std::string path = "logcfg.json";
+    if(!StdFile::exists(path.c_str())) path = "logcfg.yaml";
 
-	WTSLogger::init(path.c_str());
-	WtHelper::setInstDir(getBinDir());
+    WTSLogger::init(path.c_str());
+    WtHelper::setInstDir(getBinDir());
 
-	return true;
+    return true;
 }
 
 bool WtRunner::config()
 {
-	std::string cfgFile = "config.json";
-	if (!StdFile::exists(cfgFile.c_str()))
-		cfgFile = "config.yaml";
+    std::string cfgFile = "config.json";
+    if (!StdFile::exists(cfgFile.c_str())) cfgFile = "config.yaml";
 
-	_config = WTSCfgLoader::load_from_file(cfgFile);
-	if(_config == NULL)
-	{
-		WTSLogger::error("Loading config file {} failed", cfgFile);
-		return false;
-	}
+    _config = WTSCfgLoader::load_from_file(cfgFile);
+    if(!_config) {
+        WTSLogger::error("Loading config file {} failed", cfgFile);
+        return false;
+    }
 
-	//基础数据文件
-	WTSVariant* cfgBF = _config->get("basefiles");
-	if (cfgBF->get("session"))
-		_bd_mgr.loadSessions(cfgBF->getCString("session"));
+    //基础数据文件
+    WTSVariant* cfgBF = _config->get("basefiles");
+    if (cfgBF->get("session"))
+        _bd_mgr.loadSessions(cfgBF->getCString("session"));
 
-	WTSVariant* cfgItem = cfgBF->get("commodity");
-	if (cfgItem)
-	{
-		if (cfgItem->type() == WTSVariant::VT_String)
-		{
-			_bd_mgr.loadCommodities(cfgItem->asCString());
-		}
-		else if (cfgItem->type() == WTSVariant::VT_Array)
-		{
-			for (uint32_t i = 0; i < cfgItem->size(); i++)
-			{
-				_bd_mgr.loadCommodities(cfgItem->get(i)->asCString());
-			}
-		}
-	}
+    WTSVariant* cfgItem = cfgBF->get("commodity");
+    if (cfgItem)
+    {
+        if (cfgItem->type() == WTSVariant::VT_String)
+        {
+            _bd_mgr.loadCommodities(cfgItem->asCString());
+        }
+        else if (cfgItem->type() == WTSVariant::VT_Array)
+        {
+            for (uint32_t i = 0; i < cfgItem->size(); i++)
+            {
+                _bd_mgr.loadCommodities(cfgItem->get(i)->asCString());
+            }
+        }
+    }
 
-	cfgItem = cfgBF->get("contract");
-	if (cfgItem)
-	{
-		if (cfgItem->type() == WTSVariant::VT_String)
-		{
-			_bd_mgr.loadContracts(cfgItem->asCString());
-		}
-		else if (cfgItem->type() == WTSVariant::VT_Array)
-		{
-			for (uint32_t i = 0; i < cfgItem->size(); i++)
-			{
-				_bd_mgr.loadContracts(cfgItem->get(i)->asCString());
-			}
-		}
-	}
+    cfgItem = cfgBF->get("contract");
+    if (cfgItem)
+    {
+        if (cfgItem->type() == WTSVariant::VT_String)
+        {
+            _bd_mgr.loadContracts(cfgItem->asCString());
+        }
+        else if (cfgItem->type() == WTSVariant::VT_Array)
+        {
+            for (uint32_t i = 0; i < cfgItem->size(); i++)
+            {
+                _bd_mgr.loadContracts(cfgItem->get(i)->asCString());
+            }
+        }
+    }
 
-	if (cfgBF->get("holiday"))
-		_bd_mgr.loadHolidays(cfgBF->getCString("holiday"));
+    if (cfgBF->get("holiday"))
+        _bd_mgr.loadHolidays(cfgBF->getCString("holiday"));
 
-	if (cfgBF->get("hot"))
-		_hot_mgr.loadHots(cfgBF->getCString("hot"));
+    if (cfgBF->get("hot"))
+        _hot_mgr.loadHots(cfgBF->getCString("hot"));
 
-	if (cfgBF->get("second"))
-		_hot_mgr.loadSeconds(cfgBF->getCString("second"));
+    if (cfgBF->get("second"))
+        _hot_mgr.loadSeconds(cfgBF->getCString("second"));
 
-	if (cfgBF->has("rules"))
-	{
-		auto cfgRules = cfgBF->get("rules");
-		auto tags = cfgRules->memberNames();
-		for (const std::string& ruleTag : tags)
-		{
-			_hot_mgr.loadCustomRules(ruleTag.c_str(), cfgRules->getCString(ruleTag.c_str()));
-			WTSLogger::info("{} rules loaded from {}", ruleTag, cfgRules->getCString(ruleTag.c_str()));
-		}
-	}
+    if (cfgBF->has("rules"))
+    {
+        auto cfgRules = cfgBF->get("rules");
+        auto tags = cfgRules->memberNames();
+        for (const std::string& ruleTag : tags)
+        {
+            _hot_mgr.loadCustomRules(ruleTag.c_str(), cfgRules->getCString(ruleTag.c_str()));
+            WTSLogger::info("{} rules loaded from {}", ruleTag, cfgRules->getCString(ruleTag.c_str()));
+        }
+    }
 
-	//初始化运行环境
-	initEngine();
+    //初始化运行环境
+    initEngine();
 
-	//初始化数据管理
-	initDataMgr();
+    //初始化数据管理
+    initDataMgr();
 
-	if (!initActionPolicy())
-		return false;
+    if (!initActionPolicy())
+        return false;
 
-	//初始化行情通道
-	WTSVariant* cfgParser = _config->get("parsers");
-	if (cfgParser)
-	{
-		if (cfgParser->type() == WTSVariant::VT_String)
-		{
-			const char* filename = cfgParser->asCString();
-			if (StdFile::exists(filename))
-			{
-				WTSLogger::info("Reading parser config from {}...", filename);
-				WTSVariant* var = WTSCfgLoader::load_from_file(filename);
-				if(var)
-				{
-					if (!initParsers(var->get("parsers")))
-						WTSLogger::error("Loading parsers failed");
-					var->release();
-				}
-				else
-				{
-					WTSLogger::error("Loading parser config {} failed", filename);
-				}
-			}
-			else
-			{
-				WTSLogger::error("Parser configuration {} not exists", filename);
-			}
-		}
-		else if (cfgParser->type() == WTSVariant::VT_Array)
-		{
-			initParsers(cfgParser);
-		}
-	}
+    //初始化行情通道
+    WTSVariant* cfgParser = _config->get("parsers");
+    if (cfgParser)
+    {
+        if (cfgParser->type() == WTSVariant::VT_String)
+        {
+            const char* filename = cfgParser->asCString();
+            if (StdFile::exists(filename))
+            {
+                WTSLogger::info("Reading parser config from {}...", filename);
+                WTSVariant* var = WTSCfgLoader::load_from_file(filename);
+                if(var)
+                {
+                    if (!initParsers(var->get("parsers")))
+                        WTSLogger::error("Loading parsers failed");
+                    var->release();
+                }
+                else
+                {
+                    WTSLogger::error("Loading parser config {} failed", filename);
+                }
+            }
+            else
+            {
+                WTSLogger::error("Parser configuration {} not exists", filename);
+            }
+        }
+        else if (cfgParser->type() == WTSVariant::VT_Array)
+        {
+            initParsers(cfgParser);
+        }
+    }
 
-	//初始化交易通道
-	WTSVariant* cfgTraders = _config->get("traders");
-	if (cfgTraders)
-	{
-		if (cfgTraders->type() == WTSVariant::VT_String)
-		{
-			const char* filename = cfgTraders->asCString();
-			if (StdFile::exists(filename))
-			{
-				WTSLogger::info("Reading trader config from {}...", filename);
-				WTSVariant* var = WTSCfgLoader::load_from_file(filename);
-				if (var)
-				{
-					if (!initTraders(var->get("traders")))
-						WTSLogger::error("Loading traders failed");
-					var->release();
-				}
-				else
-				{
-					WTSLogger::error("Loading trader config {} failed", filename);
-				}
-			}
-			else
-			{
-				WTSLogger::error("Trader configuration {} not exists", filename);
-			}
-		}
-		else if (cfgTraders->type() == WTSVariant::VT_Array)
-		{
-			initTraders(cfgTraders);
-		}
-	}
+    //初始化交易通道
+    WTSVariant* cfgTraders = _config->get("traders");
+    if (cfgTraders)
+    {
+        if (cfgTraders->type() == WTSVariant::VT_String)
+        {
+            const char* filename = cfgTraders->asCString();
+            if (StdFile::exists(filename))
+            {
+                WTSLogger::info("Reading trader config from {}...", filename);
+                WTSVariant* var = WTSCfgLoader::load_from_file(filename);
+                if (var)
+                {
+                    if (!initTraders(var->get("traders")))
+                        WTSLogger::error("Loading traders failed");
+                    var->release();
+                }
+                else
+                {
+                    WTSLogger::error("Loading trader config {} failed", filename);
+                }
+            }
+            else
+            {
+                WTSLogger::error("Trader configuration {} not exists", filename);
+            }
+        }
+        else if (cfgTraders->type() == WTSVariant::VT_Array)
+        {
+            initTraders(cfgTraders);
+        }
+    }
 
-	initEvtNotifier();
+    initEvtNotifier();
 
-	//如果不是高频引擎,则需要配置执行模块
-	if (!_is_hft)
-	{
-		WTSVariant* cfgExec = _config->get("executers");
-		if (cfgExec != NULL)
-		{
-			if (cfgExec->type() == WTSVariant::VT_String)
-			{
-				const char* filename = cfgExec->asCString();
-				if (StdFile::exists(filename))
-				{
-					WTSLogger::info("Reading executer config from {}...", filename);
-					WTSVariant* var = WTSCfgLoader::load_from_file(filename);
-					if (var)
-					{
-						if (!initExecuters(var->get("executers")))
-							WTSLogger::error("Loading executers failed");
+    //如果不是高频引擎,则需要配置执行模块
+    if (!_is_hft)
+    {
+        WTSVariant* cfgExec = _config->get("executers");
+        if (cfgExec != NULL)
+        {
+            if (cfgExec->type() == WTSVariant::VT_String)
+            {
+                const char* filename = cfgExec->asCString();
+                if (StdFile::exists(filename))
+                {
+                    WTSLogger::info("Reading executer config from {}...", filename);
+                    WTSVariant* var = WTSCfgLoader::load_from_file(filename);
+                    if (var)
+                    {
+                        if (!initExecuters(var->get("executers")))
+                            WTSLogger::error("Loading executers failed");
 
-						WTSVariant* c = var->get("routers");
-						if (c != NULL)
-							_cta_engine.loadRouterRules(c);
+                        WTSVariant* c = var->get("routers");
+                        if (c != NULL)
+                            _cta_engine.loadRouterRules(c);
 
-						var->release();
-					}
-					else
-					{
-						WTSLogger::error("Loading executer config {} failed", filename);
-					}
-				}
-				else
-				{
-					WTSLogger::error("Trader configuration {} not exists", filename);
-				}
-			}
-			else if (cfgExec->type() == WTSVariant::VT_Array)
-			{
-				initExecuters(cfgExec);
-			}
-		}
+                        var->release();
+                    }
+                    else
+                    {
+                        WTSLogger::error("Loading executer config {} failed", filename);
+                    }
+                }
+                else
+                {
+                    WTSLogger::error("Trader configuration {} not exists", filename);
+                }
+            }
+            else if (cfgExec->type() == WTSVariant::VT_Array)
+            {
+                initExecuters(cfgExec);
+            }
+        }
 
-		WTSVariant* cfgRouter = _config->get("routers");
-		if (cfgRouter != NULL)
-			_cta_engine.loadRouterRules(cfgRouter);
-	}
+        WTSVariant* cfgRouter = _config->get("routers");
+        if (cfgRouter != NULL)
+            _cta_engine.loadRouterRules(cfgRouter);
+    }
 
-	if (!_is_hft)
-		initCtaStrategies();
-	else
-		initHftStrategies();
-	
-	return true;
+    if (!_is_hft)
+        initCtaStrategies();
+    else
+        initHftStrategies();
+
+    return true;
 }
 
 bool WtRunner::initCtaStrategies()

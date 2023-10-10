@@ -54,7 +54,7 @@ public:
     } ValueType;
 
 protected:
-    WTSVariant() :_type(VT_Null){}
+    WTSVariant() :_type(VT_Null) {}
 
 private:
     static inline WTSVariant* create(int32_t i32)
