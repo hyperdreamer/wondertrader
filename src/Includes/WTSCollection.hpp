@@ -665,125 +665,113 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //WTSQueue
-class WTSQueue : public WTSObject
-{
+class WTSQueue : public WTSObject {
+protected:
+    WTSQueue(){}
+    virtual ~WTSQueue(){}
+
 public:
-	typedef std::deque<WTSObject*>::iterator Iterator;
-	typedef std::deque<WTSObject*>::const_iterator ConstIterator;
+    typedef std::deque<WTSObject*>::iterator Iterator;
+    typedef std::deque<WTSObject*>::const_iterator ConstIterator;
 
-	static WTSQueue* create()
-	{
-		WTSQueue* pRet = new WTSQueue();
-		return pRet;
-	}
+    static WTSQueue* create()
+    {
+        WTSQueue* pRet = new WTSQueue();
+        return pRet;
+    }
 
-	void pop()
-	{
-		_queue.pop_front();
-	}
+    inline void pop()
+    {
+        _queue.pop_front();
+    }
 
-	void push(WTSObject* obj, bool bAutoRetain = true)
-	{
-		if (obj && bAutoRetain)
-			obj->retain();
+    inline void push(WTSObject* obj, bool bAutoRetain = true)
+    {
+        if (obj && bAutoRetain) obj->retain();
+        _queue.emplace_back(obj);
+    }
 
-		_queue.emplace_back(obj);
-	}
+    inline WTSObject* front(bool bRetain = true)
+    {
+        if (_queue.empty()) return NULL;
+     
+        WTSObject* obj = _queue.front();
+        if (obj && bRetain) obj->retain();
+        return obj;
+    }
 
-	WTSObject* front(bool bRetain = true)
-	{
-		if (_queue.empty())
-			return NULL;
+    inline WTSObject* back(bool bRetain = true)
+    {
+        if (_queue.empty()) return NULL;
+     
+        WTSObject* obj = _queue.back();
+        if (obj && bRetain) obj->retain();
+        return obj;
+    }
 
-		WTSObject* obj = _queue.front();
-		if (bRetain)
-			obj->retain();
+    inline uint32_t size() const { return (uint32_t) _queue.size(); }
 
-		return obj;
-	}
+    inline bool empty() const { return _queue.empty(); }
 
-	WTSObject* back(bool bRetain = true)
-	{
-		if (_queue.empty())
-			return NULL;
+    inline void clear()
+    {
+        for(Iterator it = begin(); it != end(); ++it) {
+            WTSObject* obj = *it;
+            if (obj) obj->release();
+        }
+        _queue.clear();
+    }
 
-		WTSObject* obj = _queue.back();
-		if (bRetain)
-			obj->retain();
+    void release()
+    {
+        if (!m_uRefs) return;
+        
+        try {
+            uint32_t cnt = m_uRefs.fetch_sub(1);
+            if (cnt == 1) {
+                clear();
+                delete this;
+            }
+        }
+        catch (...) {
+            // nothing
+        }
+    }
 
-		return obj;
-	}
+    /*
+     *	取得数组对象起始位置的迭代器
+     */
+    inline Iterator begin()
+    {
+        return _queue.begin();
+    }
 
-	uint32_t size() const{ return (uint32_t)_queue.size(); }
+    inline ConstIterator begin() const
+    {
+        return _queue.begin();
+    }
 
-	bool	empty() const{return _queue.empty();}
+    /*
+     *	取得数组对象末尾位置的迭代器
+     */
+    inline Iterator end()
+    {
+        return _queue.end();
+    }
 
-	void release()
-	{
-		if (m_uRefs == 0)
-			return;
+    inline ConstIterator end() const
+    {
+        return _queue.end();
+    }
 
-		try
-		{
-			m_uRefs--;
-			if (m_uRefs == 0)
-			{
-				clear();
-				delete this;
-			}
-		}
-		catch (...)
-		{
-
-		}
-	}
-
-	void clear()
-	{
-		Iterator it = begin();
-		for(; it != end(); it++)
-		{
-			(*it)->release();
-		}
-		_queue.clear();
-	}
-
-	/*
-	 *	取得数组对象起始位置的迭代器
-	 */
-	Iterator begin()
-	{
-		return _queue.begin();
-	}
-
-	ConstIterator begin() const
-	{
-		return _queue.begin();
-	}
-
-	void swap(WTSQueue* right)
-	{
-		_queue.swap(right->_queue);
-	}
-
-	/*
-	 *	取得数组对象末尾位置的迭代器
-	 */
-	Iterator end()
-	{
-		return _queue.end();
-	}
-
-	ConstIterator end() const
-	{
-		return _queue.end();
-	}
+    inline void swap(WTSQueue* right)
+    {
+        if (!right) return;
+        _queue.swap(right->_queue);
+    }
 
 protected:
-	WTSQueue(){}
-	virtual ~WTSQueue(){}
-
-	std::deque<WTSObject*>	_queue;
+    std::deque<WTSObject*> _queue;
 };
 
 NS_WTP_END

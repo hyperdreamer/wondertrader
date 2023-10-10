@@ -38,8 +38,7 @@ NS_WTP_END
 
 USING_NS_WTP;
 
-class WtRunner : public ILogHandler
-{
+class WtRunner : public ILogHandler {
 public:
 	WtRunner();
 	~WtRunner();
@@ -48,6 +47,9 @@ public:
     bool init();
 	bool config();
 	void run(bool bAsync = false);
+
+public: //ILogHandler
+	virtual void handleLogAppend(WTSLogLevel ll, const char* msg) override;
 
 private:
 	bool initTraders(WTSVariant* cfgTrader);
@@ -60,9 +62,6 @@ private:
 	bool initActionPolicy();
 
 	bool initEngine();
-
-public: //ILogHandler
-	virtual void handleLogAppend(WTSLogLevel ll, const char* msg) override;
 
 private:
 	WTSVariant*			_config;

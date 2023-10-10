@@ -23,24 +23,23 @@ std::string WtHelper::_out_dir = "./outputs_bt/";
 
 std::string WtHelper::getCWD()
 {
-	static std::string _cwd;
-	if(_cwd.empty())
-	{
-		char   buffer[255];
+    static std::string _cwd;
+    if (_cwd.empty()) {
+        char buffer[255];
 #ifdef _MSC_VER
-		_getcwd(buffer, 255);
+        _getcwd(buffer, 255);
 #else	//UNIX
-		getcwd(buffer, 255);
+        getcwd(buffer, 255);
 #endif
-		_cwd = buffer;
-		_cwd = StrUtil::standardisePath(_cwd);
-	}	
-	return _cwd;
+        _cwd = buffer;
+        _cwd = StrUtil::standardisePath(_cwd);
+    }	
+    return _cwd;
 }
 
 void WtHelper::setOutputDir(const char* out_dir)
 {
-	_out_dir = StrUtil::standardisePath(std::string(out_dir));
+    _out_dir = StrUtil::standardisePath(std::string(out_dir));
 }
 
 const char* WtHelper::getOutputDir()

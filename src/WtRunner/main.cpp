@@ -21,14 +21,14 @@
 int main()
 {
 #ifdef _MSC_VER
-	CMiniDumper::Enable("WtRunner.exe", true);
+    CMiniDumper::Enable("WtRunner.exe", true);
 #endif
 
-	WtRunner runner;
-	runner.init();
-	runner.config();
-	runner.run(false);
+    WtRunner runner;
+    runner.init();
+    runner.config();
+    runner.run(false);
 
-	return 0;
+    return 0;
 }
 
