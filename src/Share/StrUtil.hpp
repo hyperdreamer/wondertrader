@@ -290,15 +290,14 @@ public:
 	/** Method for standardising paths - use forward slashes only, end with slash.
 	*/
 	static inline std::string standardisePath(const std::string& init, bool bIsDir = true)
-	{
-		std::string path = init;
+    {
+        std::string path = init;
 #if _WIN32
-		std::replace(path.begin(), path.end(), '\\', '/');
+        std::replace(path.begin(), path.end(), '\\', '/');
 #endif
-		if (path[path.length()-1] != '/' && bIsDir) path += '/';
-
-		return std::move(path);
-	}
+        if (path[path.length()-1] != '/' && bIsDir) path += '/';
+        return std::move(path);
+    }
 
 	/** Method for splitting a fully qualified filename into the base name
 	and path.

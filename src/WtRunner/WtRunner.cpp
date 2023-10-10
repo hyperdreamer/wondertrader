@@ -22,13 +22,12 @@
 
 const char* getBinDir()
 {
-	static std::string basePath;
-	if (basePath.empty()) {
-		basePath = boost::filesystem::initial_path<boost::filesystem::path>().string();
-		basePath = StrUtil::standardisePath(basePath);
-	}
-
-	return basePath.c_str();
+    static std::string basePath;
+    if (basePath.empty()) {
+        basePath = boost::filesystem::initial_path<boost::filesystem::path>().string();
+        basePath = StrUtil::standardisePath(basePath);
+    }
+    return basePath.c_str();
 }
 
 WtRunner::WtRunner()
@@ -40,15 +39,13 @@ WtRunner::WtRunner()
 #pragma message("Signal hooks disabled in WIN32")
 #else
 #pragma message("Signal hooks enabled in UNIX")
-	install_signal_hooks([](const char* message) {
-		WTSLogger::error(message);
-	});
+    install_signal_hooks([](const char* message) {
+                            WTSLogger::error(message);
+                         });
 #endif
 }
 
-WtRunner::~WtRunner()
-{
-}
+WtRunner::~WtRunner() {}
 
 bool WtRunner::init()
 {
