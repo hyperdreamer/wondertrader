@@ -333,7 +333,7 @@ public:
     {
         if (_type != VT_Array) return NULL;
         if (!_value._array) return NULL;
-
+     
         WTSVariant* ret = static_cast<WTSVariant*>(_value._array->at(idx));
         return ret;
     }
