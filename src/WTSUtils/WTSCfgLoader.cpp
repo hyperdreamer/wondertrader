@@ -8,103 +8,112 @@
 #include <rapidjson/document.h>
 namespace rj = rapidjson;
 
+static bool json_to_variant(const rj::Value& root, WTSVariant* params);
 
-bool json_to_variant(const rj::Value& root, WTSVariant* params)
+static inline void _add_key_obj_variant(WTSVariant* _obj, const char* _key, const rj::Value& _item)
 {
-	if (root.IsObject() && params->type() != WTSVariant::VT_Object)
-		return false;
+    WTSVariant* subObj = WTSVariant::createObject();
+    if (json_to_variant(_item, subObj)) _obj->append(_key, subObj, false);
+}
 
-	if (root.IsArray() && params->type() != WTSVariant::VT_Array)
-		return false;
+static inline void _add_key_array_variant(WTSVariant* _obj, const char* _key, const rj::Value& _item)
+{
+    WTSVariant* subAy = WTSVariant::createArray();
+    if (json_to_variant(_item, subAy)) _obj->append(_key, subAy, false);
+}
 
-	if (root.IsObject())
-	{
-		for (auto& m : root.GetObject())
-		{
-			const char* key = m.name.GetString();
-			const rj::Value& item = m.value;
-			switch (item.GetType())
-			{
-			case rj::kObjectType:
-			{
-				WTSVariant* subObj = WTSVariant::createObject();
-				if (json_to_variant(item, subObj))
-					params->append(key, subObj, false);
-			}
-			break;
-			case rj::kArrayType:
-			{
-				WTSVariant* subAy = WTSVariant::createArray();
-				if (json_to_variant(item, subAy))
-					params->append(key, subAy, false);
-			}
-			break;
-			case rj::kNumberType:
-				if (item.IsInt())
-					params->append(key, item.GetInt());
-				else if (item.IsUint())
-					params->append(key, item.GetUint());
-				else if (item.IsInt64())
-					params->append(key, item.GetInt64());
-				else if (item.IsUint64())
-					params->append(key, item.GetUint64());
-				else if (item.IsDouble())
-					params->append(key, item.GetDouble());
-				break;
-			case rj::kStringType:
-				params->append(key, item.GetString());
-				break;
-			case rj::kTrueType:
-			case rj::kFalseType:
-				params->append(key, item.GetBool());
-				break;
+static inline void _add_key_int_variant(WTSVariant* _obj, const char* _key, const rj::Value& _item)
+{
+    if (_item.IsInt())
+        _obj->append(_key, _item.GetInt());
+    else if (_item.IsUint())
+        _obj->append(_key, _item.GetUint());
+    else if (_item.IsInt64())
+        _obj->append(_key, _item.GetInt64());
+    else if (_item.IsUint64())
+        _obj->append(_key, _item.GetUint64());
+    else if (_item.IsDouble())
+        _obj->append(_key, _item.GetDouble());
+}
 
-			}
-		}
-	}
-	else
-	{
-		for (auto& item : root.GetArray())
-		{
-			switch (item.GetType())
-			{
-			case rj::kObjectType:
-			{
-				WTSVariant* subObj = WTSVariant::createObject();
-				if (json_to_variant(item, subObj))
-					params->append(subObj, false);
-			}
-			break;
-			case rj::kArrayType:
-			{
-				WTSVariant* subAy = WTSVariant::createArray();
-				if (json_to_variant(item, subAy))
-					params->append(subAy, false);
-			}
-			break;
-			case rj::kNumberType:
-				if (item.IsInt())
-					params->append(item.GetInt());
-				else if (item.IsUint())
-					params->append(item.GetUint());
-				else if (item.IsInt64())
-					params->append(item.GetInt64());
-				else if (item.IsUint64())
-					params->append(item.GetUint64());
-				else if (item.IsDouble())
-					params->append(item.GetDouble());
-				break;
-			case rj::kStringType:
-				params->append(item.GetString());
-				break;
-			case rj::kTrueType:
-			case rj::kFalseType:
-				params->append(item.GetBool());
-				break;
-			}
-		}
-	}
-	return true;
+static inline void _add_obj_variant(WTSVariant* _arr, const rj::Value& _item)
+{
+    WTSVariant* subObj = WTSVariant::createObject();
+    if (json_to_variant(_item, subObj)) _arr->append(subObj, false);
+}
+
+static inline void _add_array_variant(WTSVariant* _arr, const rj::Value& _item)
+{
+    WTSVariant* subAy = WTSVariant::createArray();
+    if (json_to_variant(_item, subAy)) _arr->append(subAy, false);
+}
+
+static inline void _add_int_variant(WTSVariant* _arr, const rj::Value& _item)
+{
+    if (_item.IsInt())
+        _arr->append(_item.GetInt());
+    else if (_item.IsUint())
+        _arr->append(_item.GetUint());
+    else if (_item.IsInt64())
+        _arr->append(_item.GetInt64());
+    else if (_item.IsUint64())
+        _arr->append(_item.GetUint64());
+    else if (_item.IsDouble())
+        _arr->append(_item.GetDouble());
+}
+
+static bool json_to_variant(const rj::Value& root, WTSVariant* params)
+{
+    if (root.IsObject() && params->type() != WTSVariant::VT_Object) return false;
+    if (root.IsArray() && params->type() != WTSVariant::VT_Array) return false;
+
+    if (root.IsObject()) {
+        for (auto& m : root.GetObject()) {
+            const char* key = m.name.GetString();
+            const rj::Value& item = m.value;
+            switch (item.GetType()) {
+            case rj::kObjectType:
+                _add_key_obj_variant(params, key, item);
+                break;
+            case rj::kArrayType:
+                _add_key_array_variant(params, key, item);
+                break;
+            case rj::kNumberType:
+                _add_key_int_variant(params, key, item);
+                break;
+            case rj::kStringType:
+                params->append(key, item.GetString());
+                break;
+            case rj::kTrueType:
+            case rj::kFalseType:
+                params->append(key, item.GetBool());
+                break;
+            }
+        }
+    }
+    else {
+        for (auto& item : root.GetArray()) {
+            switch (item.GetType()) {
+            case rj::kObjectType:
+                _add_obj_variant(params, item);
+                break;
+            case rj::kArrayType:
+                _add_array_variant(params, item);
+                break;
+            case rj::kNumberType:
+                _add_int_variant(params, item);
+                break;
+            case rj::kStringType:
+                params->append(item.GetString());
+                break;
+            case rj::kTrueType:
+            case rj::kFalseType:
+                params->append(item.GetBool());
+                break;
+            }
+        }
+    }
+    return true;
 }
 
 WTSVariant* WTSCfgLoader::load_from_json(const char* content)
