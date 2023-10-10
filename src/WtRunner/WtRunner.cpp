@@ -60,18 +60,17 @@ bool WtRunner::config()
 {
     std::string cfgFile = "config.json";
     if (!StdFile::exists(cfgFile.c_str())) cfgFile = "config.yaml";
-
-    _config = WTSCfgLoader::load_from_file(cfgFile);
+    /***************************************************************/
+    _config = WTSCfgLoader::load_from_file(cfgFile); // WTSVariant*
     if(!_config) {
         WTSLogger::error("Loading config file {} failed", cfgFile);
         return false;
     }
-
+    //////////////////////////////////////////////////////////////////////////
     //基础数据文件
     WTSVariant* cfgBF = _config->get("basefiles");
-    if (cfgBF->get("session"))
-        _bd_mgr.loadSessions(cfgBF->getCString("session"));
-
+    if (cfgBF->get("session")) _bd_mgr.loadSessions(cfgBF->getCString("session"));
+    //////////////////////////////////////////////////////////////////////////
     WTSVariant* cfgItem = cfgBF->get("commodity");
     if (cfgItem)
     {
