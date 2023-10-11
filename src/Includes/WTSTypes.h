@@ -17,8 +17,7 @@ NS_WTP_BEGIN
  *	合约分类
  */
 //从CTP复制过来的
-typedef enum tagContractCategory
-{
+typedef enum tagContractCategory {
 	CC_Stock,			//股票
 	CC_Future,			//期货
 	CC_FutOption,		//期货期权，商品期权是这个分类
@@ -50,12 +49,11 @@ typedef enum tagOptionType
 /*
  *	平仓类型
  */
-typedef enum tagCoverMode
-{
+typedef enum tagCoverMode {
 	CM_OpenCover,		//开平
 	CM_CoverToday,		//开平昨平今
 	CM_UNFINISHED,		//平未了结的
-	CM_None			//不区分开平
+	CM_None			    //不区分开平
 } CoverMode;
 
 /*
