@@ -19,7 +19,7 @@ class WTSSessionInfo;
 
 class WTSCommodityInfo: public WTSObject {
 private:
-    WTSCommodityInfo() {} // avoid dicretly instantization, call create() instead
+    WTSCommodityInfo() {} // avoid dicret instantiation, call create() instead
 
 public:
     static WTSCommodityInfo* create(const char* pid, const char* name, const char* exchg, 

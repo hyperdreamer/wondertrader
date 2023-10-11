@@ -21,43 +21,35 @@
 const char* DEFAULT_HOLIDAY_TPL = "CHINA";
 
 WTSBaseDataMgr::WTSBaseDataMgr()
-	: m_mapExchgContract(NULL)
-	, m_mapSessions(NULL)
-	, m_mapCommodities(NULL)
-	, m_mapContracts(NULL)
 {
-	m_mapExchgContract = WTSExchgContract::create();
-	m_mapSessions = WTSSessionMap::create();
-	m_mapCommodities = WTSCommodityMap::create();
-	m_mapContracts = WTSContractMap::create();
+    m_mapExchgContract = WTSExchgContract::create();
+    m_mapSessions = WTSSessionMap::create();
+    m_mapCommodities = WTSCommodityMap::create();
+    m_mapContracts = WTSContractMap::create();
 }
 
 
 WTSBaseDataMgr::~WTSBaseDataMgr()
 {
-	if (m_mapExchgContract)
-	{
-		m_mapExchgContract->release();
-		m_mapExchgContract = NULL;
-	}
+    if (m_mapExchgContract) {
+        m_mapExchgContract->release();
+        m_mapExchgContract = NULL;
+    }
 
-	if (m_mapSessions)
-	{
-		m_mapSessions->release();
-		m_mapSessions = NULL;
-	}
+    if (m_mapSessions) {
+        m_mapSessions->release();
+        m_mapSessions = NULL;
+    }
 
-	if (m_mapCommodities)
-	{
-		m_mapCommodities->release();
-		m_mapCommodities = NULL;
-	}
+    if (m_mapCommodities) {
+        m_mapCommodities->release();
+        m_mapCommodities = NULL;
+    }
 
-	if(m_mapContracts)
-	{
-		m_mapContracts->release();
-		m_mapContracts = NULL;
-	}
+    if (m_mapContracts) {
+        m_mapContracts->release();
+        m_mapContracts = NULL;
+    }
 }
 
 WTSCommodityInfo* WTSBaseDataMgr::getCommodity(const char* exchgpid)
