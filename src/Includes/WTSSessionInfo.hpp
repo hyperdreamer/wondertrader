@@ -39,11 +39,8 @@ protected:
 	std::string		m_strName;
 
 protected:
-	WTSSessionInfo(int32_t offset)
-	{
-		m_uOffsetMins = offset;
-	}
-	virtual ~WTSSessionInfo(){}
+	WTSSessionInfo(int32_t offset) : m_uOffsetMins(offset) {}
+	virtual ~WTSSessionInfo() {}
 
 public:
 	const char* id() const{ return m_strID.c_str(); }

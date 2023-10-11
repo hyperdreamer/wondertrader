@@ -18,7 +18,7 @@ NS_WTP_BEGIN
 class WTSSessionInfo;
 
 class WTSCommodityInfo: public WTSObject {
-private:
+protected:
     WTSCommodityInfo() {} // avoid direct instantiation, call create() instead
 
 public:
@@ -47,35 +47,42 @@ public:
     inline void	setPriceMode(PriceMode pm) { m_priceMode = pm; }
     inline void	setTradingMode(TradingMode tm) { m_tradeMode = tm; }
 
+    inline const char* getName()	const { return m_strName.c_str(); }
+    inline const char* getExchg()	const { return m_strExchg.c_str(); }
+    inline const char* getProduct()	const { return m_strProduct.c_str(); }
+    inline const char* getCurrency()	const { return m_strCurrency.c_str(); }
+    inline const char* getSession()	const { return m_strSession.c_str(); }
+    inline const char* getTradingTpl()	const { return m_strTrdTpl.c_str(); }
+    inline const char* getFullPid()	const { return m_strFullPid.c_str(); }
+
+    inline uint32_t	getVolScale()	const { return m_uVolScale; }
+    inline double	getPriceTick()	const { return m_dPriceTick; }
+    //inline uint32_t	getPrecision()	const { return m_uPrecision; }
+
+    inline ContractCategory		getCategoty() const { return m_ccCategory; }
+    inline CoverMode			getCoverMode() const { return m_coverMode; }
+    inline PriceMode			getPriceMode() const { return m_priceMode; }
+    inline TradingMode			getTradingMode() const { return m_tradeMode; }
+
+    inline const CodeSet& getCodes() const { return m_setCodes; }
+    inline void	addCode(const char* code) { m_setCodes.insert(code); }
+
+    inline double getLotsTick() const { return m_dLotTick; }
+    inline double getMinLots() const { return m_dMinLots; }
+    inline void	setLotsTick(double lotsTick) { m_dLotTick = lotsTick; }
+    inline void	setMinLots(double minLots) { m_dMinLots = minLots; }
+
+    inline WTSSessionInfo* getSessionInfo() const { return m_pSession; }
+    inline void	setSessionInfo(WTSSessionInfo* sInfo) { m_pSession = sInfo; }
+
     inline bool canShort() const { return m_tradeMode == TM_Both; }
     inline bool isT1() const { return m_tradeMode == TM_LongT1; }
 
-    inline const char* getName()	const{ return m_strName.c_str(); }
-    inline const char* getExchg()	const{ return m_strExchg.c_str(); }
-    inline const char* getProduct()	const{ return m_strProduct.c_str(); }
-    inline const char* getCurrency()	const{ return m_strCurrency.c_str(); }
-    inline const char* getSession()	const{ return m_strSession.c_str(); }
-    inline const char* getTradingTpl()	const{ return m_strTrdTpl.c_str(); }
-    inline const char* getFullPid()	const{ return m_strFullPid.c_str(); }
-
-    inline uint32_t	getVolScale()	const{ return m_uVolScale; }
-    inline double	getPriceTick()	const{ return m_dPriceTick; }
-    //inline uint32_t	getPrecision()	const{ return m_uPrecision; }
-
-    inline ContractCategory		getCategoty() const{ return m_ccCategory; }
-    inline CoverMode			getCoverMode() const{ return m_coverMode; }
-    inline PriceMode			getPriceMode() const{ return m_priceMode; }
-    inline TradingMode			getTradingMode() const { return m_tradeMode; }
-
-    inline void		addCode(const char* code){ m_setCodes.insert(code); }
-    inline const CodeSet& getCodes() const{ return m_setCodes; }
-
-    inline void	setLotsTick(double lotsTick){ m_dLotTick = lotsTick; }
-    inline void	setMinLots(double minLots) { m_dMinLots = minLots; }
-
     inline bool isOption() const
     {
-        return (m_ccCategory == CC_FutOption || m_ccCategory == CC_ETFOption || m_ccCategory == CC_SpotOption);
+        return (m_ccCategory == CC_FutOption || 
+                m_ccCategory == CC_ETFOption || 
+                m_ccCategory == CC_SpotOption);
     }
 
     inline bool isFuture() const
@@ -88,12 +95,7 @@ public:
         return m_ccCategory == CC_Stock;
     }
 
-    inline double	getLotsTick() const { return m_dLotTick; }
-    inline double	getMinLots() const { return m_dMinLots; }
-
-    inline void		setSessionInfo(WTSSessionInfo* sInfo) { m_pSession = sInfo; }
-    inline WTSSessionInfo* getSessionInfo() const { return m_pSession; }
-
+    
 private:
     std::string	m_strName;		//品种名称
     std::string	m_strExchg;		//交易所代码
@@ -164,16 +166,16 @@ public:
 		m_sMarginRatio = shortRatio;
 	}
 
-	inline const char* getCode()	const{return m_strCode.c_str();}
-	inline const char* getExchg()	const{return m_strExchg.c_str();}
-	inline const char* getName()	const{return m_strName.c_str();}
-	inline const char* getProduct()	const{return m_strProduct.c_str();}
+	inline const char* getCode()	const { return m_strCode.c_str();}
+	inline const char* getExchg()	const { return m_strExchg.c_str();}
+	inline const char* getName()	const { return m_strName.c_str();}
+	inline const char* getProduct()	const { return m_strProduct.c_str();}
 
-	inline const char* getFullCode()	const{ return m_strFullCode.c_str(); }
-	inline const char* getFullPid()	const{ return m_strFullPid.c_str(); }
+	inline const char* getFullCode()	const { return m_strFullCode.c_str(); }
+	inline const char* getFullPid()	const { return m_strFullPid.c_str(); }
 
-	inline uint32_t	getMaxMktVol() const{ return m_maxMktQty; }
-	inline uint32_t	getMaxLmtVol() const{ return m_maxLmtQty; }
+	inline uint32_t	getMaxMktVol() const { return m_maxMktQty; }
+	inline uint32_t	getMaxLmtVol() const { return m_maxLmtQty; }
 	inline uint32_t	getMinMktVol() const { return m_minMktQty; }
 	inline uint32_t	getMinLmtVol() const { return m_minLmtQty; }
 
@@ -189,7 +191,7 @@ public:
 
 protected:
 	WTSContractInfo():m_commInfo(NULL), m_openDate(0), m_expireDate(0), m_lMarginRatio(0), m_sMarginRatio(0) {}
-	virtual ~WTSContractInfo(){}
+	virtual ~WTSContractInfo() {}
 
 private:
 	std::string	m_strCode;
