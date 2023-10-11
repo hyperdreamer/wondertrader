@@ -38,10 +38,10 @@ public:
 	virtual WTSContractInfo*	getContract(const char* code, const char* exchg = "") override;
 	virtual WTSArray*			getContracts(const char* exchg = "") override;
     /***************************************************************/
-	virtual WTSSessionInfo*		getSession(const char* sid) override;
-	virtual WTSSessionInfo*		getSessionByCode(const char* code, const char* exchg = "") override;
-	virtual WTSArray*			getAllSessions() override;
-	virtual bool				isHoliday(const char* stdPID, uint32_t uDate, bool isTpl = false) override;
+	virtual WTSSessionInfo*	getSession(const char* sid) override;
+	virtual WTSSessionInfo*	getSessionByCode(const char* code, const char* exchg = "") override;
+	virtual WTSArray*		getAllSessions() override;
+	virtual bool			isHoliday(const char* stdPID, uint32_t uDate, bool isTpl = false) override;
     /***************************************************************/
 	virtual uint32_t calcTradingDate(const char* stdPID, uint32_t uDate, uint32_t uTime, 
                                      bool isSession = false) override;
@@ -68,9 +68,8 @@ private:
 
 private:
 	TradingDayTplMap	m_mapTradingDay;
-
 	SessionCodeMap		m_mapSessionCode;
-
+    /***************************************************************/
 	WTSExchgContract*	m_mapExchgContract;
 	WTSSessionMap*		m_mapSessions;
 	WTSCommodityMap*	m_mapCommodities;
