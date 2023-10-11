@@ -59,8 +59,7 @@ typedef enum tagCoverMode {
 /*
  *	交易模式
  */
-typedef enum tagTradingMode
-{
+typedef enum tagTradingMode {
 	TM_Both,	//多空都支持
 	TM_Long,	//只能做多
 	TM_LongT1,	//做多T+1
@@ -70,8 +69,7 @@ typedef enum tagTradingMode
 /*
 *	价格模式
 */
-typedef enum tagPriceMode
-{
+typedef enum tagPriceMode {
 	PM_Both,		//市价限价都支持
 	PM_Limit,		//只支持限价
 	PM_Market,		//只支持市价
