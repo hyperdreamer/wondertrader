@@ -143,57 +143,54 @@ public:
         return ((tNow->tm_year+1900)*10000 + (tNow->tm_mon+1)*100 + tNow->tm_mday);
     }
 
+    /*
+     * @uDate    日期，格式如20220309
+     */
     static inline uint32_t getWeekDay(uint32_t uDate = 0)
     {
         time_t ts = 0;
-        if(uDate == 0)
-        {
+        if (!uDate)
             ts = getLocalTimeNow()/1000;
-        }
-        else
-        {
+        else {
             tm t;	
-            memset(&t,0,sizeof(tm));
-            t.tm_year = uDate/10000 - 1900;
-            t.tm_mon = (uDate%10000)/100 - 1;
+            memset(&t, 0, sizeof(tm));
+            t.tm_year = uDate/10000 - 1900;     // years since 1900
+            t.tm_mon = (uDate%10000)/100 - 1;   // [0, 11]
             t.tm_mday = uDate % 100;
-            ts = mktime(&t);
+            ts = mktime(&t);    // the epoc time is 1/1/1970
         }
-
-        tm * tNow = localtime(&ts);
-
-        return tNow->tm_wday;
+     
+        tm* tNow = localtime(&ts);
+        return tNow->tm_wday;   // [0, 6], 0 represents Sunday
     }
 
+    /*
+     * @return    当前时间 hhmmss, 220950
+     */
     static inline uint32_t getCurMin()
     {
         uint64_t ltime = getLocalTimeNow();
         time_t now = ltime / 1000;
-        uint32_t millitm = ltime % 1000;
-
         tm * tNow = localtime(&now);
-
-        uint32_t time = tNow->tm_hour*10000 + tNow->tm_min*100 + tNow->tm_sec;
-
-        return time;
+     
+        return (tNow->tm_hour*10000 + tNow->tm_min*100 + tNow->tm_sec);
     }
 
     static inline int32_t getTZOffset()
     {
         static int32_t offset = 99;
-        if(offset == 99)
-        {
+        if (offset == 99) {
             time_t now = time(NULL);
             tm tm_ltm = *localtime(&now);
             tm tm_gtm = *gmtime(&now);
-
+         
             time_t _gt = mktime(&tm_gtm);
             tm _gtm2 = *localtime(&_gt);
-
+         
             offset = (uint32_t)(((now - _gt) + (_gtm2.tm_isdst ? 3600 : 0)) / 60);
             offset /= 60;
         }
-
+     
         return offset;
     }
 
