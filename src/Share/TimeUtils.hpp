@@ -171,7 +171,7 @@ public:
     {
         uint64_t ltime = getLocalTimeNow();
         time_t now = ltime / 1000;
-        tm * tNow = localtime(&now);
+        tm* tNow = localtime(&now);
      
         return (tNow->tm_hour*10000 + tNow->tm_min*100 + tNow->tm_sec);
     }
@@ -180,15 +180,14 @@ public:
     {
         static int32_t offset = 99;
         if (offset == 99) {
-            time_t now = time(NULL);
+            time_t now = time(NULL); // like our getLocalTimeNow() but no millisec
             tm tm_ltm = *localtime(&now);
             tm tm_gtm = *gmtime(&now);
          
             time_t _gt = mktime(&tm_gtm);
             tm _gtm2 = *localtime(&_gt);
          
-            offset = (uint32_t)(((now - _gt) + (_gtm2.tm_isdst ? 3600 : 0)) / 60);
-            offset /= 60;
+            offset = (uint32_t) (((now - _gt) + (_gtm2.tm_isdst ? 3600 : 0)) / 3600);
         }
      
         return offset;
@@ -214,10 +213,9 @@ public:
         //t.tm_isdst 	
         time_t ts = mktime(&t);
         //如果要转成UTC时间，则需要根据时区进行转换
-        if (isToUTC)
-            ts -= getTZOffset() * 3600;
+        if (isToUTC) ts -= getTZOffset() * 3600;
         if (ts == -1) return 0;
-        return ts * 1000+ millisec;
+        return ts*1000 + millisec;
     }
 
     static std::string timeToString(int64_t mytime)
