@@ -42,9 +42,6 @@ protected:
     virtual ~WTSSessionInfo() {}
 
 public:
-    const char* id() const { return m_strID.c_str(); }
-    const char* name() const { return m_strName.c_str(); }
-
     static WTSSessionInfo* create(const char* sid, const char* name, int32_t offset = 0)
     {
         WTSSessionInfo* pRet = new WTSSessionInfo(offset);
@@ -52,28 +49,27 @@ public:
         pRet->m_strName = name;
         return pRet;
     }
+    //////////////////////////////////////////////////////////////////////////
+    const char* id() const { return m_strID.c_str(); }
+    const char* name() const { return m_strName.c_str(); }
 
-public:
     int32_t	getOffsetMins() const { return m_uOffsetMins; }
 
     void addTradingSection(uint32_t sTime, uint32_t eTime)
     {
-        sTime = offsetTime(sTime, true);
-        eTime = offsetTime(eTime, false);
+        sTime = offsetTime(sTime, true);    // [0000, 2359]
+        eTime = offsetTime(eTime, false);   // [0001, 2400]
         m_tradingTimes.emplace_back(TradingSection(sTime, eTime));
     }
 
     void setAuctionTime(uint32_t sTime, uint32_t eTime)
     {
-        sTime = offsetTime(sTime, true);
-        eTime = offsetTime(eTime, false);
-
+        sTime = offsetTime(sTime, true);    // e.g. 0859
+        eTime = offsetTime(eTime, false);   // e.g. 0900
+     
         if (m_auctionTimes.empty())
-        {
             m_auctionTimes.emplace_back(TradingSection(sTime, eTime));
-        }
-        else
-        {
+        else {
             m_auctionTimes[0].first = sTime;
             m_auctionTimes[0].second = eTime;
         }
@@ -83,17 +79,16 @@ public:
     {
         sTime = offsetTime(sTime, true);
         eTime = offsetTime(eTime, false);
-
+     
         m_auctionTimes.emplace_back(TradingSection(sTime, eTime));
     }
 
     void setOffsetMins(int32_t offset){m_uOffsetMins = offset;}
 
-    const TradingTimes&		getTradingSections() const { return m_tradingTimes; }
-    const TradingTimes&		getAuctionSections() const { return m_auctionTimes; }
+    const TradingTimes&	getTradingSections() const { return m_tradingTimes; }
+    const TradingTimes&	getAuctionSections() const { return m_auctionTimes; }
 
-    //需要导出到脚本的函数
-public:
+public: //需要导出到脚本的函数
     uint32_t getSectionCount() const { return (uint32_t) m_tradingTimes.size(); }
 
     /*
@@ -103,21 +98,16 @@ public:
      */
     uint32_t getOffsetDate(uint32_t uDate = 0, uint32_t uTime = 0)
     {
-        if (uDate == 0)
-        {
+        if (uDate == 0) {
             TimeUtils::getDateTime(uDate, uTime);
             uTime /= 100000;
         }
-
+     
         int32_t curMinute = (uTime / 100) * 60 + uTime % 100;
         curMinute += m_uOffsetMins;
-
-        if (curMinute >= 1440)
-            return TimeUtils::getNextDate(uDate);
-
-        if (curMinute < 0)
-            return TimeUtils::getNextDate(uDate, -1);
-
+        
+        if (curMinute >= 1440) return TimeUtils::getNextDate(uDate);
+        if (curMinute < 0) return TimeUtils::getNextDate(uDate, -1);
         return uDate;
     }
 
