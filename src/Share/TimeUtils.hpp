@@ -252,8 +252,8 @@ public:
         t.tm_mday = curDate % 100;
         //t.tm_isdst 	
         time_t ts = mktime(&t);
-        ts += days*86400;
-
+        ts += days*86400;   // 86400 == 24*60*60
+     
         tm* newT = localtime(&ts);
         return (newT->tm_year+1900)*10000 + (newT->tm_mon+1)*100 + newT->tm_mday;
     }
