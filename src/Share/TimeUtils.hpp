@@ -214,29 +214,31 @@ public:
         time_t ts = mktime(&t);
         if (ts == -1) return 0; // test if mktime failed or not
         //如果要转成UTC时间，则需要根据时区进行转换
-        if (isToUTC) ts -= getTZOffset() * 3600;
+        if (isToUTC) ts -= getTZOffset()*3600;
         return ts*1000 + millisec;
     }
 
     static std::string timeToString(int64_t mytime)
     {
         if (mytime == 0) return "";
+        ///////////////////////////////////////////////////////////////////////////
         int64_t sec = mytime/1000;
-        int msec = (int) (mytime - sec * 1000);
+        int msec = (int) (mytime - sec*1000);
         if (msec < 0) return "";
-        time_t tt =  sec;
+        ///////////////////////////////////////////////////////////////////////////
+        time_t tt = sec;
         struct tm t;
 #ifdef _WIN32
         localtime_s(&t, &tt);
 #else
         localtime_r(&tt, &t);
 #endif
-        char tm_buf[64] = {'\0'};
+        char tm_buf[64] = { '\0' };
         if (msec > 0) //是否有毫秒
-            sprintf(tm_buf,"%4d%02d%02d%02d%02d%02d.%03d",t.tm_year+1900, t.tm_mon+1, t.tm_mday,
+            sprintf(tm_buf, "%4d%02d%02d%02d%02d%02d.%03d", t.tm_year+1900, t.tm_mon+1, t.tm_mday,
                     t.tm_hour, t.tm_min, t.tm_sec, msec);
         else 
-            sprintf(tm_buf,"%4d%02d%02d%02d%02d%02d",t.tm_year+1900, t.tm_mon+1, t.tm_mday,
+            sprintf(tm_buf, "%4d%02d%02d%02d%02d%02d", t.tm_year+1900, t.tm_mon+1, t.tm_mday,
                     t.tm_hour, t.tm_min, t.tm_sec);
         return tm_buf;
     };
