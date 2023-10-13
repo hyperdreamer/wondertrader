@@ -20,6 +20,7 @@
 #include <string.h>
 #include <chrono>
 #include <thread>
+#include <cmath>
 
 #ifdef _MSC_VER
 #define CTIME_BUF_SIZE 64
@@ -218,6 +219,9 @@ public:
         return ts*1000 + millisec;
     }
 
+    /*
+     * @mytime: yyyymmddHHMMSSsss
+     */
     static std::string timeToString(int64_t mytime)
     {
         if (mytime == 0) return "";
@@ -243,6 +247,10 @@ public:
         return tm_buf;
     };
 
+    /*
+     * @curDate: yyyymmdd
+     * @return: yyyymmdd
+     */
     static uint32_t getNextDate(uint32_t curDate, int days = 1)
     {
         tm t;	
@@ -258,44 +266,43 @@ public:
         return (newT->tm_year+1900)*10000 + (newT->tm_mon+1)*100 + newT->tm_mday;
     }
 
+    /*
+     * @curTime: HHMM
+     */
     static uint32_t getNextMinute(int32_t curTime, int32_t mins = 1)
     {
-        int32_t curHour = curTime / 100;
-        int32_t curMin = curTime % 100;
-        int32_t totalMins = curHour * 60 + curMin;
-        totalMins += mins;
-
-        if (totalMins >= 1440)
+        int32_t curHour = curTime/100;
+        int32_t curMin = curTime%100;
+        int32_t totalMins = curHour*60 + curMin + mins;
+     
+        if (totalMins >= 1440) // left aligned [0000, 2359]
             totalMins -= 1440;
         else if (totalMins < 0)
             totalMins += 1440;
-
-        int32_t ret = (totalMins / 60) * 100 + totalMins % 60;
-        return (uint32_t)ret;
+        
+        return (uint32_t) ((totalMins/60)*100 + totalMins%60);
     }
 
+    /*
+     * @curMonth: YYYYMM
+     * @return: YYYYMM
+     */
     static uint32_t getNextMonth(uint32_t curMonth, int months = 1)
     {
-        uint32_t uYear = curMonth/100;
-        uint32_t uMonth = curMonth%100;
-
-        uint32_t uAddYear = months/12;
-        uint32_t uAddMon = months%12;
-
+        int32_t uYear = curMonth / 100;
+        int32_t uMonth = curMonth % 100; // [1, 12]
+     
+        int32_t uAddYear = floor(((float) months)/12.0);
+        int32_t uAddMon = months % 12;
+        uAddMon = uAddMon < 0 ? uAddMon + 12 : uAddMon;  // math modulus: [0, 11]
+     
         uYear += uAddYear;
         uMonth += uAddMon;
-        if(uMonth > 12)
-        {
-            uYear ++;
+        if (uMonth > 12) {
+            ++uYear;
             uMonth -= 12;
         }
-        else if(uMonth <= 0)
-        {
-            uYear --;
-            uMonth = 12;
-        }
-
-        return uYear*100 + uMonth;
+        return (uint32_t) (uYear*100 + uMonth);
     }
 
     static inline uint64_t timeToMinBar(uint32_t uDate, uint32_t uTime)
