@@ -294,7 +294,7 @@ public:
      
         int32_t uAddYear = floor(((float) months)/12.0);
         int32_t uAddMon = months % 12;
-        uAddMon = uAddMon < 0 ? uAddMon + 12 : uAddMon;  // math modulus: [0, 11]
+        if (uAddMon < 0) uAddMon += 12;  // math modulus: [0, 11]
      
         uYear += uAddYear;
         uMonth += uAddMon;
