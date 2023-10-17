@@ -15,8 +15,8 @@ class WtHelper {
 public:
     static std::string getCWD();
     static const char* getOutputDir();
-
     static inline const std::string& getInstDir() { return _inst_dir; }
+
     static inline void setInstDir(const char* inst_dir) { _inst_dir = inst_dir; }
     static void setOutputDir(const char* out_dir);
 
