@@ -72,18 +72,12 @@ bool WtRunner::config()
     if (cfgBF->get("session")) _bd_mgr.loadSessions(cfgBF->getCString("session"));
     //////////////////////////////////////////////////////////////////////////
     WTSVariant* cfgItem = cfgBF->get("commodity");
-    if (cfgItem)
-    {
+    if (cfgItem) {
         if (cfgItem->type() == WTSVariant::VT_String)
-        {
             _bd_mgr.loadCommodities(cfgItem->asCString());
-        }
-        else if (cfgItem->type() == WTSVariant::VT_Array)
-        {
+        else if (cfgItem->type() == WTSVariant::VT_Array) {
             for (uint32_t i = 0; i < cfgItem->size(); i++)
-            {
                 _bd_mgr.loadCommodities(cfgItem->get(i)->asCString());
-            }
         }
     }
 
