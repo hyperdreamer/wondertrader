@@ -10,19 +10,22 @@ namespace rj = rapidjson;
 
 static bool json_to_variant(const rj::Value& root, WTSVariant* params);
 
-static inline void _add_key_obj_variant(WTSVariant* _obj, const char* _key, const rj::Value& _item)
+static inline void _add_key_obj_variant(WTSVariant* _obj, 
+                                        const char* _key, const rj::Value& _item)
 {
     WTSVariant* subObj = WTSVariant::createObject();
     if (json_to_variant(_item, subObj)) _obj->append(_key, subObj, false);
 }
 
-static inline void _add_key_array_variant(WTSVariant* _obj, const char* _key, const rj::Value& _item)
+static inline void _add_key_array_variant(WTSVariant* _obj, 
+                                          const char* _key, const rj::Value& _item)
 {
     WTSVariant* subAy = WTSVariant::createArray();
     if (json_to_variant(_item, subAy)) _obj->append(_key, subAy, false);
 }
 
-static inline void _add_key_int_variant(WTSVariant* _obj, const char* _key, const rj::Value& _item)
+static inline void _add_key_int_variant(WTSVariant* _obj, 
+                                        const char* _key, const rj::Value& _item)
 {
     if (_item.IsInt())
         _obj->append(_key, _item.GetInt());
@@ -113,6 +116,7 @@ static bool json_to_variant(const rj::Value& root, WTSVariant* params)
             }
         }
     }
+
     return true;
 }
 
