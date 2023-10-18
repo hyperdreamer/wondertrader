@@ -193,14 +193,15 @@ private:
     static bool					m_bInited;
     static bool					m_bTpInited;
     static bool					m_bStopped;
+    /***************************************************************/
     static ILogHandler*			m_logHandler;
     static WTSLogLevel			m_logLevel;
-
     static SpdLoggerPtr			m_rootLogger;
-
+    /***************************************************************/
     typedef WTSHashMap<std::string>	LogPatterns;
     static LogPatterns*				m_mapPatterns;
+    /***************************************************************/
     static std::set<std::string>	m_setDynLoggers;
-
+    /***************************************************************/
     static thread_local char	m_buffer[MAX_LOG_BUF_SIZE];
 };
