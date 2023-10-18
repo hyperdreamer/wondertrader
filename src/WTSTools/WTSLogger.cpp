@@ -116,13 +116,14 @@ inline void checkDirs(const char* filename)
 
 inline void print_timetag(bool bWithSpace = true)
 {
-	uint64_t now = TimeUtils::getLocalTimeNow();
-	time_t t = now / 1000;
+    uint64_t now = TimeUtils::getLocalTimeNow();
+    time_t t = now / 1000;
 
-	tm * tNow = localtime(&t);
-	fmt::print("[{}.{:02d}.{:02d} {:02d}:{:02d}:{:02d}]", tNow->tm_year + 1900, tNow->tm_mon + 1, tNow->tm_mday, tNow->tm_hour, tNow->tm_min, tNow->tm_sec);
-	if (bWithSpace)
-		fmt::print(" ");
+    tm* tNow = localtime(&t);
+    fmt::print("[{}.{:02d}.{:02d} {:02d}:{:02d}:{:02d}]", 
+               tNow->tm_year + 1900, tNow->tm_mon + 1, tNow->tm_mday, 
+               tNow->tm_hour, tNow->tm_min, tNow->tm_sec);
+    if (bWithSpace) fmt::print(" ");
 }
 
 void WTSLogger::print_message(const char* buffer)
@@ -207,40 +208,38 @@ void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
  */
 void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
 {
-	if (m_bInited) return;
-	if (isFile && !StdFile::exists(propFile)) return;
+    if (m_bInited) return;
+    if (isFile && !StdFile::exists(propFile)) return;
     /***************************************************************/
-	WTSVariant* cfg = isFile ? WTSCfgLoader::load_from_file(propFile) 
+    WTSVariant* cfg = isFile ? WTSCfgLoader::load_from_file(propFile) 
                              : WTSCfgLoader::load_from_content(propFile, false);
-	if (cfg == NULL) return;
+    if (!cfg) return;
     //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
-	auto keys = cfg->memberNames();
-	for (std::string& key : keys) {
-		WTSVariant* cfgItem = cfg->get(key.c_str());
-		if (key == DYN_PATTERN)
-		{
-			auto pkeys = cfgItem->memberNames();
-			for(std::string& pkey : pkeys)
-			{
-				WTSVariant* cfgPattern = cfgItem->get(pkey.c_str());
-				if (m_mapPatterns == NULL)
-					m_mapPatterns = LogPatterns::create();
+    auto keys = cfg->memberNames();
+    for (std::string& key : keys) {
+        WTSVariant* cfgItem = cfg->get(key.c_str());
+        if (key == DYN_PATTERN) {
+            auto pkeys = cfgItem->memberNames();
+            for(std::string& pkey : pkeys) {
+                WTSVariant* cfgPattern = cfgItem->get(pkey.c_str());
+                if (m_mapPatterns == NULL)
+                    m_mapPatterns = LogPatterns::create();
+                 
+                m_mapPatterns->add(pkey.c_str(), cfgPattern, true);
+            }
+            continue;
+        }
+     
+        initLogger(key.c_str(), cfgItem);
+    }
 
-				m_mapPatterns->add(pkey.c_str(), cfgPattern, true);
-			}
-			continue;
-		}
+    m_rootLogger = getLogger("root");
+    spdlog::set_default_logger(m_rootLogger);
+    spdlog::flush_every(std::chrono::seconds(2));
 
-		initLogger(key.c_str(), cfgItem);
-	}
+    m_logHandler = handler;
 
-	m_rootLogger = getLogger("root");
-	spdlog::set_default_logger(m_rootLogger);
-	spdlog::flush_every(std::chrono::seconds(2));
-
-	m_logHandler = handler;
-
-	m_bInited = true;
+    m_bInited = true;
 }
 
 void WTSLogger::registerHandler(ILogHandler* handler /* = NULL */)
@@ -258,14 +257,9 @@ void WTSLogger::stop()
 
 void WTSLogger::debug_imp(SpdLoggerPtr logger, const char* message)
 {
-	if (logger)
-		logger->debug(message);
-
-	if (logger != m_rootLogger)
-		m_rootLogger->debug(message);
-
-	if (m_logHandler)
-		m_logHandler->handleLogAppend(LL_DEBUG, message);
+    if (logger) logger->debug(message);
+    if (logger != m_rootLogger) m_rootLogger->debug(message);   // TO-FIX
+    if (m_logHandler) m_logHandler->handleLogAppend(LL_DEBUG, message);
 }
 
 void WTSLogger::info_imp(SpdLoggerPtr logger, const char* message)
