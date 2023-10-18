@@ -204,5 +204,3 @@ private:
 
     static thread_local char	m_buffer[MAX_LOG_BUF_SIZE];
 };
-
-
