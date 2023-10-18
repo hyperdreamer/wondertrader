@@ -32,7 +32,7 @@
 #include <spdlog/sinks/ostream_sink.h>
 #include <spdlog/async.h>
 
-const char* DYN_PATTERN = "dyn_pattern";
+static const char* DYN_PATTERN = "dyn_pattern";
 
 ILogHandler*		WTSLogger::m_logHandler	= NULL;
 WTSLogLevel			WTSLogger::m_logLevel	= LL_NONE;
