@@ -1,10 +1,9 @@
 #include "WTSCfgLoader.h"
 #include "../Share/StrUtil.hpp"
 #include "../Share/StdUtils.hpp"
-
 #include "../Share/charconv.hpp"
-
 #include "../Includes/WTSVariant.hpp"
+
 #include <rapidjson/document.h>
 namespace rj = rapidjson;
 
