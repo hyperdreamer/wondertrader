@@ -82,21 +82,19 @@ public:
     }
 
     template<typename... Args>
-        static void info(const char* format, const Args& ...args)
-        {
-            if (m_logLevel > LL_INFO || m_bStopped)
-                return;
-
-            fmtutil::format_to(m_buffer, format, args...);
-
-            if (!m_bInited)
-            {
-                print_message(m_buffer);
-                return;
-            }
-
-            info_imp(m_rootLogger, m_buffer);
+    static void info(const char* format, const Args& ...args)
+    {
+        if (m_logLevel > LL_INFO || m_bStopped) return;
+     
+        fmtutil::format_to(m_buffer, format, args...);
+     
+        if (!m_bInited) {
+            print_message(m_buffer);
+            return;
         }
+     
+        info_imp(m_rootLogger, m_buffer);
+    }
 
     template<typename... Args>
         static void warn(const char* format, const Args& ...args)

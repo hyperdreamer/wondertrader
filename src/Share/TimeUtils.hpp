@@ -49,7 +49,7 @@ struct KUSER_SHARED_DATA {
 #define TICKSPERSEC        10000000L
 #endif
 
-class TimeUtils  {
+class TimeUtils {
 public:
     static inline int64_t getLocalTimeNowOld(void)
     {
