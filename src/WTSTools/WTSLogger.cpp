@@ -97,7 +97,9 @@ void WTSLogger::print_message(const char* buffer)
 void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
 {
     bool bAsync = cfgLogger->getBoolean("async");
+    /***************************************************************/
     const char* level = cfgLogger->getCString("level");
+    /***************************************************************/
     WTSVariant* cfgSinks = cfgLogger->get("sinks"); // array of sinks
     std::vector<spdlog::sink_ptr> sinks;
     //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
@@ -159,6 +161,7 @@ void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
 }
 
 /*
+ * default values defined by API
  * @propFile: logcfg.json
  * @isFile: true
  * @ILogHandler: NULL
@@ -380,7 +383,8 @@ void WTSLogger::log_dyn_raw(const char* patttern, const char* catName, WTSLogLev
 }
 
 /*
- * @pattern = ""
+ * default value defined by API
+ * @pattern: ""
  */
 SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
 {
