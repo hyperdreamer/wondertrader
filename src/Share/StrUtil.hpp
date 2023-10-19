@@ -533,22 +533,25 @@ public:
 		return result;
 	}
 
+    /*
+     * replace substrings src in str with des
+     * Example: str: aa__bb__cc, src: __, des: --, result: aa--bb--cc
+     */
 	static inline void replace(std::string& str, const char* src, const char* des)
-	{
-		std::string ret = "";
-		std::size_t srcLen = strlen(src);
-		std::size_t lastPos = 0;
-		std::size_t pos = str.find(src);
-		while(pos != std::string::npos)
-		{
-			ret += str.substr(lastPos, pos-lastPos);
-			ret += des;
-
-			lastPos = pos + srcLen;
-			pos = str.find(src, lastPos);
-		}
-		ret += str.substr(lastPos, pos);
-
-		str = ret;
-	}
+    {
+        std::string ret = "";
+        std::size_t srcLen = strlen(src);
+        std::size_t lastPos = 0;
+        std::size_t pos = str.find(src);
+        //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+        while (pos != std::string::npos) {
+            ret += str.substr(lastPos, pos-lastPos);
+            ret += des;
+         
+            lastPos = pos + srcLen;
+            pos = str.find(src, lastPos);
+        }
+        ret += str.substr(lastPos, pos);
+        str = ret;
+    }
 };

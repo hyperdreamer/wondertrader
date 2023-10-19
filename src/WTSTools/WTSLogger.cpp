@@ -44,74 +44,35 @@ WTSLogger::LogPatterns*	WTSLogger::m_mapPatterns = NULL;
 thread_local char	WTSLogger::m_buffer[];
 std::set<std::string>	WTSLogger::m_setDynLoggers;
 
-inline spdlog::level::level_enum str_to_level( const char* slvl)
+inline spdlog::level::level_enum str_to_level(const char* slvl)
 {
-	if(wt_stricmp(slvl, "debug") == 0)
-	{
-		return spdlog::level::debug;
-	}
-	else if (wt_stricmp(slvl, "info") == 0)
-	{
-		return spdlog::level::info;
-	}
-	else if (wt_stricmp(slvl, "warn") == 0)
-	{
-		return spdlog::level::warn;
-	}
-	else if (wt_stricmp(slvl, "error") == 0)
-	{
-		return spdlog::level::err;
-	}
-	else if (wt_stricmp(slvl, "fatal") == 0)
-	{
-		return spdlog::level::critical;
-	}
-	else
-	{
-		return spdlog::level::off;
-	}
+    if (!wt_stricmp(slvl, "debug")) return spdlog::level::debug;
+    if (!wt_stricmp(slvl, "info")) return spdlog::level::info;
+    if (!wt_stricmp(slvl, "warn")) return spdlog::level::warn;
+    if (!wt_stricmp(slvl, "error")) return spdlog::level::err;
+    if (!wt_stricmp(slvl, "fatal")) return spdlog::level::critical;
+    return spdlog::level::off;
 }
 
 inline WTSLogLevel str_to_ll(const char* slvl)
-{
-	if (wt_stricmp(slvl, "debug") == 0)
-	{
-		return LL_DEBUG;
-	}
-	else if (wt_stricmp(slvl, "info") == 0)
-	{
-		return LL_INFO;
-	}
-	else if (wt_stricmp(slvl, "warn") == 0)
-	{
-		return LL_WARN;
-	}
-	else if (wt_stricmp(slvl, "error") == 0)
-	{
-		return LL_ERROR;
-	}
-	else if (wt_stricmp(slvl, "fatal") == 0)
-	{
-		return LL_FATAL;
-	}
-	else
-	{
-		return LL_NONE;
-	}
+{ // case-insentive cmp, return 0 if match
+    if (!wt_stricmp(slvl, "debug")) return LL_DEBUG;
+    if (!wt_stricmp(slvl, "info")) return LL_INFO;
+    if (!wt_stricmp(slvl, "warn")) return LL_WARN;
+    if (!wt_stricmp(slvl, "error")) return LL_ERROR;
+    if (!wt_stricmp(slvl, "fatal")) return LL_FATAL;
+    return LL_NONE;
 }
 
 inline void checkDirs(const char* filename)
 {
-	std::string s = StrUtil::standardisePath(filename, false);
-	std::size_t pos = s.find_last_of('/');
+    std::string s = StrUtil::standardisePath(filename, false);
+    std::size_t pos = s.find_last_of('/');
+    if (pos == std::string::npos) return;   // no '/' found
 
-	if (pos == std::string::npos)
-		return;
-
-	pos++;
-
-	if (!StdFile::exists(s.substr(0, pos).c_str()))
-		boost::filesystem::create_directories(s.substr(0, pos).c_str());
+    ++pos;
+    if (!StdFile::exists(s.substr(0, pos).c_str()))
+        boost::filesystem::create_directories(s.substr(0, pos).c_str());
 }
 
 inline void print_timetag(bool bWithSpace = true)
@@ -135,70 +96,66 @@ void WTSLogger::print_message(const char* buffer)
 
 void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
 {
-	bool bAsync = cfgLogger->getBoolean("async");
-	const char* level = cfgLogger->getCString("level");
-
-	WTSVariant* cfgSinks = cfgLogger->get("sinks");
-	std::vector<spdlog::sink_ptr> sinks;
-	for (uint32_t idx = 0; idx < cfgSinks->size(); idx++)
-	{
-		WTSVariant* cfgSink = cfgSinks->get(idx);
-		const char* type = cfgSink->getCString("type");
-		if (strcmp(type, "daily_file_sink") == 0)
-		{
-			std::string filename = cfgSink->getString("filename");
-			StrUtil::replace(filename, "%s", catName);
-			checkDirs(filename.c_str());
-			auto sink = std::make_shared<spdlog::sinks::daily_file_sink_mt>(filename, 0, 0);
-			sink->set_pattern(cfgSink->getCString("pattern"));
-			sinks.emplace_back(sink);
-		}
-		else if (strcmp(type, "basic_file_sink") == 0)
-		{
-			std::string filename = cfgSink->getString("filename");
-			StrUtil::replace(filename, "%s", catName);
-			checkDirs(filename.c_str());
-			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, cfgSink->getBoolean("truncate"));
-			sink->set_pattern(cfgSink->getCString("pattern"));
-			sinks.emplace_back(sink);
-		}
-		else if (strcmp(type, "console_sink") == 0)
-		{
-			auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-			sink->set_pattern(cfgSink->getCString("pattern"));
-			sinks.emplace_back(sink);
-		}
-		else if (strcmp(type, "ostream_sink") == 0)
-		{
-			auto sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(std::cout, true);
-			sink->set_pattern(cfgSink->getCString("pattern"));
-			sinks.emplace_back(sink);
-		}
-	}
-
-	if (!bAsync)
-	{
-		auto logger = std::make_shared<spdlog::logger>(catName, sinks.begin(), sinks.end());
-		logger->set_level(str_to_level(cfgLogger->getCString("level")));
-		spdlog::register_logger(logger);
-	}
-	else
-	{
-		if(!m_bTpInited)
-		{
-			spdlog::init_thread_pool(8192, 2);
-			m_bTpInited = true;
-		}
-
-		auto logger = std::make_shared<spdlog::async_logger>(catName, sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-		logger->set_level(str_to_level(cfgLogger->getCString("level")));
-		spdlog::register_logger(logger);
-	}
-
-	if(strcmp(catName, "root")==0)
-	{
-		m_logLevel = str_to_ll(cfgLogger->getCString("level"));
-	}
+    bool bAsync = cfgLogger->getBoolean("async");
+    const char* level = cfgLogger->getCString("level");
+    WTSVariant* cfgSinks = cfgLogger->get("sinks"); // array of sinks
+    std::vector<spdlog::sink_ptr> sinks;
+    //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+    for (uint32_t idx = 0; idx < cfgSinks->size(); ++idx) {
+        WTSVariant* cfgSink = cfgSinks->get(idx); // each sink cfg is a map
+        /***************************************************************/
+        const char* type = cfgSink->getCString("type");
+        if (!strcmp(type, "daily_file_sink")) { // == 0
+            std::string filename = cfgSink->getString("filename");
+            StrUtil::replace(filename, "%s", catName);
+            checkDirs(filename.c_str());
+            /***************************************************************/
+            // rotate every daily at 00:00
+            auto sink = std::make_shared<spdlog::sinks::daily_file_sink_mt>(filename, 0, 0);
+            // example of sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v"); 
+            sink->set_pattern(cfgSink->getCString("pattern"));
+            sinks.emplace_back(sink);
+        }
+        else if (!strcmp(type, "basic_file_sink")) { // == 0
+            std::string filename = cfgSink->getString("filename");
+            StrUtil::replace(filename, "%s", catName);
+            checkDirs(filename.c_str());
+            /***************************************************************/
+            auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, cfgSink->getBoolean("truncate"));
+            sink->set_pattern(cfgSink->getCString("pattern"));
+            sinks.emplace_back(sink);
+        }
+        else if (!strcmp(type, "console_sink")) { // == 0
+            auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+            sink->set_pattern(cfgSink->getCString("pattern"));
+            sinks.emplace_back(sink);
+        }
+        else if (!strcmp(type, "ostream_sink")) { // == 0
+            auto sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(std::cout, true);
+            sink->set_pattern(cfgSink->getCString("pattern"));
+            sinks.emplace_back(sink);
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////
+    if (!bAsync) {
+        auto logger = std::make_shared<spdlog::logger>(catName, sinks.begin(), sinks.end());
+        logger->set_level(str_to_level(cfgLogger->getCString("level")));
+        spdlog::register_logger(logger);
+    }
+    else {
+        if(!m_bTpInited) {
+            spdlog::init_thread_pool(8192, 2);
+            m_bTpInited = true;
+        }
+     
+        auto logger = std::make_shared<spdlog::async_logger>(catName, sinks.begin(), sinks.end(), 
+                                                             spdlog::thread_pool(), 
+                                                             spdlog::async_overflow_policy::block);
+        logger->set_level(str_to_level(cfgLogger->getCString("level")));
+        spdlog::register_logger(logger);
+    }
+    //////////////////////////////////////////////////////////////////////////
+    if(!strcmp(catName, "root")) m_logLevel = str_to_ll(cfgLogger->getCString("level"));
 }
 
 /*
@@ -222,23 +179,21 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
             auto pkeys = cfgItem->memberNames();
             for(std::string& pkey : pkeys) {
                 WTSVariant* cfgPattern = cfgItem->get(pkey.c_str());
-                if (m_mapPatterns == NULL)
-                    m_mapPatterns = LogPatterns::create();
-                 
+                if (!m_mapPatterns) m_mapPatterns = LogPatterns::create();
                 m_mapPatterns->add(pkey.c_str(), cfgPattern, true);
             }
             continue;
         }
-     
+        /***************************************************************/
         initLogger(key.c_str(), cfgItem);
     }
-
+    //////////////////////////////////////////////////////////////////////////
     m_rootLogger = getLogger("root");
     spdlog::set_default_logger(m_rootLogger);
     spdlog::flush_every(std::chrono::seconds(2));
-
+    //////////////////////////////////////////////////////////////////////////
     m_logHandler = handler;
-
+    //////////////////////////////////////////////////////////////////////////
     m_bInited = true;
 }
 
@@ -424,28 +379,23 @@ void WTSLogger::log_dyn_raw(const char* patttern, const char* catName, WTSLogLev
 	}
 }
 
-
-SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern /* = "" */)
+/*
+ * @pattern = ""
+ */
+SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
 {
-	SpdLoggerPtr ret = spdlog::get(logger);
-	if (ret == NULL && strlen(pattern) > 0)
-	{
-		//当成动态的日志来处理
-		if (m_mapPatterns == NULL)
-			return SpdLoggerPtr();
-
-		WTSVariant* cfg = (WTSVariant*)m_mapPatterns->get(pattern);
-		if (cfg == NULL)
-			return SpdLoggerPtr();
-
-		initLogger(logger, cfg);
-
-		m_setDynLoggers.insert(logger);
-
-		return spdlog::get(logger);
-	}
-
-	return ret;
+    SpdLoggerPtr ret = spdlog::get(logger);
+    if (!ret && strlen(pattern) > 0) { //当成动态的日志来处理
+        if (!m_mapPatterns) return SpdLoggerPtr();  // == NULL
+     
+        WTSVariant* cfg = (WTSVariant*) m_mapPatterns->get(pattern);
+        if (!cfg) return SpdLoggerPtr(); // == NULL
+     
+        initLogger(logger, cfg);
+        m_setDynLoggers.insert(logger);
+        return spdlog::get(logger);
+    }
+    return ret;
 }
 
 void WTSLogger::freeAllDynLoggers()

@@ -97,21 +97,21 @@ public:
     }
 
     template<typename... Args>
-        static void warn(const char* format, const Args& ...args)
+    static void warn(const char* format, const Args& ...args)
+    {
+        if (m_logLevel > LL_WARN || m_bStopped)
+            return;
+
+        fmtutil::format_to(m_buffer, format, args...);
+
+        if (!m_bInited)
         {
-            if (m_logLevel > LL_WARN || m_bStopped)
-                return;
-
-            fmtutil::format_to(m_buffer, format, args...);
-
-            if (!m_bInited)
-            {
-                print_message(m_buffer);
-                return;
-            }
-
-            warn_imp(m_rootLogger, m_buffer);
+            print_message(m_buffer);
+            return;
         }
+
+        warn_imp(m_rootLogger, m_buffer);
+    }
 
     template<typename... Args>
         static void error(const char* format, const Args& ...args)

@@ -12,9 +12,8 @@
 #include "WTSTypes.h"
 
 NS_WTP_BEGIN
-class ILogHandler
-{
+class ILogHandler {
 public:
-	virtual void handleLogAppend(WTSLogLevel ll, const char* msg)	= 0;
+	virtual void handleLogAppend(WTSLogLevel ll, const char* msg) = 0;
 };
 NS_WTP_END
