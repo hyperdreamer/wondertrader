@@ -369,7 +369,7 @@ void WTSLogger::log_dyn_raw(const char* patttern, const char* catName, WTSLogLev
 
 /*
  * default value defined by API
- * @pattern: ""a
+ * @pattern: ""
  */
 SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
 {
