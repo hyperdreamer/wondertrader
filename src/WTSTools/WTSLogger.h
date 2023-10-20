@@ -183,7 +183,7 @@ public:
 public:
     static void init(const char* propFile = "logcfg.json", bool isFile = true, ILogHandler* handler = NULL);
 
-    static void registerHandler(ILogHandler* handler = NULL);
+    static inline void registerHandler(ILogHandler* handler = NULL) { m_logHandler = handler; }
 
     static void stop();
 
