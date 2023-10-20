@@ -96,6 +96,13 @@ void WTSLogger::print_message(const char* buffer)
 
 void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
 {
+    /*
+     * @cfgLogger: map
+     * entries:
+     * (key: "async", value: boolean value)
+     * (key: "level", value: string in {"debug", "info", "warn", "error", "fatal"})
+     * (key: "sinks", value: array of sinks
+     */
     bool bAsync = cfgLogger->getBoolean("async");
     /***************************************************************/
     const char* level = cfgLogger->getCString("level");
@@ -104,7 +111,11 @@ void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
     std::vector<spdlog::sink_ptr> sinks;
     //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     for (uint32_t idx = 0; idx < cfgSinks->size(); ++idx) {
-        WTSVariant* cfgSink = cfgSinks->get(idx); // each sink cfg is a map
+        /*
+         * @cfgSink: map
+         * keys: "type", "filename", "pattern"
+         */
+        WTSVariant* cfgSink = cfgSinks->get(idx);
         /***************************************************************/
         const char* type = cfgSink->getCString("type");
         if (!strcmp(type, "daily_file_sink")) { // == 0
@@ -171,6 +182,12 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
     if (m_bInited) return;
     if (isFile && !StdFile::exists(propFile)) return;
     /***************************************************************/
+    /*
+     * map in propFile:
+     * entries:
+     * TYPE I:  (key: "static logger name", value: map of static logger cfg)
+     * TYPE II: (key: DYN_PATTERN, value: map of dynamic loggers)
+     */
     WTSVariant* cfg = isFile ? WTSCfgLoader::load_from_file(propFile) 
                              : WTSCfgLoader::load_from_content(propFile, false);
     if (!cfg) return;
@@ -179,10 +196,15 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
     for (std::string& key : keys) {
         WTSVariant* cfgItem = cfg->get(key.c_str());
         if (key == DYN_PATTERN) {
+            // Type II entry: (key: DYN_PATTERN, value: map of dynamic loggers)
             auto pkeys = cfgItem->memberNames();
             for(std::string& pkey : pkeys) {
                 WTSVariant* cfgPattern = cfgItem->get(pkey.c_str());
                 if (!m_mapPatterns) m_mapPatterns = LogPatterns::create();
+                /*
+                 * @m_mapPatterns: map of dynamic loggers
+                 * entry: (key: "dynamic logger name", value: map of dynamic logger cfg)
+                 */
                 m_mapPatterns->add(pkey.c_str(), cfgPattern, true);
             }
             continue;
@@ -369,11 +391,11 @@ void WTSLogger::log_dyn_raw(const char* patttern, const char* catName, WTSLogLev
 		info_imp(logger, message);
 		break;
 	case LL_WARN:
-		warn_imp(logger, message);
+		warn_imp(logger, message);// each sink cfg is a map
 		break;
 	case LL_ERROR:
 		error_imp(logger, message);
-		break;
+		break;// each sink cfg is a map
 	case LL_FATAL:
 		fatal_imp(logger, message);
 		break;
@@ -388,12 +410,12 @@ void WTSLogger::log_dyn_raw(const char* patttern, const char* catName, WTSLogLev
  */
 SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
 {
-    SpdLoggerPtr ret = spdlog::get(logger);
-    if (!ret && strlen(pattern) > 0) { //当成动态的日志来处理
-        if (!m_mapPatterns) return SpdLoggerPtr();  // == NULL
+    SpdLoggerPtr ret = spdlog::get(logger); // first check if it is a static logger
+    if (!ret && strlen(pattern) > 0) { // if not, treat it as as dynamic logger
+        if (!m_mapPatterns) return SpdLoggerPtr();  // if == NULL
      
         WTSVariant* cfg = (WTSVariant*) m_mapPatterns->get(pattern);
-        if (!cfg) return SpdLoggerPtr(); // == NULL
+        if (!cfg) return SpdLoggerPtr(); // if == NULL
      
         initLogger(logger, cfg);
         m_setDynLoggers.insert(logger);
