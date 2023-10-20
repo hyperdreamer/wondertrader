@@ -109,7 +109,7 @@ void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
     /***************************************************************/
     WTSVariant* cfgSinks = cfgLogger->get("sinks"); // array of sinks
     std::vector<spdlog::sink_ptr> sinks;
-    //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+    //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;a;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     for (uint32_t idx = 0; idx < cfgSinks->size(); ++idx) {
         /*
          * @cfgSink: map
