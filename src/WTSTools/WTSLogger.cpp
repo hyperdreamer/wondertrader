@@ -113,7 +113,10 @@ void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
     for (uint32_t idx = 0; idx < cfgSinks->size(); ++idx) {
         /*
          * @cfgSink: map
-         * keys: "type", "filename", "pattern"
+         * entries:
+         * (key: "type", value: string of type)
+         * (key: "filename", value: string of filename with %s)
+         * (key: "pattern", value: format of output), Check the example
          */
         WTSVariant* cfgSink = cfgSinks->get(idx);
         /***************************************************************/
@@ -213,7 +216,7 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
         initLogger(key.c_str(), cfgItem);
     }
     //////////////////////////////////////////////////////////////////////////
-    m_rootLogger = getLogger("root");
+    m_rootLogger = getLogger("root"); // the root logger must be configed as a static logger
     spdlog::set_default_logger(m_rootLogger);
     spdlog::flush_every(std::chrono::seconds(2));
     //////////////////////////////////////////////////////////////////////////
@@ -222,16 +225,10 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
     m_bInited = true;
 }
 
-void WTSLogger::registerHandler(ILogHandler* handler /* = NULL */)
-{
-	m_logHandler = handler;
-}
-
 void WTSLogger::stop()
 {
 	m_bStopped = true;
-	if (m_mapPatterns)
-		m_mapPatterns->release();
+	if (m_mapPatterns) m_mapPatterns->release();
 	spdlog::shutdown();
 }
 
@@ -410,7 +407,7 @@ void WTSLogger::log_dyn_raw(const char* patttern, const char* catName, WTSLogLev
  */
 SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
 {
-    SpdLoggerPtr ret = spdlog::get(logger); // first check if it is a static logger
+    SpdLoggerPtr ret = spdlog::get(logger); // first check if it already exists
     if (!ret && strlen(pattern) > 0) { // if not, treat it as as dynamic logger
         if (!m_mapPatterns) return SpdLoggerPtr();  // if == NULL
      
@@ -426,12 +423,9 @@ SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
 
 void WTSLogger::freeAllDynLoggers()
 {
-	for(const std::string& logger : m_setDynLoggers)
-	{
-		auto loggerPtr = spdlog::get(logger);
-		if(!loggerPtr)
-			continue;
-
-		spdlog::drop(logger);
-	}
+    for(const std::string& logger : m_setDynLoggers) {
+        auto loggerPtr = spdlog::get(logger);
+        if(!loggerPtr) continue;
+        spdlog::drop(logger);
+    }
 }
