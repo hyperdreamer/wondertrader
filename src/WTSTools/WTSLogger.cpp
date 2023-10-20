@@ -89,9 +89,9 @@ inline void print_timetag(bool bWithSpace = true)
 
 void WTSLogger::print_message(const char* buffer)
 {
-	print_timetag(true);
-	fmt::print(buffer);
-	fmt::print("\r\n");
+    print_timetag(true);
+    fmt::print(buffer);
+    fmt::print("\r\n");
 }
 
 void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
@@ -163,7 +163,7 @@ void WTSLogger::initLogger(const char* catName, WTSVariant* cfgLogger)
             spdlog::init_thread_pool(8192, 2);
             m_bTpInited = true;
         }
-     
+
         auto logger = std::make_shared<spdlog::async_logger>(catName, sinks.begin(), sinks.end(), 
                                                              spdlog::thread_pool(), 
                                                              spdlog::async_overflow_policy::block);
@@ -189,24 +189,25 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
      * map in propFile:
      * entries:
      * TYPE I:  (key: "static logger name", value: map of static logger cfg)
-     * TYPE II: (key: DYN_PATTERN, value: map of dynamic loggers)
+     * TYPE II: (key: DYN_PATTERN, value: map of dynamic logger cfgs)
      */
     WTSVariant* cfg = isFile ? WTSCfgLoader::load_from_file(propFile) 
-                             : WTSCfgLoader::load_from_content(propFile, false);
+        : WTSCfgLoader::load_from_content(propFile, false);
     if (!cfg) return;
     //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     auto keys = cfg->memberNames();
     for (std::string& key : keys) {
         WTSVariant* cfgItem = cfg->get(key.c_str());
         if (key == DYN_PATTERN) {
-            // Type II entry: (key: DYN_PATTERN, value: map of dynamic loggers)
+            // Type II entry: (key: DYN_PATTERN, value: map of dynamic logger cfgs)
             auto pkeys = cfgItem->memberNames();
             for(std::string& pkey : pkeys) {
                 WTSVariant* cfgPattern = cfgItem->get(pkey.c_str());
                 if (!m_mapPatterns) m_mapPatterns = LogPatterns::create();
                 /*
-                 * @m_mapPatterns: map of dynamic loggers
-                 * entry: (key: "dynamic logger name", value: map of dynamic logger cfg)
+                 * @m_mapPatterns: map of dynamic logger cfgs
+                 * entry: (key: "name", value: dynamic logger cfg in map form)
+                 * NOTE: the value itself is a map
                  */
                 m_mapPatterns->add(pkey.c_str(), cfgPattern, true);
             }
@@ -227,183 +228,148 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
 
 void WTSLogger::stop()
 {
-	m_bStopped = true;
-	if (m_mapPatterns) m_mapPatterns->release();
-	spdlog::shutdown();
+    m_bStopped = true;
+    if (m_mapPatterns) m_mapPatterns->release();
+    spdlog::shutdown();
 }
 
 void WTSLogger::debug_imp(SpdLoggerPtr logger, const char* message)
 {
     if (logger) logger->debug(message);
-    if (logger != m_rootLogger) m_rootLogger->debug(message);   // TO-FIX
+    if (logger != m_rootLogger) m_rootLogger->debug(message);
     if (m_logHandler) m_logHandler->handleLogAppend(LL_DEBUG, message);
 }
 
 void WTSLogger::info_imp(SpdLoggerPtr logger, const char* message)
 {
-	if (logger)
-		logger->info(message);
-
-	if (logger != m_rootLogger)
-		m_rootLogger->info(message);
-
-	if (m_logHandler)
-		m_logHandler->handleLogAppend(LL_INFO, message);
+    if (logger) logger->info(message);
+    if (logger != m_rootLogger) m_rootLogger->info(message);
+    if (m_logHandler) m_logHandler->handleLogAppend(LL_INFO, message);
 }
 
 void WTSLogger::warn_imp(SpdLoggerPtr logger, const char* message)
 {
-	if (logger)
-		logger->warn(message);
-
-	if (logger != m_rootLogger)
-		m_rootLogger->warn(message);
-
-	if (m_logHandler)
-		m_logHandler->handleLogAppend(LL_WARN, message);
+    if (logger) logger->warn(message);
+    if (logger != m_rootLogger) m_rootLogger->warn(message);
+    if (m_logHandler) m_logHandler->handleLogAppend(LL_WARN, message);
 }
 
 void WTSLogger::error_imp(SpdLoggerPtr logger, const char* message)
 {
-	if (logger)
-		logger->error(message);
-
-	if (logger != m_rootLogger)
-		m_rootLogger->error(message);
-
-	if (m_logHandler)
-		m_logHandler->handleLogAppend(LL_ERROR, message);
+    if (logger) logger->error(message);
+    if (logger != m_rootLogger) m_rootLogger->error(message);
+    if (m_logHandler) m_logHandler->handleLogAppend(LL_ERROR, message);
 }
 
 void WTSLogger::fatal_imp(SpdLoggerPtr logger, const char* message)
 {
-	if (logger)
-		logger->critical(message);
-
-	if (logger != m_rootLogger)
-		m_rootLogger->critical(message);
-
-	if (m_logHandler)
-		m_logHandler->handleLogAppend(LL_FATAL, message);
+    if (logger) logger->critical(message);
+    if (logger != m_rootLogger) m_rootLogger->critical(message);
+    if (m_logHandler) m_logHandler->handleLogAppend(LL_FATAL, message);
 }
 
 void WTSLogger::log_raw(WTSLogLevel ll, const char* message)
 {
-	if (m_logLevel > ll || m_bStopped)
-		return;
+    if (m_logLevel > ll || m_bStopped) return;
 
-	if (!m_bInited)
-	{
-		print_message(message);
-		return;
-	}
+    if (!m_bInited) {
+        print_message(message);
+        return;
+    }
 
-	auto logger = m_rootLogger;
-
-	if (logger)
-	{
-		switch (ll)
-		{
-		case LL_DEBUG:
-			debug_imp(logger, message); break;
-		case LL_INFO:
-			info_imp(logger, message); break;
-		case LL_WARN:
-			warn_imp(logger, message); break;
-		case LL_ERROR:
-			error_imp(logger, message); break;
-		case LL_FATAL:
-			fatal_imp(logger, message); break;
-		default:
-			break;
-		}
-	}
+    if (m_rootLogger)
+        switch (ll) {
+        case LL_DEBUG:
+            debug_imp(m_rootLogger, message); break;
+        case LL_INFO:
+            info_imp(m_rootLogger, message); break;
+        case LL_WARN:
+            warn_imp(m_rootLogger, message); break;
+        case LL_ERROR:
+            error_imp(m_rootLogger, message); break;
+        case LL_FATAL:
+            fatal_imp(m_rootLogger, message); break;
+        default:
+            break;
+        }
 }
 
 void WTSLogger::log_raw_by_cat(const char* catName, WTSLogLevel ll, const char* message)
 {
-	if (m_logLevel > ll || m_bStopped)
-		return;
+    if (m_logLevel > ll || m_bStopped) return;
 
-	auto logger = getLogger(catName);
-	if (logger == NULL)
-		logger = m_rootLogger;
+    auto logger = getLogger(catName);
+    if (!logger) logger = m_rootLogger;
 
-	if (!m_bInited)
-	{
-		print_timetag(true);
-		printf(message);
-		printf("\r\n");
-		return;
-	}
+    if (!m_bInited) {
+        print_timetag(true);
+        printf(message);
+        printf("\r\n");
+        return;
+    }
 
-	if (logger)
-	{
-		switch (ll)
-		{
-		case LL_DEBUG:
-			debug_imp(logger, message);
-			break;
-		case LL_INFO:
-			info_imp(logger, message);
-			break;
-		case LL_WARN:
-			warn_imp(logger, message);
-			break;
-		case LL_ERROR:
-			error_imp(logger, message);
-			break;
-		case LL_FATAL:
-			fatal_imp(logger, message);
-			break;
-		default:
-			break;
-		}
-	}	
+    if (logger)
+        switch (ll) {
+        case LL_DEBUG:
+            debug_imp(logger, message);
+            break;
+        case LL_INFO:
+            info_imp(logger, message);
+            break;
+        case LL_WARN:
+            warn_imp(logger, message);
+            break;
+        case LL_ERROR:
+            error_imp(logger, message);
+            break;
+        case LL_FATAL:
+            fatal_imp(logger, message);
+            break;
+        default:
+            break;
+        }
 }
 
 void WTSLogger::log_dyn_raw(const char* patttern, const char* catName, WTSLogLevel ll, const char* message)
 {
-	if (m_logLevel > ll || m_bStopped)
-		return;
+    if (m_logLevel > ll || m_bStopped) return;
 
-	auto logger = getLogger(catName, patttern);
-	if (logger == NULL)
-		logger = m_rootLogger;
+    auto logger = getLogger(catName, patttern);
+    if (!logger) logger = m_rootLogger;
 
-	if (!m_bInited)
-	{
-		print_timetag(true);
-		printf(m_buffer);
-		printf("\r\n");
-		return;
-	}
+    if (!m_bInited)
+    {
+        print_timetag(true);
+        printf(m_buffer);
+        printf("\r\n");
+        return;
+    }
 
-	switch (ll)
-	{
-	case LL_DEBUG:
-		debug_imp(logger, message);
-		break;
-	case LL_INFO:
-		info_imp(logger, message);
-		break;
-	case LL_WARN:
-		warn_imp(logger, message);// each sink cfg is a map
-		break;
-	case LL_ERROR:
-		error_imp(logger, message);
-		break;// each sink cfg is a map
-	case LL_FATAL:
-		fatal_imp(logger, message);
-		break;
-	default:
-		break;
-	}
+    if (logger)
+        switch (ll) {
+        case LL_DEBUG:
+            debug_imp(logger, message);
+            break;
+        case LL_INFO:
+            info_imp(logger, message);
+            break;
+        case LL_WARN:
+            warn_imp(logger, message);// each sink cfg is a map
+            break;
+        case LL_ERROR:
+            error_imp(logger, message);
+            break;// each sink cfg is a map
+        case LL_FATAL:
+            fatal_imp(logger, message);
+            break;
+        default:
+            break;
+        }
 }
 
 /*
  * default value defined by API
- * @pattern: ""
+ * @pattern: ""a
  */
 SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
 {
@@ -418,7 +384,7 @@ SpdLoggerPtr WTSLogger::getLogger(const char* logger, const char* pattern)
         m_setDynLoggers.insert(logger);
         return spdlog::get(logger);
     }
-    return ret;
+    return ret; 
 }
 
 void WTSLogger::freeAllDynLoggers()
