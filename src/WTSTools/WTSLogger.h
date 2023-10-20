@@ -67,126 +67,101 @@ public:
     //fmt::format风格接口
 public:
     template<typename... Args>
-    static void debug(const char* format, const Args& ...args)
+    static inline void debug(const char* format, const Args& ...args)
     {
         if (m_logLevel > LL_DEBUG || m_bStopped) return;
      
         fmtutil::format_to(m_buffer, format, args...);
-     
         if (!m_bInited) {
             print_message(m_buffer);
             return;
         }
-     
         debug_imp(m_rootLogger, m_buffer);
     }
 
     template<typename... Args>
-    static void info(const char* format, const Args& ...args)
+    static inline void info(const char* format, const Args& ...args)
     {
         if (m_logLevel > LL_INFO || m_bStopped) return;
      
         fmtutil::format_to(m_buffer, format, args...);
-     
         if (!m_bInited) {
             print_message(m_buffer);
             return;
         }
-     
         info_imp(m_rootLogger, m_buffer);
     }
 
     template<typename... Args>
-    static void warn(const char* format, const Args& ...args)
+    static inline void warn(const char* format, const Args& ...args)
     {
-        if (m_logLevel > LL_WARN || m_bStopped)
-            return;
-
+        if (m_logLevel > LL_WARN || m_bStopped) return;
+     
         fmtutil::format_to(m_buffer, format, args...);
-
-        if (!m_bInited)
-        {
+        if (!m_bInited) {
             print_message(m_buffer);
             return;
         }
-
         warn_imp(m_rootLogger, m_buffer);
     }
 
     template<typename... Args>
-        static void error(const char* format, const Args& ...args)
-        {
-            if (m_logLevel > LL_ERROR || m_bStopped)
-                return;
-
-            fmtutil::format_to(m_buffer, format, args...);
-
-            if (!m_bInited)
-            {
-                print_message(m_buffer);
-                return;
-            }
-
-            error_imp(m_rootLogger, m_buffer);
+    static inline void error(const char* format, const Args& ...args)
+    {
+        if (m_logLevel > LL_ERROR || m_bStopped) return;
+     
+        fmtutil::format_to(m_buffer, format, args...);
+        if (!m_bInited) {
+            print_message(m_buffer);
+            return;
         }
+        error_imp(m_rootLogger, m_buffer);
+    }
 
     template<typename... Args>
-        static void fatal(const char* format, const Args& ...args)
-        {
-            if (m_logLevel > LL_FATAL || m_bStopped)
-                return;
-
-            fmtutil::format_to(m_buffer, format, args...);
-
-            if (!m_bInited)
-            {
-                print_message(m_buffer);
-                return;
-            }
-
-            fatal_imp(m_rootLogger, m_buffer);
+    static inline void fatal(const char* format, const Args& ...args)
+    {
+        if (m_logLevel > LL_FATAL || m_bStopped) return;
+     
+        fmtutil::format_to(m_buffer, format, args...);
+        if (!m_bInited) {
+            print_message(m_buffer);
+            return;
         }
+        fatal_imp(m_rootLogger, m_buffer);
+    }
 
     template<typename... Args>
-        static void log(WTSLogLevel ll, const char* format, const Args& ...args)
-        {
-            if (m_logLevel > ll || m_bStopped)
-                return;
-
-            fmtutil::format_to(m_buffer, format, args...);
-
-            log_raw(ll, m_buffer);
-        }
+    static inline void log(WTSLogLevel ll, const char* format, const Args& ...args)
+    {
+        if (m_logLevel > ll || m_bStopped) return;
+     
+        fmtutil::format_to(m_buffer, format, args...);
+        log_raw(ll, m_buffer);
+    }
 
     template<typename... Args>
-        static void log_by_cat(const char* catName, WTSLogLevel ll, const char* format, const Args& ...args)
-        {
-            if (m_logLevel > ll || m_bStopped)
-                return;
-
-            fmtutil::format_to(m_buffer, format, args...);
-
-            log_raw_by_cat(catName, ll, m_buffer);
-        }
+    static inline void log_by_cat(const char* catName, WTSLogLevel ll, const char* format, const Args& ...args)
+    {
+        if (m_logLevel > ll || m_bStopped) return;
+     
+        fmtutil::format_to(m_buffer, format, args...);
+        log_raw_by_cat(catName, ll, m_buffer);
+    }
 
     template<typename... Args>
-        static void log_dyn(const char* patttern, const char* catName, WTSLogLevel ll, const char* format, const Args& ...args)
-        {
-            if (m_logLevel > ll || m_bStopped)
-                return;
-
-            fmtutil::format_to(m_buffer, format, args...);
-
-            log_dyn_raw(patttern, catName, ll, m_buffer);
-        }
+    static inline void log_dyn(const char* patttern, const char* catName, WTSLogLevel ll, const char* format, const Args& ...args)
+    {
+        if (m_logLevel > ll || m_bStopped) return;
+     
+        fmtutil::format_to(m_buffer, format, args...);
+        log_dyn_raw(patttern, catName, ll, m_buffer);
+    }
 
 public:
     static void init(const char* propFile = "logcfg.json", bool isFile = true, ILogHandler* handler = NULL);
-
     static inline void registerHandler(ILogHandler* handler = NULL) { m_logHandler = handler; }
-
     static void stop();
-
     static void freeAllDynLoggers();
 
 private:
