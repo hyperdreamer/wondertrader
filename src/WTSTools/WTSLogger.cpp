@@ -192,7 +192,7 @@ void WTSLogger::init(const char* propFile, bool isFile, ILogHandler* handler)
      * TYPE II: (key: DYN_PATTERN, value: map of dynamic logger cfgs)
      */
     WTSVariant* cfg = isFile ? WTSCfgLoader::load_from_file(propFile) 
-        : WTSCfgLoader::load_from_content(propFile, false);
+                             : WTSCfgLoader::load_from_content(propFile, false);
     if (!cfg) return;
     //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     auto keys = cfg->memberNames();
