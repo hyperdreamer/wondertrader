@@ -32,7 +32,12 @@ protected:
      *	白盘的集合竞价会在开盘前一分钟撮合，状态机会往前延伸一分钟，所以原有逻辑不需要拓展
      */
     TradingTimes	m_auctionTimes;
-    int32_t			m_uOffsetMins;  // for timezone adjustment???
+
+    /*
+     * For Chinese future trading, a typical value is 300 (3 hours)
+     * 21:00 + 3 hours = 0:00 the next day
+     */
+    int32_t			m_uOffsetMins;
 
     std::string		m_strID;
     std::string		m_strName;
@@ -42,6 +47,9 @@ protected:
     virtual ~WTSSessionInfo() {}
 
 public:
+    /*
+     * Check wondertrader/dist/common/sessions.json
+     */
     static WTSSessionInfo* create(const char* sid, const char* name, int32_t offset = 0)
     {
         WTSSessionInfo* pRet = new WTSSessionInfo(offset);
