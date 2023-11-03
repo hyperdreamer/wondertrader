@@ -89,7 +89,6 @@ public:
     {
         sTime = offsetTime(sTime, true);
         eTime = offsetTime(eTime, false);
-     
         m_auctionTimes.emplace_back(TradingSection(sTime, eTime));
     }
 
