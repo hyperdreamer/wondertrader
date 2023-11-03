@@ -61,6 +61,7 @@ public:
 	CodeSet* getSessionComms(const char* sid);
     /***************************************************************/
     bool isTradingDate(const char* stdPID, uint32_t uDate, bool isTpl = false);
+    /***************************************************************/
 	void setTradingDate(const char* stdPID, uint32_t uDate, bool isTpl = false);
 
 private:
