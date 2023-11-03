@@ -35,7 +35,9 @@ protected:
 
     /*
      * For Chinese future trading, a typical value is 300 (3 hours)
-     * 21:00 + 3 hours = 0:00 the next day
+     * 21:00 + 3 hours = 0:00 the next day: to make sure the 
+     * night trading belongs to the next day's trading session.
+     * It is essential for timeframe: 1D.
      */
     int32_t			m_uOffsetMins;
 
