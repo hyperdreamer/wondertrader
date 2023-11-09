@@ -65,6 +65,19 @@ public:
 
     int32_t	getOffsetMins() const { return m_uOffsetMins; }
 
+    void setTradingSection(uint32_t sTime, uint32_t eTime)
+    {
+        sTime = offsetTime(sTime, true);    // [0000, 2359]
+        eTime = offsetTime(eTime, false);   // [0001, 2400]
+     
+        if (m_tradingTimes.empty())
+            m_tradingTimes.emplace_back(TradingSection(sTime, eTime));
+        else {
+            m_tradingTimes[0].first = sTime;
+            m_tradingTimes[0].second = eTime;
+        }
+    }
+
     void addTradingSection(uint32_t sTime, uint32_t eTime)
     {
         sTime = offsetTime(sTime, true);    // [0000, 2359]
