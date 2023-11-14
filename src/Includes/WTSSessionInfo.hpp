@@ -19,22 +19,21 @@ static const char* DEFAULT_SESSIONID = "TRADING";
 
 class WTSSessionInfo : public WTSObject {
 public:
-    //交易时段
-    typedef std::pair<uint32_t, uint32_t>	TradingSection;
+    typedef std::pair<uint32_t, uint32_t>	TradingSection; // [2100, 2300[ e.g.
     typedef std::vector<TradingSection>		TradingTimes;
 
 protected:
-    TradingTimes	m_tradingTimes;
+    TradingTimes	m_tradingTimes; // sorted by time (session.json)
     /*
      *	By Wesley @ 2023.05.17
      *	集合竞价时间改成多段
      *	但是很多用到的地方还是只涉及第一个集合竞价时间，主要是一些状态判断
      *	白盘的集合竞价会在开盘前一分钟撮合，状态机会往前延伸一分钟，所以原有逻辑不需要拓展
      */
-    TradingTimes	m_auctionTimes;
+    TradingTimes	m_auctionTimes; // sorted by time (session.json)
 
     /*
-     * For Chinese future trading, a typical value is 180 (3 hours)
+     * For Chinese future trading, a typical value is 300 (3 hours)
      * 21:00 + 3 hours = 0:00 the next day: to make sure the 
      * night trading belongs to the next day's trading session.
      * It is essential for timeframe: 1D.
@@ -105,7 +104,7 @@ public:
         m_auctionTimes.emplace_back(TradingSection(sTime, eTime));
     }
 
-    void setOffsetMins(int32_t offset){m_uOffsetMins = offset;}
+    void setOffsetMins(int32_t offset) { m_uOffsetMins = offset; }
 
     const TradingTimes&	getTradingSections() const { return m_tradingTimes; }
     const TradingTimes&	getAuctionSections() const { return m_auctionTimes; }
@@ -146,18 +145,20 @@ public: //需要导出到脚本的函数
      *
      *	会不会有别的影响,暂时无法确定,主要是担心非交易时间里收到错误数据
      *	但是有接收时间控制,应该没问题
+     *
+     *  @return: trading minutes from session beginning to uTime
      */
     uint32_t timeToMinutes(uint32_t uTime, bool autoAdjust = false)
     {
         if (m_tradingTimes.empty()) return INVALID_UINT32;
-        if (isInAuctionTime(uTime)) return 0;
+        if (isInAuctionTime(uTime)) return 0;   // TODO: multiple auction sections???
      
         uint32_t offTime = offsetTime(uTime, true);
         uint32_t offset = 0;
         bool bFound = false;
      
         for(auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
-            TradingSection &section = *it;
+            TradingSection& section = *it;
             if (section.first <= offTime && offTime <= section.second) {
                 int32_t hour = offTime / 100 - section.first / 100;
                 int32_t minute = offTime % 100 - section.first % 100;
@@ -165,12 +166,12 @@ public: //需要导出到脚本的函数
                 bFound = true;
                 break;
             }
-            else if (offTime > section.second) { //大于上边界
+            else if (offTime > section.second) {
                 int32_t hour = section.second/100 - section.first/100;
                 int32_t minute = section.second%100 - section.first%100;
                 offset += hour*60 + minute;
             } 
-            else { //小于下边界
+            else { // offTime < section.first
                 if (autoAdjust) bFound = true;
                 break;
             }
@@ -180,57 +181,50 @@ public: //需要导出到脚本的函数
         return offset;
     }
 
+    /*
+     * @bHeadFirst == true: if uMinutes ends in the end of a section, then it
+     * returns the start of the next section if there is any. If there is no
+     * next section it returns getCloseTime();
+     *
+     * @bHeadFirst == false: if uMinutes ends in the end of a section, then it
+     * returns the end.
+     *
+     * If uMinutes is too large (out of the total trading time of the session),
+     * the function will returns getCloseTime();
+     */
     uint32_t minuteToTime(uint32_t uMinutes, bool bHeadFirst = false)
     {
-        if (m_tradingTimes.empty())
-            return INVALID_UINT32;
-
+        if (m_tradingTimes.empty()) return INVALID_UINT32;
+     
         uint32_t offset = uMinutes;
         TradingTimes::iterator it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); it++)
-        {
-            TradingSection &section = *it;
+        for(; it != m_tradingTimes.end(); ++it) {
+            TradingSection& section = *it;
             uint32_t startMin = section.first/100*60 + section.first%100;
             uint32_t stopMin = section.second/100*60 + section.second%100;
-
-            if (!bHeadFirst)
-            {
-                if (startMin + offset >= stopMin)
-                {
+            
+            if (!bHeadFirst) {
+                if (startMin + offset >= stopMin) {
                     offset -= (stopMin - startMin);
-                    if (offset == 0)
-                    {
-                        return originalTime(stopMin / 60 * 100 + stopMin % 60);
-                    }
+                    if (offset == 0) return originalTime(stopMin/60*100 + stopMin%60);
                 }
-                else
-                {
-                    //干好位于该区间
+                else { //刚好位于该区间
                     uint32_t desMin = startMin + offset;
-                    if (desMin >= 1440)
-                        desMin -= 1440;
-
-                    return originalTime(desMin / 60 * 100 + desMin % 60);
+                    if (desMin >= 1440) desMin -= 1440;
+                    return originalTime(desMin/60*100 + desMin%60);
                 }
             }
-            else
-            {
-                if (startMin + offset < stopMin)
-                {
-                    //干好位于该区间
+            else {
+                if (startMin + offset < stopMin) { //刚好位于该区间
                     uint32_t desMin = startMin + offset;
-                    if (desMin >= 1440)
-                        desMin -= 1440;
-
-                    return originalTime(desMin / 60 * 100 + desMin % 60);
+                    if (desMin >= 1440) desMin -= 1440;
+                    return originalTime(desMin/60*100 + desMin%60);
                 }
                 else
-                {
                     offset -= (stopMin - startMin);
-                }
             }
         }
-
+     
         return getCloseTime();
     }
 
@@ -485,7 +479,7 @@ public: //需要导出到脚本的函数
     /*
      * @uTime:  1450, 0920 for example
      */
-   inline bool	isInAuctionTime(uint32_t uTime)
+   inline bool isInAuctionTime(uint32_t uTime)
     {
         uint32_t offTime = offsetTime(uTime, true);
      
@@ -521,23 +515,16 @@ public: //需要导出到脚本的函数
         return (curMinute/60)*100 + curMinute%60;
     }
 
-    inline uint32_t	originalTime(uint32_t uTime, bool bAlignLeft = true) const
-    { // default: return left aligned time
+    inline uint32_t	originalTime(uint32_t uTime) const
+    { // return left aligned time
         int32_t curMinute = (uTime/100)*60 + uTime%100;
         curMinute -= m_uOffsetMins;
-        if (bAlignLeft) {
-            if (curMinute >= 1440)
-                curMinute -= 1440;
-            else if (curMinute < 0)
-                curMinute += 1440;
-        }
-        else {
-            if (curMinute > 1440)
-                curMinute -= 1440;
-            else if (curMinute <= 0)
-                curMinute += 1440;
-        }
-      
+     
+        if (curMinute >= 1440)
+            curMinute -= 1440;
+        else if (curMinute < 0)
+            curMinute += 1440;
+     
         return (curMinute/60)*100 + curMinute%60;
     }
 };
