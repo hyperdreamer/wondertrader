@@ -34,7 +34,7 @@ protected:
     TradingTimes	m_auctionTimes;
 
     /*
-     * For Chinese future trading, a typical value is 300 (3 hours)
+     * For Chinese future trading, a typical value is 180 (3 hours)
      * 21:00 + 3 hours = 0:00 the next day: to make sure the 
      * night trading belongs to the next day's trading session.
      * It is essential for timeframe: 1D.
@@ -121,6 +121,11 @@ public: //需要导出到脚本的函数
     uint32_t getOffsetDate(uint32_t uDate = 0, uint32_t uTime = 0)
     {
         if (uDate == 0) {
+            /*
+             * After calling TimeUtils::getDateTime():
+             * uDate    当前日期，格式如20220309
+             * uTime    当前时间，精确到毫秒，格式如103029500
+             */
             TimeUtils::getDateTime(uDate, uTime);
             uTime /= 100000;
         }
@@ -136,54 +141,42 @@ public: //需要导出到脚本的函数
     /*
      *	将时间转换成分钟数
      *	@uTime	当前时间,格式如0910
-     *	@autoAdjust	是否自动调整,如果开启,非交易时间内的行情,会自动对齐到下一个交易时间,如8点59分的行情,会自动算作9点00的行情
-     *				会不会有别的影响,暂时无法确定,主要是担心非交易时间里收到错误数据
-     *				但是有接收时间控制,应该没问题
+     *	@autoAdjust	是否自动调整,如果开启,非交易时间内的行情,
+     *	会自动对齐到下一个交易时间,如8点59分的行情,会自动算作9点00的行情
+     *
+     *	会不会有别的影响,暂时无法确定,主要是担心非交易时间里收到错误数据
+     *	但是有接收时间控制,应该没问题
      */
     uint32_t timeToMinutes(uint32_t uTime, bool autoAdjust = false)
     {
-        if (m_tradingTimes.empty())
-            return INVALID_UINT32;
-
-        if (isInAuctionTime(uTime))
-            return 0;
-
+        if (m_tradingTimes.empty()) return INVALID_UINT32;
+        if (isInAuctionTime(uTime)) return 0;
+     
         uint32_t offTime = offsetTime(uTime, true);
-
         uint32_t offset = 0;
         bool bFound = false;
-        auto it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); it++)
-        {
+     
+        for(auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
             TradingSection &section = *it;
-            if (section.first <= offTime && offTime <= section.second)
-            {
+            if (section.first <= offTime && offTime <= section.second) {
                 int32_t hour = offTime / 100 - section.first / 100;
                 int32_t minute = offTime % 100 - section.first % 100;
                 offset += hour*60 + minute;
                 bFound = true;
                 break;
             }
-            else if (offTime > section.second)	//大于上边界
-            {
+            else if (offTime > section.second) { //大于上边界
                 int32_t hour = section.second/100 - section.first/100;
                 int32_t minute = section.second%100 - section.first%100;
                 offset += hour*60 + minute;
             } 
-            else //小于下边界
-            {
-                if (autoAdjust)
-                {
-                    bFound = true;
-                }
+            else { //小于下边界
+                if (autoAdjust) bFound = true;
                 break;
             }
         }
-
-        //没找到就返回0
-        if (!bFound)
-            return INVALID_UINT32;
-
+     
+        if (!bFound) return INVALID_UINT32;
         return offset;
     }
 
@@ -489,36 +482,36 @@ public: //需要导出到脚本的函数
         return false;
     }
 
-    inline bool	isInAuctionTime(uint32_t uTime)
+    /*
+     * @uTime:  1450, 0920 for example
+     */
+   inline bool	isInAuctionTime(uint32_t uTime)
     {
         uint32_t offTime = offsetTime(uTime, true);
-
-        for(const TradingSection& aucSec : m_auctionTimes)
-        {
-            if (aucSec.first == 0 && aucSec.second == 0)
-                continue;
-
-            if (aucSec.first <= offTime && offTime < aucSec.second)
-                return true;
+     
+        for(const TradingSection& aucSec : m_auctionTimes) {
+            if (aucSec.first == 0 && aucSec.second == 0) continue;
+            if (aucSec.first <= offTime && offTime < aucSec.second) return true;
         }
-
-
         return false;
     }
 
     const TradingTimes& getTradingTimes() const { return m_tradingTimes; }
 
+    /*
+     * @uTime:  1450, 0920 for example
+     */
     inline uint32_t	offsetTime(uint32_t uTime, bool bAlignLeft) const
-    { // Examples of uTime: 1450, 0920
+    {
         int32_t curMinute = (uTime/100)*60 + uTime%100;
         curMinute += m_uOffsetMins;
-        if (bAlignLeft) { // a full day: [0000, 2359]
+        if (bAlignLeft) { // curMinute: [0000, 2359]
             if (curMinute >= 1440)  // 1440 == 24*60
                 curMinute -= 1440;
             else if (curMinute < 0)
                 curMinute += 1440;
         }
-        else { // a full day: [0001, 2400]
+        else { // curMinute: [0001, 2400]
             if (curMinute > 1440)
                 curMinute -= 1440;
             else if (curMinute <= 0)
