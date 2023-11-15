@@ -199,8 +199,7 @@ public: //需要导出到脚本的函数
         if (m_tradingTimes.empty()) return INVALID_UINT32;
      
         uint32_t offset = uMinutes;
-        TradingTimes::iterator it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); ++it) {
+        for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
             TradingSection& section = *it;
             uint32_t startMin = section.first/100*60 + section.first%100;
             uint32_t stopMin = section.second/100*60 + section.second%100;
@@ -274,9 +273,8 @@ public: //需要导出到脚本的函数
 
     uint32_t secondsToTime(uint32_t seconds)
     {
-        if (m_tradingTimes.empty())
-            return INVALID_UINT32;
-
+        if (m_tradingTimes.empty()) return INVALID_UINT32;
+     
         uint32_t offset = seconds;
         TradingTimes::iterator it = m_tradingTimes.begin();
         for(; it != m_tradingTimes.end(); it++)
