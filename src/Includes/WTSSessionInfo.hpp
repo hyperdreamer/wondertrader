@@ -147,6 +147,8 @@ public: //需要导出到脚本的函数
      *	但是有接收时间控制,应该没问题
      *
      *  @return: trading minutes from session beginning to uTime
+     *
+     * TODO: support for multiple acution sections 
      */
     uint32_t timeToMinutes(uint32_t uTime, bool autoAdjust = false)
     {
@@ -228,53 +230,45 @@ public: //需要导出到脚本的函数
         return getCloseTime();
     }
 
+    /*
+     * @uTime: 091030 e.g.
+     * TODO: support for multiple acution sections 
+     */
     uint32_t timeToSeconds(uint32_t uTime)
     {
-        if (m_tradingTimes.empty())
-            return INVALID_UINT32;
-
-        //如果是集合竞价的价格,则认为是0秒价格
-        if (isInAuctionTime(uTime/100))
-            return 0;
-
+        if (m_tradingTimes.empty()) return INVALID_UINT32;
+        //如果是集合竞价的价格,则认为是0秒价格, 
+        // TODO: multiple auction sections?
+        if (isInAuctionTime(uTime/100)) return 0;
+     
         uint32_t sec = uTime%100;
         uint32_t h = uTime/10000;
         uint32_t m = uTime%10000/100;
-        uint32_t offMin = offsetTime(h*100 + m, true);
+        uint32_t offMin = offsetTime(h*100 + m, true);  // left aligned
         h = offMin/100;
         m = offMin%100;
         uint32_t seconds = h*60*60 + m*60 + sec;
-
+     
         uint32_t offset = 0;
         bool bFound = false;
-        TradingTimes::iterator it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); it++)
-        {
+        for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
             TradingSection &section = *it;
             uint32_t startSecs = (section.first/100*60 + section.first%100)*60;
             uint32_t stopSecs = (section.second/100*60 + section.second%100)*60;
-            //uint32_t s = section.first;
-            //uint32_t e = section.second;
-            //uint32_t hour = (e/100 - s/100);
-            //uint32_t minute = (e%100 - s%100);
-            if (startSecs <= seconds && seconds <= stopSecs)
-            {
-                offset += seconds-startSecs;
-                if (seconds == stopSecs)
-                    offset--;
+            /***************************************************************/
+            if (startSecs <= seconds && seconds <= stopSecs) {
+                offset += (seconds - startSecs);
+                if (seconds == stopSecs) --offset;
                 bFound = true;
                 break;
             }
+            else if (seconds > stopSecs)
+                offset += (stopSecs - startSecs);
             else
-            {
-                offset += stopSecs - startSecs;
-            }
+                break;
         }
-
-        //没找到就返回0
-        if (!bFound)
-            return INVALID_UINT32;
-
+     
+        if (!bFound) return INVALID_UINT32;
         return offset;
     }
 
