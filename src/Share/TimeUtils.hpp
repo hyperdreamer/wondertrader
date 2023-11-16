@@ -254,9 +254,9 @@ public:
     static uint32_t getNextDate(uint32_t curDate, int days = 1)
     {
         tm t;	
-        memset(&t,0,sizeof(tm));
+        memset(&t, 0, sizeof(tm));
         t.tm_year = curDate/10000 - 1900;
-        t.tm_mon = (curDate%10000)/100 - 1;
+        t.tm_mon = (curDate%10000)/100 - 1; // [0,11]
         t.tm_mday = curDate % 100;
         //t.tm_isdst 	
         time_t ts = mktime(&t);
