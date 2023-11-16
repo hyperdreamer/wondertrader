@@ -28,20 +28,17 @@ NS_WTP_BEGIN
 
 struct string_hash
 {
-	//BKDRHashÀ„∑®
-	std::size_t operator()(const std::string& key) const
-	{
-		size_t seed = 131; // 31 131 1313 13131 131313 etc..
-		size_t hash = 0;
-
-		char* str = (char*)key.c_str();
-		while (*str)
-		{
-			hash = hash * seed + (*str++);
-		}
-
-		return (hash & 0x7FFFFFFF);
-	}
+    //BKDRHashÀ„∑®
+    std::size_t operator()(const std::string& key) const
+    {
+        size_t seed = 131; // 31 131 1313 13131 131313 etc..
+        size_t hash = 0;
+     
+        char* str = (char*)key.c_str();
+        while (*str) hash = hash * seed + (*str++);
+     
+        return (hash & 0x7FFFFFFF);
+    }
 };
 
 template<class Key, class T>

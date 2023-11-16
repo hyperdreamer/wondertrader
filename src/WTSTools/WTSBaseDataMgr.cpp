@@ -152,7 +152,7 @@ WTSArray* WTSBaseDataMgr::getAllSessions()
 
 WTSSessionInfo* WTSBaseDataMgr::getSession(const char* sid)
 {
-	return (WTSSessionInfo*)m_mapSessions->get(sid);
+	return (WTSSessionInfo*) m_mapSessions->get(sid);
 }
 
 WTSSessionInfo* WTSBaseDataMgr::getSessionByCode(const char* code, const char* exchg /* = "" */)
@@ -254,7 +254,7 @@ bool WTSBaseDataMgr::loadSessions(const char* filename)
     return true;
 }
 
-void parseCommodity(WTSCommodityInfo* pCommInfo, WTSVariant* jPInfo)
+static inline void parseCommodity(WTSCommodityInfo* pCommInfo, WTSVariant* jPInfo)
 {
     pCommInfo->setPriceTick(jPInfo->getDouble("pricetick"));
     pCommInfo->setVolScale(jPInfo->getUInt32("volscale"));
