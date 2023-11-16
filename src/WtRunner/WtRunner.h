@@ -40,7 +40,7 @@ USING_NS_WTP;
 
 class WtRunner : public ILogHandler {
 public:
-	WtRunner(); // overwrite os's default signal handler to WTSLogger::error()
+	WtRunner(); // set signal handlers to WTSLogger::error()
 	~WtRunner() {}
 
 public:
