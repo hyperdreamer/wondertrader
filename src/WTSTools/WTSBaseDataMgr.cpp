@@ -208,59 +208,50 @@ void WTSBaseDataMgr::release()
 
 bool WTSBaseDataMgr::loadSessions(const char* filename)
 {
-	if (!StdFile::exists(filename))
-	{
-		WTSLogger::error("Trading sessions configuration file {} not exists", filename);
-		return false;
-	}
+    if (!StdFile::exists(filename)) {
+        WTSLogger::error("Trading sessions configuration file {} not exists", filename);
+        return false;
+    }
 
-	WTSVariant* root = WTSCfgLoader::load_from_file(filename);
-	if (root == NULL)
-	{
-		WTSLogger::error("Loading session config file {} failed", filename);
-		return false;
-	}
+    WTSVariant* root = WTSCfgLoader::load_from_file(filename);
+    if (root == NULL) {
+        WTSLogger::error("Loading session config file {} failed", filename);
+        return false;
+    }
 
-	for(const std::string& id : root->memberNames())
-	{
-		WTSVariant* jVal = root->get(id);
+    for(const std::string& id : root->memberNames()) {
+        WTSVariant* jVal = root->get(id);
+     
+        const char* name = jVal->getCString("name");
+        int32_t offset = jVal->getInt32("offset");
+     
+        WTSSessionInfo* sInfo = WTSSessionInfo::create(id.c_str(), name, offset);
+     
+        if (jVal->has("auction")) {
+            WTSVariant* jAuc = jVal->get("auction");
+            sInfo->setAuctionTime(jAuc->getUInt32("from"), jAuc->getUInt32("to"));
+        }
+        else if (jVal->has("auctions")) {
+            WTSVariant* jAucs = jVal->get("auctions");
+            for (uint32_t i = 0; i < jAucs->size(); ++i) {
+                WTSVariant* jSec = jAucs->get(i);
+                sInfo->addAuctionTime(jSec->getUInt32("from"), jSec->getUInt32("to"));
+            }
+        }
+     
+        WTSVariant* jSecs = jVal->get("sections");
+        if (jSecs == NULL || !jSecs->isArray()) continue;
+     
+        for (uint32_t i = 0; i < jSecs->size(); ++i) {
+            WTSVariant* jSec = jSecs->get(i);
+            sInfo->addTradingSection(jSec->getUInt32("from"), jSec->getUInt32("to"));
+        }
+     
+        m_mapSessions->add(id.c_str(), sInfo);
+    }
 
-		const char* name = jVal->getCString("name");
-		int32_t offset = jVal->getInt32("offset");
-
-		WTSSessionInfo* sInfo = WTSSessionInfo::create(id.c_str(), name, offset);
-
-		if (jVal->has("auction"))
-		{
-			WTSVariant* jAuc = jVal->get("auction");
-			sInfo->setAuctionTime(jAuc->getUInt32("from"), jAuc->getUInt32("to"));
-		}
-		else if (jVal->has("auctions"))
-		{
-			WTSVariant* jAucs = jVal->get("auctions");
-			for (uint32_t i = 0; i < jAucs->size(); i++)
-			{
-				WTSVariant* jSec = jAucs->get(i);
-				sInfo->addAuctionTime(jSec->getUInt32("from"), jSec->getUInt32("to"));
-			}
-		}
-
-		WTSVariant* jSecs = jVal->get("sections");
-		if (jSecs == NULL || !jSecs->isArray())
-			continue;
-
-		for (uint32_t i = 0; i < jSecs->size(); i++)
-		{
-			WTSVariant* jSec = jSecs->get(i);
-			sInfo->addTradingSection(jSec->getUInt32("from"), jSec->getUInt32("to"));
-		}
-
-		m_mapSessions->add(id.c_str(), sInfo);
-	}
-
-	root->release();
-
-	return true;
+    root->release();
+    return true;
 }
 
 void parseCommodity(WTSCommodityInfo* pCommInfo, WTSVariant* jPInfo)

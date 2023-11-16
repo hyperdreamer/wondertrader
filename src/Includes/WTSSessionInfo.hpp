@@ -415,15 +415,12 @@ public: //需要导出到脚本的函数
 
     inline bool	isFirstOfSection(uint32_t uTime)
     {
-        uint32_t offTime = offsetTime(uTime, true);
-        TradingTimes::iterator it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); it++)
-        {
-            TradingSection &section = *it;
-            if (section.first == offTime)
-                return true;
+        uint32_t offTime = offsetTime(uTime, true); // left aligned
+        for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
+            TradingSection& section = *it;
+            if (section.first == offTime) return true;
         }
-
+     
         return false;
     }
 
