@@ -256,84 +256,77 @@ bool WTSBaseDataMgr::loadSessions(const char* filename)
 
 void parseCommodity(WTSCommodityInfo* pCommInfo, WTSVariant* jPInfo)
 {
-	pCommInfo->setPriceTick(jPInfo->getDouble("pricetick"));
-	pCommInfo->setVolScale(jPInfo->getUInt32("volscale"));
+    pCommInfo->setPriceTick(jPInfo->getDouble("pricetick"));
+    pCommInfo->setVolScale(jPInfo->getUInt32("volscale"));
 
-	if (jPInfo->has("category"))
-		pCommInfo->setCategory((ContractCategory)jPInfo->getUInt32("category"));
-	else
-		pCommInfo->setCategory(CC_Future);
+    if (jPInfo->has("category"))
+        pCommInfo->setCategory((ContractCategory) jPInfo->getUInt32("category"));
+    else
+        pCommInfo->setCategory(CC_Future);
 
-	pCommInfo->setCoverMode((CoverMode)jPInfo->getUInt32("covermode"));
-	pCommInfo->setPriceMode((PriceMode)jPInfo->getUInt32("pricemode"));
+    pCommInfo->setCoverMode((CoverMode) jPInfo->getUInt32("covermode"));
+    pCommInfo->setPriceMode((PriceMode) jPInfo->getUInt32("pricemode"));
 
-	if (jPInfo->has("trademode"))
-		pCommInfo->setTradingMode((TradingMode)jPInfo->getUInt32("trademode"));
-	else
-		pCommInfo->setTradingMode(TM_Both);
+    if (jPInfo->has("trademode"))
+        pCommInfo->setTradingMode((TradingMode) jPInfo->getUInt32("trademode"));
+    else
+        pCommInfo->setTradingMode(TM_Both);
 
-	double lotsTick = 1;
-	double minLots = 1;
-	if (jPInfo->has("lotstick"))
-		lotsTick = jPInfo->getDouble("lotstick");
-	if (jPInfo->has("minlots"))
-		minLots = jPInfo->getDouble("minlots");
-	pCommInfo->setLotsTick(lotsTick);
-	pCommInfo->setMinLots(minLots);
+    double lotsTick = jPInfo->has("lotstick") ? jPInfo->getDouble("lotstick") : 1;
+    double minLots = jPInfo->has("minlots") ? jPInfo->getDouble("minlots") : 1;
+    pCommInfo->setLotsTick(lotsTick);
+    pCommInfo->setMinLots(minLots);
 }
 
+/*
+ * commodities.json
+ */
 bool WTSBaseDataMgr::loadCommodities(const char* filename)
 {
-	if (!StdFile::exists(filename))
-	{
-		WTSLogger::error("Commodities configuration file {} not exists", filename);
-		return false;
-	}
+    if (!StdFile::exists(filename)) {
+        WTSLogger::error("Commodities configuration file {} not exists", filename);
+        return false;
+    }
 
-	WTSVariant* root = WTSCfgLoader::load_from_file(filename);
-	if (root == NULL)
-	{
-		WTSLogger::error("Loading commodities config file {} failed", filename);
-		return false;
-	}
+    WTSVariant* root = WTSCfgLoader::load_from_file(filename);
+    if (root == NULL) {
+        WTSLogger::error("Loading commodities config file {} failed", filename);
+        return false;
+    }
 
-	for(const std::string& exchg : root->memberNames())
-	{
-		WTSVariant* jExchg = root->get(exchg);
+    for(const std::string& exchg : root->memberNames()) {
+        WTSVariant* jExchg = root->get(exchg);
+     
+        for (const std::string& pid : jExchg->memberNames()) {
+            WTSVariant* jPInfo = jExchg->get(pid);
+         
+            const char* name = jPInfo->getCString("name");
+            const char* sid = jPInfo->getCString("session");
+            const char* hid = jPInfo->getCString("holiday");
+         
+            if (strlen(sid) == 0) {
+                WTSLogger::warn("No session configured for {}.{}", exchg.c_str(), pid.c_str());
+                continue;
+            }
+            
+            WTSCommodityInfo* pCommInfo = WTSCommodityInfo::create(pid.c_str(), name, exchg.c_str(), sid, hid);
+            parseCommodity(pCommInfo, jPInfo);
+            
+            WTSSessionInfo* sInfo = getSession(sid);
+            pCommInfo->setSessionInfo(sInfo);
+            
+            std::string key = fmt::format("{}.{}", exchg.c_str(), pid.c_str());
+            if (m_mapCommodities == NULL) m_mapCommodities = WTSCommodityMap::create();
+            
+            m_mapCommodities->add(key, pCommInfo, false);
+            
+            m_mapSessionCode[sid].insert(key);
+        }
+    }
 
-		for (const std::string& pid : jExchg->memberNames())
-		{
-			WTSVariant* jPInfo = jExchg->get(pid);
-
-			const char* name = jPInfo->getCString("name");
-			const char* sid = jPInfo->getCString("session");
-			const char* hid = jPInfo->getCString("holiday");
-
-			if (strlen(sid) == 0)
-			{
-				WTSLogger::warn("No session configured for {}.{}", exchg.c_str(), pid.c_str());
-				continue;
-			}
-
-			WTSCommodityInfo* pCommInfo = WTSCommodityInfo::create(pid.c_str(), name, exchg.c_str(), sid, hid);
-			parseCommodity(pCommInfo, jPInfo);
-
-			WTSSessionInfo* sInfo = getSession(sid);
-			pCommInfo->setSessionInfo(sInfo);
-
-			std::string key = fmt::format("{}.{}", exchg.c_str(), pid.c_str());
-			if (m_mapCommodities == NULL)
-				m_mapCommodities = WTSCommodityMap::create();
-
-			m_mapCommodities->add(key, pCommInfo, false);
-
-			m_mapSessionCode[sid].insert(key);
-		}
-	}
-
-	WTSLogger::info("Commodities configuration file {} loaded", filename);
-	root->release();
-	return true;
+    WTSLogger::info("Commodities configuration file {} loaded", filename);
+    root->release();
+    return true;
 }
 
 bool WTSBaseDataMgr::loadContracts(const char* filename)
