@@ -251,7 +251,7 @@ public: //需要导出到脚本的函数
         uint32_t offset = 0;
         bool bFound = false;
         for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
-            TradingSection &section = *it;
+            TradingSection& section = *it;
             uint32_t startSecs = (section.first/100*60 + section.first%100)*60;
             uint32_t stopSecs = (section.second/100*60 + section.second%100)*60;
             /***************************************************************/
@@ -271,102 +271,70 @@ public: //需要导出到脚本的函数
         return offset;
     }
 
+    /*
+     * if @seconds ends in the end of a section, then it returns the end.
+     *
+     * TODO: why not return getCloseTime() like minuteToTime() if seconds is too large?
+     */
     uint32_t secondsToTime(uint32_t seconds)
     {
         if (m_tradingTimes.empty()) return INVALID_UINT32;
      
         uint32_t offset = seconds;
-        TradingTimes::iterator it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); it++)
-        {
-            TradingSection &section = *it;
+        for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
+            TradingSection& section = *it;
             uint32_t startSecs = (section.first/100*60 + section.first%100)*60;
             uint32_t stopSecs = (section.second/100*60 + section.second%100)*60;
-
-            if (startSecs + offset >= stopSecs)
-            {
-                offset -= (stopSecs-startSecs);
-                if (offset == 0)
-                {
+         
+            if (startSecs + offset >= stopSecs) {
+                offset -= (stopSecs - startSecs);
+                if (offset == 0) {
                     uint32_t desMin = stopSecs/60;
                     return originalTime((desMin/60*100 + desMin%60))*100 + stopSecs%60;
                 }
             }
-            else
-            {
-                //干好位于该区间
-                uint32_t desSecs = startSecs+offset;
-                if (desSecs >= 86400)
-                    desSecs -= 86400;
-
+            else { //刚好位于该区间
+                uint32_t desSecs = startSecs + offset;
+                if (desSecs >= 86400) desSecs -= 86400; // 24*60*60 == 86400
+                
                 uint32_t desMin = desSecs/60;
                 return originalTime((desMin/60*100 + desMin%60))*100 + desSecs%60;
             }
         }
-
-        return INVALID_UINT32;
+        
+        return INVALID_UINT32;  // TODO
     }
 
     inline uint32_t getOpenTime(bool bOffseted = false) const
     {
-        if (m_tradingTimes.empty())
-            return 0;
-
-        if (bOffseted)
-            return m_tradingTimes[0].first;
-        else
-            return originalTime(m_tradingTimes[0].first);
+        if (m_tradingTimes.empty()) return 0;
+        
+        if (bOffseted) return m_tradingTimes[0].first;
+        return originalTime(m_tradingTimes[0].first);
     }
 
     inline uint32_t getAuctionStartTime(bool bOffseted = false) const
     {
-        if (m_auctionTimes.empty())
-            return -1;
-
-        if (bOffseted)
-            return m_auctionTimes[0].first;
-        else
-            return originalTime(m_auctionTimes[0].first);
+        if (m_auctionTimes.empty()) return -1;
+     
+        if (bOffseted) return m_auctionTimes[0].first;
+        return originalTime(m_auctionTimes[0].first);
     }
 
+    /*
+     * TODO: check adjustment for full day trading session
+     */
     inline uint32_t getCloseTime(bool bOffseted = false) const
     {
-        if (m_tradingTimes.empty())
-            return 0;
-
-        uint32_t ret = 0;
-        if (bOffseted)
-            ret = m_tradingTimes[m_tradingTimes.size()-1].second;
-        else
-            ret = originalTime(m_tradingTimes[m_tradingTimes.size()-1].second);
-
+        if (m_tradingTimes.empty()) return 0;
+     
+        uint32_t ret = bOffseted ? m_tradingTimes.back().second 
+                                 : originalTime(m_tradingTimes.back().second);
         // By Wesley @ 2021.12.25
         // 如果收盘时间是0点，无法跟开盘时间进行比较，所以这里要做一个修正
-        if (ret == 0 && bOffseted)
-            ret = 2400;
-
+        if (ret == 0 && bOffseted) ret = 2400;  // TODO: check it later
+     
         return ret;
-    }
-
-    inline uint32_t getTradingSeconds()
-    {
-        uint32_t count = 0;
-        TradingTimes::iterator it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); it++)
-        {
-            TradingSection &section = *it;
-            uint32_t s = section.first;
-            uint32_t e = section.second;
-
-            uint32_t hour = (e/100 - s/100);
-            uint32_t minute = (e%100 - s%100);
-            count += hour*60+minute;
-        }
-
-        //By Welsey @ 2021.12.25
-        //这种只能是全天候交易时段
-        if (count == 0) count = 1440;
-        return count*60;
     }
 
     /*
@@ -375,13 +343,11 @@ public: //需要导出到脚本的函数
     inline uint32_t getTradingMins()
     {
         uint32_t count = 0;
-        TradingTimes::iterator it = m_tradingTimes.begin();
-        for (; it != m_tradingTimes.end(); it++)
-        {
+        for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
             TradingSection &section = *it;
             uint32_t s = section.first;
             uint32_t e = section.second;
-
+         
             uint32_t hour = (e / 100 - s / 100);
             uint32_t minute = (e % 100 - s % 100);
             count += hour * 60 + minute;
@@ -392,33 +358,31 @@ public: //需要导出到脚本的函数
         return count;
     }
 
+    inline uint32_t getTradingSeconds() { return getTradingMins()*60; }
+
     /*
      *	获取小节分钟数列表
      */
     inline const std::vector<uint32_t>& getSecMinList()
     {
         static std::vector<uint32_t> minutes;
-        if (minutes.empty())
-        {
+        if (minutes.empty()) {
             uint32_t total = 0;
-            TradingTimes::iterator it = m_tradingTimes.begin();
-            for (; it != m_tradingTimes.end(); it++)
-            {
-                TradingSection &section = *it;
+            for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
+                TradingSection& section = *it;
                 uint32_t s = section.first;
                 uint32_t e = section.second;
-
+             
                 uint32_t hour = (e / 100 - s / 100);
                 uint32_t minute = (e % 100 - s % 100);
-
+             
                 total += hour * 60 + minute;
                 minutes.emplace_back(total);
             }
-
-            if (minutes.empty())
-                minutes.emplace_back(1440);
+         
+            if (minutes.empty()) minutes.emplace_back(1440);
         }
-
+        
         return minutes;
     }
 
@@ -428,29 +392,24 @@ public: //需要导出到脚本的函数
      *	@bStrict	是否严格检查，如果是严格检查
      *				则在每一交易时段最后一分钟，如1500，不属于交易时间
      */
-    bool	isInTradingTime(uint32_t uTime, bool bStrict = false)
+    bool isInTradingTime(uint32_t uTime, bool bStrict = false)
     {
         uint32_t count = timeToMinutes(uTime);
-        if (count == INVALID_UINT32)
-            return false;
-
-        if (bStrict && isLastOfSection(uTime))
-            return false;
-
+        if (count == INVALID_UINT32) return false;
+     
+        if (bStrict && isLastOfSection(uTime)) return false;
+     
         return true;
     }
 
     inline bool	isLastOfSection(uint32_t uTime)
     {
-        uint32_t offTime = offsetTime(uTime, false);
-        TradingTimes::iterator it = m_tradingTimes.begin();
-        for(; it != m_tradingTimes.end(); it++)
-        {
-            TradingSection &section = *it;
-            if (section.second == offTime)
-                return true;
+        uint32_t offTime = offsetTime(uTime, false); // right aligned
+        for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
+            TradingSection& section = *it;
+            if (section.second == offTime) return true;
         }
-
+     
         return false;
     }
 
