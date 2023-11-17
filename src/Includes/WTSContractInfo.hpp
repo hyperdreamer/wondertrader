@@ -107,7 +107,7 @@ private:
 
     uint32_t	m_uVolScale;	//合约放大倍数
     double		m_dPriceTick;	//最小价格变动单位
-                                //uint32_t	m_uPrecision;	//价格精度
+    //uint32_t	m_uPrecision;	//价格精度
 
     double		m_dLotTick;		//数量精度
     double		m_dMinLots;		//最小交易数量
