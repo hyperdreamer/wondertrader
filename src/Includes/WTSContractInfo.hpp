@@ -122,97 +122,96 @@ private:
     WTSSessionInfo*		m_pSession;
 };
 
-class WTSContractInfo :	public WTSObject
-{
+class WTSContractInfo :	public WTSObject {
 public:
-	static WTSContractInfo* create(const char* code, const char* name, const char* exchg, const char* pid)
-	{
-		WTSContractInfo* ret = new WTSContractInfo;
-		ret->m_strCode = code;
-		ret->m_strName = name;
-		ret->m_strProduct = pid;
-		ret->m_strExchg = exchg;
+    static WTSContractInfo* create(const char* code, const char* name, const char* exchg, const char* pid)
+    {
+        WTSContractInfo* ret = new WTSContractInfo;
+        ret->m_strCode = code;
+        ret->m_strName = name;
+        ret->m_strProduct = pid;
+        ret->m_strExchg = exchg;
 
-		std::stringstream ss;
-		ss << exchg << "." << code;
-		ret->m_strFullCode = ss.str();
+        std::stringstream ss;
+        ss << exchg << "." << code;
+        ret->m_strFullCode = ss.str();
 
-		std::stringstream sss;
-		sss << exchg << "." << pid;
-		ret->m_strFullPid = sss.str();
+        std::stringstream sss;
+        sss << exchg << "." << pid;
+        ret->m_strFullPid = sss.str();
 
-		return ret;
-	}
-
-
-	inline void	setVolumeLimits(uint32_t maxMarketVol, uint32_t maxLimitVol, uint32_t minMarketVol = 1, uint32_t minLimitVol = 1)
-	{
-		m_maxMktQty = maxMarketVol;
-		m_maxLmtQty = maxLimitVol;
-
-		m_minLmtQty = minLimitVol;
-		m_minMktQty = minMarketVol;
-	}
-
-	inline void setDates(uint32_t openDate, uint32_t expireDate)
-	{
-		m_openDate = openDate;
-		m_expireDate = expireDate;
-	}
-
-	inline void setMarginRatios(double longRatio, double shortRatio)
-	{
-		m_lMarginRatio = longRatio;
-		m_sMarginRatio = shortRatio;
-	}
-
-	inline const char* getCode()	const { return m_strCode.c_str();}
-	inline const char* getExchg()	const { return m_strExchg.c_str();}
-	inline const char* getName()	const { return m_strName.c_str();}
-	inline const char* getProduct()	const { return m_strProduct.c_str();}
-
-	inline const char* getFullCode()	const { return m_strFullCode.c_str(); }
-	inline const char* getFullPid()	const { return m_strFullPid.c_str(); }
-
-	inline uint32_t	getMaxMktVol() const { return m_maxMktQty; }
-	inline uint32_t	getMaxLmtVol() const { return m_maxLmtQty; }
-	inline uint32_t	getMinMktVol() const { return m_minMktQty; }
-	inline uint32_t	getMinLmtVol() const { return m_minLmtQty; }
-
-	inline uint32_t	getOpenDate() const { return m_openDate; }
-	inline uint32_t	getExpireDate() const { return m_expireDate; }
-
-	inline double	getLongMarginRatio() const { return m_lMarginRatio; }
-	inline double	getShortMarginRatio() const { return m_sMarginRatio; }
+        return ret;
+    }
 
 
-	inline void setCommInfo(WTSCommodityInfo* commInfo) { m_commInfo = commInfo; }
-	inline WTSCommodityInfo* getCommInfo() const { return m_commInfo; }
+    inline void	setVolumeLimits(uint32_t maxMarketVol, uint32_t maxLimitVol, uint32_t minMarketVol = 1, uint32_t minLimitVol = 1)
+    {
+        m_maxMktQty = maxMarketVol;
+        m_maxLmtQty = maxLimitVol;
+
+        m_minLmtQty = minLimitVol;
+        m_minMktQty = minMarketVol;
+    }
+
+    inline void setDates(uint32_t openDate, uint32_t expireDate)
+    {
+        m_openDate = openDate;
+        m_expireDate = expireDate;
+    }
+
+    inline void setMarginRatios(double longRatio, double shortRatio)
+    {
+        m_lMarginRatio = longRatio;
+        m_sMarginRatio = shortRatio;
+    }
+
+    inline const char* getCode()	const { return m_strCode.c_str();}
+    inline const char* getExchg()	const { return m_strExchg.c_str();}
+    inline const char* getName()	const { return m_strName.c_str();}
+    inline const char* getProduct()	const { return m_strProduct.c_str();}
+
+    inline const char* getFullCode()	const { return m_strFullCode.c_str(); }
+    inline const char* getFullPid()	const { return m_strFullPid.c_str(); }
+
+    inline uint32_t	getMaxMktVol() const { return m_maxMktQty; }
+    inline uint32_t	getMaxLmtVol() const { return m_maxLmtQty; }
+    inline uint32_t	getMinMktVol() const { return m_minMktQty; }
+    inline uint32_t	getMinLmtVol() const { return m_minLmtQty; }
+
+    inline uint32_t	getOpenDate() const { return m_openDate; }
+    inline uint32_t	getExpireDate() const { return m_expireDate; }
+
+    inline double	getLongMarginRatio() const { return m_lMarginRatio; }
+    inline double	getShortMarginRatio() const { return m_sMarginRatio; }
+
+
+    inline void setCommInfo(WTSCommodityInfo* commInfo) { m_commInfo = commInfo; }
+    inline WTSCommodityInfo* getCommInfo() const { return m_commInfo; }
 
 protected:
-	WTSContractInfo():m_commInfo(NULL), m_openDate(0), m_expireDate(0), m_lMarginRatio(0), m_sMarginRatio(0) {}
-	virtual ~WTSContractInfo() {}
+    WTSContractInfo():m_commInfo(NULL), m_openDate(0), m_expireDate(0), m_lMarginRatio(0), m_sMarginRatio(0) {}
+    virtual ~WTSContractInfo() {}
 
 private:
-	std::string	m_strCode;
-	std::string	m_strExchg;
-	std::string	m_strName;
-	std::string	m_strProduct;
+    std::string	m_strCode;
+    std::string	m_strExchg;
+    std::string	m_strName;
+    std::string	m_strProduct;
 
-	std::string m_strFullPid;
-	std::string m_strFullCode;
+    std::string m_strFullPid;
+    std::string m_strFullCode;
 
-	uint32_t	m_maxMktQty;
-	uint32_t	m_maxLmtQty;
-	uint32_t	m_minMktQty;
-	uint32_t	m_minLmtQty;
+    uint32_t	m_maxMktQty;
+    uint32_t	m_maxLmtQty;
+    uint32_t	m_minMktQty;
+    uint32_t	m_minLmtQty;
 
-	uint32_t	m_openDate;		//上市日期
-	uint32_t	m_expireDate;	//交割日
-	double		m_lMarginRatio;	//交易所多头保证金率
-	double		m_sMarginRatio;	//交易所空头保证金率
+    uint32_t	m_openDate;		//上市日期
+    uint32_t	m_expireDate;	//交割日
+    double		m_lMarginRatio;	//交易所多头保证金率
+    double		m_sMarginRatio;	//交易所空头保证金率
 
-	WTSCommodityInfo*	m_commInfo;
+    WTSCommodityInfo*	m_commInfo;
 };
 
 

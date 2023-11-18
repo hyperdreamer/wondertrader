@@ -77,24 +77,18 @@ bool WtRunner::config()
         if (cfgItem->type() == WTSVariant::VT_String)
             _bd_mgr.loadCommodities(cfgItem->asCString());
         else if (cfgItem->type() == WTSVariant::VT_Array) {
-            for (uint32_t i = 0; i < cfgItem->size(); i++)
+            for (uint32_t i = 0; i < cfgItem->size(); ++i)
                 _bd_mgr.loadCommodities(cfgItem->get(i)->asCString());
         }
     }
 
     cfgItem = cfgBF->get("contract");
-    if (cfgItem)
-    {
+    if (cfgItem) {
         if (cfgItem->type() == WTSVariant::VT_String)
-        {
             _bd_mgr.loadContracts(cfgItem->asCString());
-        }
-        else if (cfgItem->type() == WTSVariant::VT_Array)
-        {
-            for (uint32_t i = 0; i < cfgItem->size(); i++)
-            {
+        else if (cfgItem->type() == WTSVariant::VT_Array) {
+            for (uint32_t i = 0; i < cfgItem->size(); ++i)
                 _bd_mgr.loadContracts(cfgItem->get(i)->asCString());
-            }
         }
     }
 
@@ -113,8 +107,11 @@ bool WtRunner::config()
         auto tags = cfgRules->memberNames();
         for (const std::string& ruleTag : tags)
         {
-            _hot_mgr.loadCustomRules(ruleTag.c_str(), cfgRules->getCString(ruleTag.c_str()));
-            WTSLogger::info("{} rules loaded from {}", ruleTag, cfgRules->getCString(ruleTag.c_str()));
+            _hot_mgr.loadCustomRules(ruleTag.c_str(), 
+                                     cfgRules->getCString(ruleTag.c_str()));
+            WTSLogger::info("{} rules loaded from {}", 
+                            ruleTag, 
+                            cfgRules->getCString(ruleTag.c_str()));
         }
     }
 

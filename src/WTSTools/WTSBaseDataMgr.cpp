@@ -60,13 +60,11 @@ WTSCommodityInfo* WTSBaseDataMgr::getCommodity(const char* exchgpid)
 
 WTSCommodityInfo* WTSBaseDataMgr::getCommodity(const char* exchg, const char* pid)
 {
-	if (m_mapCommodities == NULL)
-		return NULL;
+    if (m_mapCommodities == NULL) return NULL;
 
-	char key[64] = { 0 };
-	fmt::format_to(key, "{}.{}", exchg, pid);
-
-	return (WTSCommodityInfo*)m_mapCommodities->get(key);
+    char key[64] = { 0 };
+    fmt::format_to(key, "{}.{}", exchg, pid);
+    return (WTSCommodityInfo*) m_mapCommodities->get(key);
 }
 
 
@@ -331,137 +329,132 @@ bool WTSBaseDataMgr::loadCommodities(const char* filename)
 
 bool WTSBaseDataMgr::loadContracts(const char* filename)
 {
-	if (!StdFile::exists(filename))
-	{
-		WTSLogger::error("Contracts configuration file {} not exists", filename);
-		return false;
-	}
+    if (!StdFile::exists(filename)) {
+        WTSLogger::error("Contracts configuration file {} not exists", filename);
+        return false;
+    }
 
-	WTSVariant* root = WTSCfgLoader::load_from_file(filename);
-	if (root == NULL)
-	{
-		WTSLogger::error("Loading contracts config file {} failed", filename);
-		return false;
-	}
+    WTSVariant* root = WTSCfgLoader::load_from_file(filename);
+    if (root == NULL) {
+        WTSLogger::error("Loading contracts config file {} failed", filename);
+        return false;
+    }
 
-	for(const std::string& exchg : root->memberNames())
-	{
-		WTSVariant* jExchg = root->get(exchg);
+    for(const std::string& exchg : root->memberNames()) {
+        WTSVariant* jExchg = root->get(exchg);
+     
+        for(const std::string& code : jExchg->memberNames()) { // code: IC2108, IC2109, e.g.
+            WTSVariant* jcInfo = jExchg->get(code);
+            /*
+             *	By Wesley @ 2021.12.28
+             *	这里做一个兼容，如果product为空,先检查是否配置了rules属性，
+             *	如果配置了rules属性，把合约单独当成品种自动加入
+             *	如果没有配置rules，则直接跳过该合约
+             */
+            WTSCommodityInfo* commInfo = NULL;
+            std::string pid;
+            if(jcInfo->has("product")) {
+                pid = jcInfo->getCString("product");    // IC, rb e.g.
+                commInfo = getCommodity(jcInfo->getCString("exchg"), pid.c_str());
+            }
+            else if(jcInfo->has("rules")) {
+                pid = code.c_str();
+                WTSVariant* jPInfo = jcInfo->get("rules");
+                const char* name = jcInfo->getCString("name");
+                std::string sid = jPInfo->getCString("session");
+                std::string hid;
+                if(jPInfo->has("holiday")) hid = jPInfo->getCString("holiday");
+                //这里不能像解析commodity那样处理，直接赋值为ALLDAY
+                if (sid.empty()) sid = "ALLDAY";
+                commInfo = WTSCommodityInfo::create(pid.c_str(), name, exchg.c_str(), 
+                                                    sid.c_str(), hid.c_str());
+                parseCommodity(commInfo, jPInfo);
+                /***************************************************************/
+                WTSSessionInfo* sInfo = getSession(sid.c_str());
+                commInfo->setSessionInfo(sInfo);
+                /***************************************************************/
+                std::string key = fmt::format("{}.{}", exchg.c_str(), pid.c_str());
+                if (m_mapCommodities == NULL) m_mapCommodities = WTSCommodityMap::create();
+                m_mapCommodities->add(key, commInfo, false);
+                m_mapSessionCode[sid].insert(key);
+                /***************************************************************/
+                WTSLogger::debug("Commodity {} has been automatically added", key.c_str());
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (commInfo == NULL) {
+                WTSLogger::warn("Commodity {}.{} not found, contract {} skipped", 
+                                jcInfo->getCString("exchg"), jcInfo->getCString("product"), 
+                                code.c_str());
+                continue;
+            }
+            /***************************************************************/
+            /*
+             * @code: IC2108 e.g.
+             * @jcInfo->getCString("name"): "中证2108" e.g.
+             * @jcInfo->getCString("exchg"): "CFFEX" e.g.
+             * @pid: IC e.g.
+             */
+            WTSContractInfo* cInfo = WTSContractInfo::create(code.c_str(),
+                                                             jcInfo->getCString("name"),
+                                                             jcInfo->getCString("exchg"),
+                                                             pid.c_str());
+            cInfo->setCommInfo(commInfo);
+            //////////////////////////////////////////////////////////////////////////
+            uint32_t maxMktQty = 1000000;
+            uint32_t maxLmtQty = 1000000;
+            uint32_t minMktQty = 1;
+            uint32_t minLmtQty = 1;
+            if (jcInfo->has("maxmarketqty"))
+                maxMktQty = jcInfo->getUInt32("maxmarketqty");
+            if (jcInfo->has("maxlimitqty"))
+                maxLmtQty = jcInfo->getUInt32("maxlimitqty");
+            if (jcInfo->has("minmarketqty"))
+                minMktQty = jcInfo->getUInt32("minmarketqty");
+            if (jcInfo->has("minlimitqty"))
+                minLmtQty = jcInfo->getUInt32("minlimitqty");
+            cInfo->setVolumeLimits(maxMktQty, maxLmtQty, minMktQty, minLmtQty);
 
-		for(const std::string& code : jExchg->memberNames())
-		{
-			WTSVariant* jcInfo = jExchg->get(code);
+            uint32_t opendate = 0;
+            uint32_t expiredate = 0;
+            if (jcInfo->has("opendate"))
+                opendate = jcInfo->getUInt32("opendate");
+            if (jcInfo->has("expiredate"))
+                expiredate = jcInfo->getUInt32("expiredate");
+            cInfo->setDates(opendate, expiredate);
 
-			/*
-			 *	By Wesley @ 2021.12.28
-			 *	这里做一个兼容，如果product为空,先检查是否配置了rules属性，如果配置了rules属性，把合约单独当成品种自动加入
-			 *	如果没有配置rules，则直接跳过该合约
-			 */
-			WTSCommodityInfo* commInfo = NULL;
-			std::string pid;
-			if(jcInfo->has("product"))
-			{
-				pid = jcInfo->getCString("product");
-				commInfo = getCommodity(jcInfo->getCString("exchg"), pid.c_str());
-			}
-			else if(jcInfo->has("rules"))
-			{
-				pid = code.c_str();
-				WTSVariant* jPInfo = jcInfo->get("rules");
-				const char* name = jcInfo->getCString("name");
-				std::string sid = jPInfo->getCString("session");
-				std::string hid;
-				if(jPInfo->has("holiday"))
-					hid = jPInfo->getCString("holiday");
+            double lMargin = 0;
+            double sMargin = 0;
+            if (jcInfo->has("longmarginratio"))
+                lMargin = jcInfo->getDouble("longmarginratio");
+            if (jcInfo->has("shortmarginratio"))
+                sMargin = jcInfo->getDouble("shortmarginratio");
+            cInfo->setMarginRatios(lMargin, sMargin);
 
-				//这里不能像解析commodity那样处理，直接赋值为ALLDAY
-				if (sid.empty())
-					sid = "ALLDAY";
+            WTSContractList* contractList = (WTSContractList*)m_mapExchgContract->get(std::string(cInfo->getExchg()));
+            if (contractList == NULL)
+            {
+                contractList = WTSContractList::create();
+                m_mapExchgContract->add(std::string(cInfo->getExchg()), contractList, false);
+            }
+            contractList->add(std::string(cInfo->getCode()), cInfo, false);
 
-				commInfo = WTSCommodityInfo::create(pid.c_str(), name, exchg.c_str(), sid.c_str(), hid.c_str());
-				parseCommodity(commInfo, jPInfo);
-				WTSSessionInfo* sInfo = getSession(sid.c_str());
-				commInfo->setSessionInfo(sInfo);
+            commInfo->addCode(code.c_str());
 
-				std::string key = fmt::format("{}.{}", exchg.c_str(), pid.c_str());
-				if (m_mapCommodities == NULL)
-					m_mapCommodities = WTSCommodityMap::create();
+            std::string key = std::string(cInfo->getCode());
+            WTSArray* ayInst = (WTSArray*)m_mapContracts->get(key);
+            if(ayInst == NULL)
+            {
+                ayInst = WTSArray::create();
+                m_mapContracts->add(key, ayInst, false);
+            }
 
-				m_mapCommodities->add(key, commInfo, false);
+            ayInst->append(cInfo, true);
+        }
+    }
 
-				m_mapSessionCode[sid].insert(key);
-
-				WTSLogger::debug("Commodity {} has been automatically added", key.c_str());
-			}
-
-			if (commInfo == NULL)
-			{
-				WTSLogger::warn("Commodity {}.{} not found, contract {} skipped", jcInfo->getCString("exchg"), jcInfo->getCString("product"), code.c_str());
-				continue;
-			}
-
-			WTSContractInfo* cInfo = WTSContractInfo::create(code.c_str(),
-				jcInfo->getCString("name"),
-				jcInfo->getCString("exchg"),
-				pid.c_str());
-
-			cInfo->setCommInfo(commInfo);
-
-			uint32_t maxMktQty = 1000000;
-			uint32_t maxLmtQty = 1000000;
-			uint32_t minMktQty = 1;
-			uint32_t minLmtQty = 1;
-			if (jcInfo->has("maxmarketqty"))
-				maxMktQty = jcInfo->getUInt32("maxmarketqty");
-			if (jcInfo->has("maxlimitqty"))
-				maxLmtQty = jcInfo->getUInt32("maxlimitqty");
-			if (jcInfo->has("minmarketqty"))
-				minMktQty = jcInfo->getUInt32("minmarketqty");
-			if (jcInfo->has("minlimitqty"))
-				minLmtQty = jcInfo->getUInt32("minlimitqty");
-			cInfo->setVolumeLimits(maxMktQty, maxLmtQty, minMktQty, minLmtQty);
-
-			uint32_t opendate = 0;
-			uint32_t expiredate = 0;
-			if (jcInfo->has("opendate"))
-				opendate = jcInfo->getUInt32("opendate");
-			if (jcInfo->has("expiredate"))
-				expiredate = jcInfo->getUInt32("expiredate");
-			cInfo->setDates(opendate, expiredate);
-
-			double lMargin = 0;
-			double sMargin = 0;
-			if (jcInfo->has("longmarginratio"))
-				lMargin = jcInfo->getDouble("longmarginratio");
-			if (jcInfo->has("shortmarginratio"))
-				sMargin = jcInfo->getDouble("shortmarginratio");
-			cInfo->setMarginRatios(lMargin, sMargin);
-
-			WTSContractList* contractList = (WTSContractList*)m_mapExchgContract->get(std::string(cInfo->getExchg()));
-			if (contractList == NULL)
-			{
-				contractList = WTSContractList::create();
-				m_mapExchgContract->add(std::string(cInfo->getExchg()), contractList, false);
-			}
-			contractList->add(std::string(cInfo->getCode()), cInfo, false);
-
-			commInfo->addCode(code.c_str());
-
-			std::string key = std::string(cInfo->getCode());
-			WTSArray* ayInst = (WTSArray*)m_mapContracts->get(key);
-			if(ayInst == NULL)
-			{
-				ayInst = WTSArray::create();
-				m_mapContracts->add(key, ayInst, false);
-			}
-
-			ayInst->append(cInfo, true);
-		}
-	}
-
-	WTSLogger::info("Contracts configuration file {} loaded, {} exchanges", filename, m_mapExchgContract->size());
-	root->release();
-	return true;
+    WTSLogger::info("Contracts configuration file {} loaded, {} exchanges", filename, m_mapExchgContract->size());
+    root->release();
+    return true;
 }
 
 bool WTSBaseDataMgr::loadHolidays(const char* filename)
