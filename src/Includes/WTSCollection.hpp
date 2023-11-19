@@ -494,7 +494,7 @@ public:
     }
 
 protected:
-    std::map<T, WTSObject*>	_map;
+    _MapType _map;
 };
 
 /*
