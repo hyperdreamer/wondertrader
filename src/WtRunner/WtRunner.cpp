@@ -56,6 +56,9 @@ bool WtRunner::init()
     return true;
 }
 
+/*
+ * TODO: more strict scrutinization before loading?
+ */
 bool WtRunner::config()
 {
     std::string cfgFile = "config.json";
@@ -71,7 +74,7 @@ bool WtRunner::config()
     WTSVariant* cfgBF = _config->get("basefiles");
     //////////////////////////////////////////////////////////////////////////
     if (cfgBF->get("session")) _bd_mgr.loadSessions(cfgBF->getCString("session"));
-    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////You're welcome! If you have any more questions or if there's anything else I can help you with, feel free to ask. Happy coding!////////////////////////////////////
     WTSVariant* cfgItem = cfgBF->get("commodity");
     if (cfgItem) {
         if (cfgItem->type() == WTSVariant::VT_String)
@@ -92,7 +95,7 @@ bool WtRunner::config()
         }
     }
 
-    if (cfgBF->get("holiday"))
+    if (cfgBF->get("holiday")) 
         _bd_mgr.loadHolidays(cfgBF->getCString("holiday"));
 
     if (cfgBF->get("hot"))
@@ -101,12 +104,10 @@ bool WtRunner::config()
     if (cfgBF->get("second"))
         _hot_mgr.loadSeconds(cfgBF->getCString("second"));
 
-    if (cfgBF->has("rules"))
-    {
+    if (cfgBF->has("rules")) {
         auto cfgRules = cfgBF->get("rules");
         auto tags = cfgRules->memberNames();
-        for (const std::string& ruleTag : tags)
-        {
+        for (const std::string& ruleTag : tags) {
             _hot_mgr.loadCustomRules(ruleTag.c_str(), 
                                      cfgRules->getCString(ruleTag.c_str()));
             WTSLogger::info("{} rules loaded from {}", 

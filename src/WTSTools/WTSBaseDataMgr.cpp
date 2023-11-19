@@ -474,13 +474,13 @@ bool WTSBaseDataMgr::loadHolidays(const char* filename)
         return false;
     }
 
-    for (const std::string& hid : root->memberNames()) {
+    for (const std::string& hid : root->memberNames()) { //@hid: CHINA, US e.g.
         WTSVariant* jHolidays = root->get(hid);
         if(!jHolidays->isArray()) continue;
      
         TradingDayTpl& trdDayTpl = m_mapTradingDay[hid];
         for(uint32_t i = 0; i < jHolidays->size(); ++i) {
-            WTSVariant* hItem = jHolidays->get(i);
+            WTSVariant* hItem = jHolidays->get(i);  // TODO: check its type first?
             trdDayTpl._holidays.insert(hItem->asUInt32());
         }
     }

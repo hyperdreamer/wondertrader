@@ -124,22 +124,23 @@ private:
 
 class WTSContractInfo :	public WTSObject {
 public:
-    static WTSContractInfo* create(const char* code, const char* name, const char* exchg, const char* pid)
+    static WTSContractInfo* create(const char* code, const char* name, 
+                                   const char* exchg, const char* pid)
     {
         WTSContractInfo* ret = new WTSContractInfo;
         ret->m_strCode = code;
         ret->m_strName = name;
         ret->m_strProduct = pid;
         ret->m_strExchg = exchg;
-
+     
         std::stringstream ss;
         ss << exchg << "." << code;
         ret->m_strFullCode = ss.str();
-
+     
         std::stringstream sss;
         sss << exchg << "." << pid;
         ret->m_strFullPid = sss.str();
-
+     
         return ret;
     }
 
