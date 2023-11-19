@@ -74,7 +74,7 @@ bool WtRunner::config()
     WTSVariant* cfgBF = _config->get("basefiles");
     //////////////////////////////////////////////////////////////////////////
     if (cfgBF->get("session")) _bd_mgr.loadSessions(cfgBF->getCString("session"));
-    //////////////////////////////////////You're welcome! If you have any more questions or if there's anything else I can help you with, feel free to ask. Happy coding!////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
     WTSVariant* cfgItem = cfgBF->get("commodity");
     if (cfgItem) {
         if (cfgItem->type() == WTSVariant::VT_String)
@@ -84,7 +84,7 @@ bool WtRunner::config()
                 _bd_mgr.loadCommodities(cfgItem->get(i)->asCString());
         }
     }
-
+    //////////////////////////////////////////////////////////////////////////
     cfgItem = cfgBF->get("contract");
     if (cfgItem) {
         if (cfgItem->type() == WTSVariant::VT_String)
@@ -94,10 +94,10 @@ bool WtRunner::config()
                 _bd_mgr.loadContracts(cfgItem->get(i)->asCString());
         }
     }
-
+    //////////////////////////////////////////////////////////////////////////
     if (cfgBF->get("holiday")) 
         _bd_mgr.loadHolidays(cfgBF->getCString("holiday"));
-
+    //////////////////////////////////////////////////////////////////////////
     if (cfgBF->get("hot"))
         _hot_mgr.loadHots(cfgBF->getCString("hot"));
 
@@ -115,7 +115,7 @@ bool WtRunner::config()
                             cfgRules->getCString(ruleTag.c_str()));
         }
     }
-
+    //////////////////////////////////////////////////////////////////////////
     //初始化运行环境
     initEngine();
 
