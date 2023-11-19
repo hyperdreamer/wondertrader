@@ -327,6 +327,9 @@ bool WTSBaseDataMgr::loadCommodities(const char* filename)
     return true;
 }
 
+/*
+ * TODO:
+ */
 bool WTSBaseDataMgr::loadContracts(const char* filename)
 {
     if (!StdFile::exists(filename)) {
@@ -383,7 +386,8 @@ bool WTSBaseDataMgr::loadContracts(const char* filename)
             //////////////////////////////////////////////////////////////////////////
             if (commInfo == NULL) {
                 WTSLogger::warn("Commodity {}.{} not found, contract {} skipped", 
-                                jcInfo->getCString("exchg"), jcInfo->getCString("product"), 
+                                jcInfo->getCString("exchg"), 
+                                jcInfo->getCString("product"), 
                                 code.c_str());
                 continue;
             }
@@ -413,7 +417,7 @@ bool WTSBaseDataMgr::loadContracts(const char* filename)
             if (jcInfo->has("minlimitqty"))
                 minLmtQty = jcInfo->getUInt32("minlimitqty");
             cInfo->setVolumeLimits(maxMktQty, maxLmtQty, minMktQty, minLmtQty);
-
+            /***************************************************************/
             uint32_t opendate = 0;
             uint32_t expiredate = 0;
             if (jcInfo->has("opendate"))
@@ -421,7 +425,7 @@ bool WTSBaseDataMgr::loadContracts(const char* filename)
             if (jcInfo->has("expiredate"))
                 expiredate = jcInfo->getUInt32("expiredate");
             cInfo->setDates(opendate, expiredate);
-
+            /***************************************************************/
             double lMargin = 0;
             double sMargin = 0;
             if (jcInfo->has("longmarginratio"))
@@ -429,66 +433,60 @@ bool WTSBaseDataMgr::loadContracts(const char* filename)
             if (jcInfo->has("shortmarginratio"))
                 sMargin = jcInfo->getDouble("shortmarginratio");
             cInfo->setMarginRatios(lMargin, sMargin);
-
-            WTSContractList* contractList = (WTSContractList*)m_mapExchgContract->get(std::string(cInfo->getExchg()));
-            if (contractList == NULL)
-            {
+            //////////////////////////////////////////////////////////////////////////
+            WTSContractList* contractList = 
+                (WTSContractList*) m_mapExchgContract->get(std::string(cInfo->getExchg()));
+            if (contractList == NULL) {
                 contractList = WTSContractList::create();
                 m_mapExchgContract->add(std::string(cInfo->getExchg()), contractList, false);
             }
             contractList->add(std::string(cInfo->getCode()), cInfo, false);
-
+            /***************************************************************/
             commInfo->addCode(code.c_str());
-
+            /***************************************************************/
             std::string key = std::string(cInfo->getCode());
-            WTSArray* ayInst = (WTSArray*)m_mapContracts->get(key);
-            if(ayInst == NULL)
-            {
+            // TODO: why to use an array? is it a 1-1 mapping? to make release easier?
+            WTSArray* ayInst = (WTSArray*) m_mapContracts->get(key);
+            if(ayInst == NULL) {
                 ayInst = WTSArray::create();
                 m_mapContracts->add(key, ayInst, false);
             }
-
             ayInst->append(cInfo, true);
         }
     }
 
-    WTSLogger::info("Contracts configuration file {} loaded, {} exchanges", filename, m_mapExchgContract->size());
+    WTSLogger::info("Contracts configuration file {} loaded, {} exchanges", 
+                    filename, m_mapExchgContract->size());
     root->release();
     return true;
 }
 
 bool WTSBaseDataMgr::loadHolidays(const char* filename)
 {
-	if (!StdFile::exists(filename))
-	{
-		WTSLogger::error("Holidays configuration file {} not exists", filename);
-		return false;
-	}
+    if (!StdFile::exists(filename)) {
+        WTSLogger::error("Holidays configuration file {} not exists", filename);
+        return false;
+    }
 
-	WTSVariant* root = WTSCfgLoader::load_from_file(filename);
-	if (root == NULL)
-	{
-		WTSLogger::error("Loading holidays config file {} failed", filename);
-		return false;
-	}
+    WTSVariant* root = WTSCfgLoader::load_from_file(filename);
+    if (root == NULL) {
+        WTSLogger::error("Loading holidays config file {} failed", filename);
+        return false;
+    }
 
-	for (const std::string& hid : root->memberNames())
-	{
-		WTSVariant* jHolidays = root->get(hid);
-		if(!jHolidays->isArray())
-			continue;
+    for (const std::string& hid : root->memberNames()) {
+        WTSVariant* jHolidays = root->get(hid);
+        if(!jHolidays->isArray()) continue;
+     
+        TradingDayTpl& trdDayTpl = m_mapTradingDay[hid];
+        for(uint32_t i = 0; i < jHolidays->size(); ++i) {
+            WTSVariant* hItem = jHolidays->get(i);
+            trdDayTpl._holidays.insert(hItem->asUInt32());
+        }
+    }
 
-		TradingDayTpl& trdDayTpl = m_mapTradingDay[hid];
-		for(uint32_t i = 0; i < jHolidays->size(); i++)
-		{
-			WTSVariant* hItem = jHolidays->get(i);
-			trdDayTpl._holidays.insert(hItem->asUInt32());
-		}
-	}
-
-	root->release();
-
-	return true;
+    root->release();
+    return true;
 }
 
 uint64_t WTSBaseDataMgr::getBoundaryTime(const char* stdPID, uint32_t tDate, bool isSession /* = false */, bool isStart /* = true */)
