@@ -157,7 +157,7 @@ bool WTSHotMgr::splitHotSecions(const char* exchg, const char* pid, uint32_t sDt
 #pragma region "次主力接口"
 bool WTSHotMgr::loadSeconds(const char* filename)
 {
-	return loadCustomRules("2ND", filename);
+    return loadCustomRules("2ND", filename);
 }
 
 const char* WTSHotMgr::getPrevSecondRawCode(const char* exchg, const char* pid, uint32_t dt)
@@ -195,65 +195,59 @@ bool WTSHotMgr::splitSecondSecions(const char* exchg, const char* pid, uint32_t 
 #pragma endregion "次主力接口"
 
 #pragma region "自定义主力接口"
+/*
+ * TODO: to check json validity before loading?
+ */
 bool WTSHotMgr::loadCustomRules(const char* tag, const char* filename)
 {
-	if (!StdFile::exists(filename))
-	{
-		return false;
-	}
+    if (!StdFile::exists(filename)) return false;
+    WTSVariant* root = WTSCfgLoader::load_from_file(filename);
+    if (root == NULL) return false;
 
-	WTSVariant* root = WTSCfgLoader::load_from_file(filename);
-	if (root == NULL)
-		return false;
+    if (m_mapCustRules == NULL) m_mapCustRules = WTSCustomSwitchMap::create();
 
-	if (m_mapCustRules == NULL)
-		m_mapCustRules = WTSCustomSwitchMap::create();
+    WTSProductHotMap* prodMap = (WTSProductHotMap*) m_mapCustRules->get(tag);
+    if(prodMap == NULL) {
+        prodMap = WTSProductHotMap::create();
+        m_mapCustRules->add(tag, prodMap, false);
+    }
 
-	WTSProductHotMap* prodMap = (WTSProductHotMap*)m_mapCustRules->get(tag);
-	if(prodMap == NULL)
-	{
-		prodMap = WTSProductHotMap::create();
-		m_mapCustRules->add(tag, prodMap, false);
-	}
+    for (const std::string& exchg : root->memberNames()) { // @exchg: CFFEX e.g.
+        WTSVariant* jExchg = root->get(exchg);
+     
+        for (const std::string& pid : jExchg->memberNames()) { // @pid: IC e.g.
+            WTSVariant* jProduct = jExchg->get(pid); // TODO: to check if it is an array
+            std::string fullPid = fmt::format("{}.{}", exchg, pid);
+         
+            WTSDateHotMap* dateMap = WTSDateHotMap::create();
+            prodMap->add(fullPid.c_str(), dateMap, false);
+         
+            std::string lastCode;
+            double factor = 1.0;
+            for (uint32_t i = 0; i < jProduct->size(); ++i) {
+                WTSVariant* jHotItem = jProduct->get(i);
+                WTSSwitchItem* pItem = 
+                    WTSSwitchItem::create(exchg.c_str(), 
+                                          pid.c_str(),
+                                          jHotItem->getCString("from"), 
+                                          jHotItem->getCString("to"), 
+                                          jHotItem->getUInt32("date"));
+                //计算复权因子
+                double oldclose = jHotItem->getDouble("oldclose");
+                double newclose = jHotItem->getDouble("newclose");
+                factor *= (decimal::eq(oldclose, 0.0) ? 1.0 : (oldclose/newclose));
+                pItem->set_factor(factor);
+                dateMap->add(pItem->switch_date(), pItem, false);
+                lastCode = jHotItem->getCString("to");
+            }
+         
+            std::string fullCode = fmt::format("{}.{}", exchg.c_str(), lastCode.c_str());
+            m_mapCustCodes[tag].insert(fullCode);
+        }
+    }
 
-	for (const std::string& exchg : root->memberNames())
-	{
-		WTSVariant* jExchg = root->get(exchg);
-
-		for (const std::string& pid : jExchg->memberNames())
-		{
-			WTSVariant* jProduct = jExchg->get(pid);
-			std::string fullPid = fmt::format("{}.{}", exchg, pid);
-
-			WTSDateHotMap* dateMap = WTSDateHotMap::create();
-			prodMap->add(fullPid.c_str(), dateMap, false);
-
-			std::string lastCode;
-			double factor = 1.0;
-			for (uint32_t i = 0; i < jProduct->size(); i++)
-			{
-				WTSVariant* jHotItem = jProduct->get(i);
-				WTSSwitchItem* pItem = WTSSwitchItem::create(
-					exchg.c_str(), pid.c_str(),
-					jHotItem->getCString("from"), jHotItem->getCString("to"), 
-					jHotItem->getUInt32("date"));
-
-				//计算复权因子
-				double oldclose = jHotItem->getDouble("oldclose");
-				double newclose = jHotItem->getDouble("newclose");
-				factor *= (decimal::eq(oldclose, 0.0) ? 1.0 : (oldclose/ newclose));
-				pItem->set_factor(factor);
-				dateMap->add(pItem->switch_date(), pItem, false);
-				lastCode = jHotItem->getCString("to");
-			}
-
-			std::string fullCode = fmt::format("{}.{}", exchg.c_str(), lastCode.c_str());
-			m_mapCustCodes[tag].insert(fullCode);
-		}
-	}
-
-	root->release();
-	return true;
+    root->release();
+    return true;
 }
 
 const char* WTSHotMgr::getPrevCustomRawCode(const char* tag, const char* fullPid, uint32_t dt /* = 0 */)
