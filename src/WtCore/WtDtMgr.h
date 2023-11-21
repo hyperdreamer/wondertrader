@@ -29,9 +29,6 @@ public:
     WtDtMgr();
     ~WtDtMgr();
 
-private:
-    bool	initStore(WTSVariant* cfg);
-
 public:
     bool	init(WTSVariant* cfg, WtEngine* engine);
 
@@ -66,6 +63,9 @@ public:
 
     inline IDataReader*	reader() { return _reader; }
     inline IHisDataLoader*	loader() { return _loader; }
+
+private:
+    bool	initStore(WTSVariant* cfg);
 
 private:
     IDataReader*	_reader;
