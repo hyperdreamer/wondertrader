@@ -63,23 +63,21 @@ bool WtDtMgr::initStore(WTSVariant* cfg)
     }
 
     FuncCreateDataReader funcCreator = (FuncCreateDataReader) DLLHelper::get_symbol(hInst, "createDataReader");
-    if(funcCreator == NULL)
-    {
-        WTSLogger::error("Loading data reader module {} failed, entrance function createDataReader not found", module.c_str());
+    if(funcCreator == NULL) {
+        WTSLogger::error("Loading data reader module {} failed, entrance function createDataReader not found", 
+                         module.c_str());
         DLLHelper::free_library(hInst);
         return false;
     }
 
     _reader = funcCreator();
-    if(_reader == NULL)
-    {
+    if(_reader == NULL) {
         WTSLogger::error("Creating instance of data reader module {} failed", module.c_str());
         DLLHelper::free_library(hInst);
         return false;
     }
 
     _reader->init(cfg, this, _loader);
-
     return true;
 }
 
