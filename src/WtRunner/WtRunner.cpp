@@ -372,14 +372,13 @@ bool WtRunner::initActionPolicy()
 
 bool WtRunner::initDataMgr()
 {
-	WTSVariant*cfg = _config->get("data");
-	if (cfg == NULL)
-		return false;
+    WTSVariant*cfg = _config->get("data");
+    if (cfg == NULL) return false;
 
-	_data_mgr.init(cfg, _engine);
-	WTSLogger::info("Data manager initialized");
+    _data_mgr.init(cfg, _engine);
+    WTSLogger::info("Data manager initialized");
 
-	return true;
+    return true;
 }
 
 bool WtRunner::initParsers(WTSVariant* cfgParser)

@@ -39,8 +39,7 @@ extern "C"
 
 	EXPORT_FLAG void deleteDataReader(IDataReader* reader)
 	{
-		if (reader != NULL)
-			delete reader;
+		if (reader != NULL) delete reader;
 	}
 };
 

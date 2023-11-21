@@ -48,52 +48,48 @@ WtDtMgr::~WtDtMgr()
 
 bool WtDtMgr::initStore(WTSVariant* cfg)
 {
-	if (cfg == NULL)
-		return false;
+    if (cfg == NULL) return false;
 
-	std::string module = cfg->getCString("module");
-	if (module.empty())
-		module = WtHelper::getInstDir() + DLLHelper::wrap_module("WtDataStorage");
-	else
-		module = WtHelper::getInstDir() + DLLHelper::wrap_module(module.c_str());
+    std::string module = cfg->getCString("module");
+    if (module.empty())
+        module = WtHelper::getInstDir() + DLLHelper::wrap_module("WtDataStorage");
+    else
+        module = WtHelper::getInstDir() + DLLHelper::wrap_module(module.c_str());
 
-	DllHandle hInst = DLLHelper::load_library(module.c_str());
-	if(hInst == NULL)
-	{
-		WTSLogger::error("Loading data reader module {} failed", module.c_str());
-		return false;
-	}
+    DllHandle hInst = DLLHelper::load_library(module.c_str());
+    if(hInst == NULL) {
+        WTSLogger::error("Loading data reader module {} failed", module.c_str());
+        return false;
+    }
 
-	FuncCreateDataReader funcCreator = (FuncCreateDataReader)DLLHelper::get_symbol(hInst, "createDataReader");
-	if(funcCreator == NULL)
-	{
-		WTSLogger::error("Loading data reader module {} failed, entrance function createDataReader not found", module.c_str());
-		DLLHelper::free_library(hInst);
-		return false;
-	}
+    FuncCreateDataReader funcCreator = (FuncCreateDataReader) DLLHelper::get_symbol(hInst, "createDataReader");
+    if(funcCreator == NULL)
+    {
+        WTSLogger::error("Loading data reader module {} failed, entrance function createDataReader not found", module.c_str());
+        DLLHelper::free_library(hInst);
+        return false;
+    }
 
-	_reader = funcCreator();
-	if(_reader == NULL)
-	{
-		WTSLogger::error("Creating instance of data reader module {} failed", module.c_str());
-		DLLHelper::free_library(hInst);
-		return false;
-	}
+    _reader = funcCreator();
+    if(_reader == NULL)
+    {
+        WTSLogger::error("Creating instance of data reader module {} failed", module.c_str());
+        DLLHelper::free_library(hInst);
+        return false;
+    }
 
-	_reader->init(cfg, this, _loader);
+    _reader->init(cfg, this, _loader);
 
-	return true;
+    return true;
 }
 
 bool WtDtMgr::init(WTSVariant* cfg, WtEngine* engine)
 {
-	_engine = engine;
+    _engine = engine;
+    _align_by_section = cfg->getBoolean("align_by_section");
 
-	_align_by_section = cfg->getBoolean("align_by_section");
-
-	WTSLogger::info("Resampled bars will be aligned by section: {}", _align_by_section?"yes":" not");
-
-	return initStore(cfg->get("store"));
+    WTSLogger::info("Resampled bars will be aligned by section: {}", (_align_by_section ? "yes" : "no"));
+    return initStore(cfg->get("store"));
 }
 
 void WtDtMgr::on_all_bar_updated(uint32_t updateTime)
