@@ -241,6 +241,6 @@ protected:
 //创建数据存储对象
 typedef IDataReader* (*FuncCreateDataReader)();
 //删除数据存储对象
-typedef void(*FuncDeleteDataReader)(IDataReader* store);
+typedef void (*FuncDeleteDataReader)(IDataReader* store);
 
 NS_WTP_END
