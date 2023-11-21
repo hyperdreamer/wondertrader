@@ -72,7 +72,7 @@ private:
 	WtCtaEngine			_cta_engine;
 	WtHftEngine			_hft_engine;
 	WtSelEngine			_sel_engine;
-	WtEngine*			_engine;
+	WtEngine*			_engine;    // one of above three
 
 	WtDataStorage*		_data_store;
 
