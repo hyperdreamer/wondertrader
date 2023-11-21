@@ -89,58 +89,52 @@ struct WTSTickStructOld
 //新的结构体，全部改成8字节对齐的方式
 #pragma pack(push, 8)
 
-struct WTSBarStruct
-{
+struct WTSBarStruct {
 public:
-	WTSBarStruct()
-	{
-		memset(this, 0, sizeof(WTSBarStruct));
-	}
+    WTSBarStruct() { memset(this, 0, sizeof(WTSBarStruct)); }
 
-	uint32_t	date;		//日期
-	uint32_t	reserve_;	//占位符
-	uint64_t	time;		//时间
-	double		open;		//开
-	double		high;		//高
-	double		low;		//低
-	double		close;		//收
-	double		settle;		//结算
-	
-	double		money;		//成交金额
-	double		vol;		//成交量
+    uint32_t	date;		//日期
+    uint32_t	reserve_;	//占位符
+    uint64_t	time;		//时间
+    double		open;		//开
+    double		high;		//高
+    double		low;		//低
+    double		close;		//收
+    double		settle;		//结算
 
-	union
-	{
-		double		hold;	//总持
-		double		bid;	//买价，期权专用，主要期权spread比较大，By Wseley @ 2023.05.04
-	};
+    double		money;		//成交金额
+    double		vol;		//成交量
 
-	union
-	{
-		double		add;	//增仓
-		double		ask;	//卖价，期权专用，主要期权spread比较大，By Wseley @ 2023.05.04
-	};	
+    union {
+        double		hold;	//总持
+        double		bid;	//买价，期权专用，主要期权spread比较大，By Wseley @ 2023.05.04
+    };
 
-	//By Wesley @ 2021.12.30
-	//直接复制老结构体
-	WTSBarStruct& operator = (const WTSBarStructOld& bar)
-	{
-		date = bar.date;
-		time = bar.time;
+    union {
+        double		add;	//增仓
+        double		ask;	//卖价，期权专用，主要期权spread比较大，By Wseley @ 2023.05.04
+    };	
 
-		open = bar.open;
-		high = bar.high;
-		low = bar.low;
-		close = bar.close;
-		settle = bar.settle;
-		money = bar.money;
-
-		vol = bar.vol;
-		hold = bar.hold;
-		add = bar.add;
-
-		return *this;
-	}
+    //By Wesley @ 2021.12.30
+    //直接复制老结构体
+    WTSBarStruct& operator=(const WTSBarStructOld& bar)
+    {
+        date = bar.date;
+        time = bar.time;
+     
+        open = bar.open;
+        high = bar.high;
+        low = bar.low;
+        close = bar.close;
+        settle = bar.settle;
+        money = bar.money;
+     
+        vol = bar.vol;
+        hold = bar.hold;
+        add = bar.add;
+     
+        return *this;
+    }
 };
 
 struct WTSTickStruct

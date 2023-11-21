@@ -19,19 +19,18 @@ public:
     virtual ~WtDataReader();
 
 private:
-    typedef struct _RTKBlockPair
-    {
+    typedef struct _RTKBlockPair {
         RTKlineBlock*	_block;
         BoostMFPtr		_file;
         uint64_t		_last_cap;
-
+     
         _RTKBlockPair()
         {
             _block = NULL;
             _file = NULL;
             _last_cap = 0;
         }
-
+     
     } RTKlineBlockPair;
     typedef wt_hashmap<std::string, RTKlineBlockPair>	RTKBlockFilesMap;
 
@@ -218,36 +217,35 @@ private:
     std::string		_his_dir;
     IBaseDataMgr*	_base_data_mgr;
     IHotMgr*		_hot_mgr;
-
+    //////////////////////////////////////////////////////////////////////////
     //By Wesley @ 2022.08.15
     //复权标记，采用位运算表示，1|2|4,1表示成交量复权，2表示成交额复权，4表示总持复权，其他待定
     uint32_t		_adjust_flag;
-
-    typedef struct _BarsList
-    {
+    //////////////////////////////////////////////////////////////////////////
+    typedef struct _BarsList {
         std::string		_exchg;
         std::string		_code;
         WTSKlinePeriod	_period;
         uint32_t		_rt_cursor;
         std::string		_raw_code;
-
+     
         std::vector<WTSBarStruct>	_bars;
         double			_factor;
-
+     
         _BarsList() :_rt_cursor(UINT_MAX), _factor(DBL_MAX){}
     } BarsList;
 
     typedef wt_hashmap<std::string, BarsList> BarsCache;
     BarsCache	_bars_cache;
-
+    //////////////////////////////////////////////////////////////////////////
     uint64_t	_last_time;
-
+    //////////////////////////////////////////////////////////////////////////
     //除权因子
-    typedef struct _AdjFactor
-    {
+    typedef struct _AdjFactor {
         uint32_t	_date;
         double		_factor;
     } AdjFactor;
+
     typedef std::vector<AdjFactor> AdjFactorList;
     typedef wt_hashmap<std::string, AdjFactorList>	AdjFactorMap;
     AdjFactorMap	_adj_factors;
