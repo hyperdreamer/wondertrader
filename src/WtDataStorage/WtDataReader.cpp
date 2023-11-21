@@ -149,40 +149,40 @@ WtDataReader::~WtDataReader()
 
 void WtDataReader::init(WTSVariant* cfg, IDataReaderSink* sink, IHisDataLoader* loader /* = NULL */)
 {
-	IDataReader::init(cfg, sink, loader);
+    IDataReader::init(cfg, sink, loader);
 
-	_base_data_mgr = sink->get_basedata_mgr();
-	_hot_mgr = sink->get_hot_mgr();
+    _base_data_mgr = sink->get_basedata_mgr();
+    _hot_mgr = sink->get_hot_mgr();
 
-	if (cfg == NULL)
-		return ;
+    if (cfg == NULL) return;
 
-	std::string root_dir = cfg->getCString("path");
-	root_dir = StrUtil::standardisePath(root_dir);
+    std::string root_dir = cfg->getCString("path");
+    root_dir = StrUtil::standardisePath(root_dir);
 
-	_rt_dir = root_dir + "rt/";
+    _rt_dir = root_dir + "rt/";
 
-	_his_dir = cfg->getCString("his_path");
-	if(!_his_dir.empty())
-		_his_dir = StrUtil::standardisePath(_his_dir);
-	else
-		_his_dir = root_dir + "his/";
+    _his_dir = cfg->getCString("his_path");
+    if(!_his_dir.empty())
+        _his_dir = StrUtil::standardisePath(_his_dir);
+    else
+        _his_dir = root_dir + "his/";
 
-	_adjust_flag = cfg->getUInt32("adjust_flag");
+    _adjust_flag = cfg->getUInt32("adjust_flag");
 
-	pipe_reader_log(sink, LL_INFO, "WtDataReader initialized, rt dir is {}, hist dir is {}, adjust_flag is {}", _rt_dir, _his_dir, _adjust_flag);
+    pipe_reader_log(sink, LL_INFO, "WtDataReader initialized, rt dir is {}, hist dir is {}, adjust_flag is {}", 
+                    _rt_dir, _his_dir, _adjust_flag);
 
-	/*
-	 *	By Wesley @ 2021.12.20
-	 *	先从extloader加载除权因子
-	 *	如果加载失败，并且配置了除权因子文件，再加载除权因子文件
-	 */
-	bool bLoaded = loadStkAdjFactorsFromLoader();
+    /*
+     *	By Wesley @ 2021.12.20
+     *	先从extloader加载除权因子
+     *	如果加载失败，并且配置了除权因子文件，再加载除权因子文件
+     */
+    bool bLoaded = loadStkAdjFactorsFromLoader();
 
-	if (!bLoaded && cfg->has("adjfactor"))
-		loadStkAdjFactorsFromFile(cfg->getCString("adjfactor"));
-	else
-		pipe_reader_log(sink, LL_INFO, "No adjusting factor file configured, loading skipped");
+    if (!bLoaded && cfg->has("adjfactor"))
+        loadStkAdjFactorsFromFile(cfg->getCString("adjfactor"));
+    else
+        pipe_reader_log(sink, LL_INFO, "No adjusting factor file configured, loading skipped");
 }
 
 bool WtDataReader::loadStkAdjFactorsFromLoader()
