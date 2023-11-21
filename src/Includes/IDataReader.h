@@ -104,39 +104,39 @@ typedef void(*FuncReadFactors)(void* obj, const char* stdCode, uint32_t* dates, 
  */
 class IHisDataLoader {
 public:
-	/*
-	 *	加载最终历史K线数据
-	 *	和loadRawHisBars的区别在于，loadFinalHisBars，系统认为是最终所需数据，不在进行加工，例如复权数据、主力合约数据
-	 *	loadRawHisBars是加载未加工的原始数据的接口
-	 *
-	 *	@obj	回传用的，原样返回即可
-	 *	@key	数据缓存的key
-	 *	@stdCode	合约代码
-	 *	@period	K线周期
-	 *	@cb		回调函数
-	 */
-	virtual bool loadFinalHisBars(void* obj, const char* stdCode, WTSKlinePeriod period, FuncReadBars cb) = 0;
+    /*
+     *	加载最终历史K线数据
+     *	和loadRawHisBars的区别在于，loadFinalHisBars，系统认为是最终所需数据，不在进行加工，例如复权数据、主力合约数据
+     *	loadRawHisBars是加载未加工的原始数据的接口
+     *
+     *	@obj	回传用的，原样返回即可
+     *	@key	数据缓存的key
+     *	@stdCode	合约代码
+     *	@period	K线周期
+     *	@cb		回调函数
+     */
+    virtual bool loadFinalHisBars(void* obj, const char* stdCode, WTSKlinePeriod period, FuncReadBars cb) = 0;
 
-	/*
-	 *	加载原始历史K线数据
-	 *
-	 *	@obj	回传用的，原样返回即可
-	 *	@key	数据缓存的key
-	 *	@stdCode	合约代码
-	 *	@period	K线周期
-	 *	@cb		回调函数
-	 */
-	virtual bool loadRawHisBars(void* obj, const char* stdCode, WTSKlinePeriod period, FuncReadBars cb) = 0;
+    /*
+     *	加载原始历史K线数据
+     *
+     *	@obj	回传用的，原样返回即可
+     *	@key	数据缓存的key
+     *	@stdCode	合约代码
+     *	@period	K线周期
+     *	@cb		回调函数
+     */
+    virtual bool loadRawHisBars(void* obj, const char* stdCode, WTSKlinePeriod period, FuncReadBars cb) = 0;
 
-	/*
-	 *	加载全部除权因子
-	 */
-	virtual bool loadAllAdjFactors(void* obj, FuncReadFactors cb) = 0;
+    /*
+     *	加载全部除权因子
+     */
+    virtual bool loadAllAdjFactors(void* obj, FuncReadFactors cb) = 0;
 
-	/*
-	 *	加指定合约除权因子
-	 */
-	virtual bool loadAdjFactors(void* obj, const char* stdCode, FuncReadFactors cb) = 0;
+    /*
+     *	加指定合约除权因子
+     */
+    virtual bool loadAdjFactors(void* obj, const char* stdCode, FuncReadFactors cb) = 0;
 };
 
 /*
@@ -156,7 +156,11 @@ public:
      *	@param cfg	模块配置项
      *	@param sink	模块回调接口
      */
-    virtual void init(WTSVariant* cfg, IDataReaderSink* sink, IHisDataLoader* loader = NULL) { _sink = sink; _loader = loader; }
+    virtual void init(WTSVariant* cfg, IDataReaderSink* sink, IHisDataLoader* loader = NULL) 
+    { 
+        _sink = sink; 
+        _loader = loader; 
+    }
 
     /*
      *	@brief	分钟线闭合事件处理接口
