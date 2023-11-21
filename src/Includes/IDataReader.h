@@ -102,8 +102,7 @@ typedef void(*FuncReadFactors)(void* obj, const char* stdCode, uint32_t* dates, 
 /*
  *	历史数据加载器
  */
-class IHisDataLoader
-{
+class IHisDataLoader {
 public:
 	/*
 	 *	加载最终历史K线数据
@@ -145,97 +144,96 @@ public:
  *
  *	向核心模块提供行情数据(tick、K线)读取接口
  */
-class IDataReader
-{
+class IDataReader {
 public:
-	IDataReader() :_sink(NULL) {}
-	virtual ~IDataReader(){}
+    IDataReader() :_sink(NULL) {}
+    virtual ~IDataReader(){}
 
 public:
-	/*
-	 *	@brief 初始化数据读取模块
-	 *
-	 *	@param cfg	模块配置项
-	 *	@param sink	模块回调接口
-	 */
-	virtual void init(WTSVariant* cfg, IDataReaderSink* sink, IHisDataLoader* loader = NULL) { _sink = sink; _loader = loader; }
+    /*
+     *	@brief 初始化数据读取模块
+     *
+     *	@param cfg	模块配置项
+     *	@param sink	模块回调接口
+     */
+    virtual void init(WTSVariant* cfg, IDataReaderSink* sink, IHisDataLoader* loader = NULL) { _sink = sink; _loader = loader; }
 
-	/*
-	 *	@brief	分钟线闭合事件处理接口
-	 *	
-	 *	@param uDate	闭合的分钟线日期,如20200410,这里不是交易日
-	 *	@param uTime	闭合的分钟线的分钟时间,如1115
-	 *	@param endTDate	如果闭合的分钟线是交易日最后一条分钟线,则endTDate为当前交易日,如20200410,其他情况为0
-	 */
-	virtual void onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate = 0) = 0;
+    /*
+     *	@brief	分钟线闭合事件处理接口
+     *	
+     *	@param uDate	闭合的分钟线日期,如20200410,这里不是交易日
+     *	@param uTime	闭合的分钟线的分钟时间,如1115
+     *	@param endTDate	如果闭合的分钟线是交易日最后一条分钟线,则endTDate为当前交易日,如20200410,其他情况为0
+     */
+    virtual void onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate = 0) = 0;
 
-	/*
-	 *	@brief	读取tick数据切片
-	 *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
-	 *
-	 *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
-	 *	@param count	要读取的tick条数
-	 *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
-	 */
-	virtual WTSTickSlice*	readTickSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) = 0;
+    /*
+     *	@brief	读取tick数据切片
+     *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
+     *
+     *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
+     *	@param count	要读取的tick条数
+     *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
+     */
+    virtual WTSTickSlice*	readTickSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) = 0;
 
-	/*
-	 *	@brief	读取逐笔委托数据切片
-	 *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
-	 *
-	 *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
-	 *	@param count	要读取的tick条数
-	 *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
-	 */
-	virtual WTSOrdDtlSlice*	readOrdDtlSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) { return NULL; }
-	/*
-	 *	@brief	读取委托队列数据切片
-	 *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
-	 *
-	 *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
-	 *	@param count	要读取的tick条数
-	 *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
-	 */
-	virtual WTSOrdQueSlice*	readOrdQueSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) { return NULL; }
+    /*
+     *	@brief	读取逐笔委托数据切片
+     *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
+     *
+     *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
+     *	@param count	要读取的tick条数
+     *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
+     */
+    virtual WTSOrdDtlSlice*	readOrdDtlSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) { return NULL; }
+    /*
+     *	@brief	读取委托队列数据切片
+     *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
+     *
+     *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
+     *	@param count	要读取的tick条数
+     *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
+     */
+    virtual WTSOrdQueSlice*	readOrdQueSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) { return NULL; }
 
-	/*
-	 *	@brief	读取逐笔成交数据切片
-	 *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
-	 *
-	 *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
-	 *	@param count	要读取的tick条数
-	 *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
-	 */
-	virtual WTSTransSlice*	readTransSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) { return NULL; }
+    /*
+     *	@brief	读取逐笔成交数据切片
+     *	@details 切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
+     *
+     *	@param stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
+     *	@param count	要读取的tick条数
+     *	@param etime	结束时间,精确到毫秒,格式如yyyyMMddhhmmssmmm,如果要读取到最后一条,etime为0,默认为0
+     */
+    virtual WTSTransSlice*	readTransSlice(const char* stdCode, uint32_t count, uint64_t etime = 0) { return NULL; }
 
-	/*
-	 *	@brief 读取K线序列,并返回一个存储容器类
-	 *	@details	切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
-	 *
-	 *	@param	stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
-	 *	@param	period	K线周期
-	 *	@param	count	要读取的K线条数
-	 *	@param	etime	结束时间,格式yyyyMMddhhmm
-	 */
-	virtual WTSKlineSlice*	readKlineSlice(const char* stdCode, WTSKlinePeriod period, uint32_t count, uint64_t etime = 0) = 0;
+    /*
+     *	@brief 读取K线序列,并返回一个存储容器类
+     *	@details	切片不会复制数据,只把缓存中的数据指针传递出来,所以叫做切片
+     *
+     *	@param	stdCode	标准品种代码,如SSE.600000,SHFE.au.2005
+     *	@param	period	K线周期
+     *	@param	count	要读取的K线条数
+     *	@param	etime	结束时间,格式yyyyMMddhhmm
+     */
+    virtual WTSKlineSlice*	readKlineSlice(const char* stdCode, WTSKlinePeriod period, uint32_t count, uint64_t etime = 0) = 0;
 
-	/*
-	 *	@brief 获取个股指定日期的复权因子
-	 *
-	 *	@param	stdCode	标准品种代码,如SSE.600000
-	 *	@param	date	指定日期,格式yyyyMMdd，默认为0，为0则按当前日期处理
-	 */
-	virtual double		getAdjFactorByDate(const char* stdCode, uint32_t date = 0) { return 1.0; }
+    /*
+     *	@brief 获取个股指定日期的复权因子
+     *
+     *	@param	stdCode	标准品种代码,如SSE.600000
+     *	@param	date	指定日期,格式yyyyMMdd，默认为0，为0则按当前日期处理
+     */
+    virtual double		getAdjFactorByDate(const char* stdCode, uint32_t date = 0) { return 1.0; }
 
-	/*
-	 *	获取复权标记
-	 *	采用位运算1|2|4的形式，1表示成交量复权，2表示成交额复权，4表示总持复权，其他待定
-	 */
-	virtual uint32_t	getAdjustingFlag() { return 0; }
+    /*
+     *	获取复权标记
+     *	采用位运算1|2|4的形式，1表示成交量复权，2表示成交额复权，4表示总持复权，其他待定
+     */
+    virtual uint32_t	getAdjustingFlag() { return 0; }
 
 protected:
-	IDataReaderSink*	_sink;
-	IHisDataLoader*		_loader;
+    IDataReaderSink*	_sink;
+    IHisDataLoader*		_loader;
 };
 
 //创建数据存储对象
