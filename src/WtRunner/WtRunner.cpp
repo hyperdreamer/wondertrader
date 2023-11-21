@@ -330,48 +330,39 @@ bool WtRunner::initHftStrategies()
 
 bool WtRunner::initEngine()
 {
-	WTSVariant* cfg = _config->get("env");
-	if (cfg == NULL)
-		return false;
+    WTSVariant* cfg = _config->get("env");
+    if (cfg == NULL) return false;
 
-	const char* name = cfg->getCString("name");
-	
-	if (strlen(name) == 0 || wt_stricmp(name, "cta") == 0)
-	{
-		_is_hft = false;
-		_is_sel = false;
-	}
-	else if (wt_stricmp(name, "sel") == 0)
-	{
-		_is_sel = true;
-	}
-	else //if (wt_stricmp(name, "hft") == 0)
-	{
-		_is_hft = true;
-	}
+    const char* name = cfg->getCString("name");
 
-	if (_is_hft)
-	{
-		WTSLogger::info("Trading enviroment initialzied with engine: HFT");
-		_hft_engine.init(cfg, &_bd_mgr, &_data_mgr, &_hot_mgr, &_notifier);
-		_engine = &_hft_engine;
-	}
-	else if (_is_sel)
-	{
-		WTSLogger::info("Trading enviroment initialzied with engine: SEL");
-		_sel_engine.init(cfg, &_bd_mgr, &_data_mgr, &_hot_mgr, &_notifier);
-		_engine = &_sel_engine;
-	}
-	else
-	{
-		WTSLogger::info("Trading enviroment initialzied with engine: CTA");
-		_cta_engine.init(cfg, &_bd_mgr, &_data_mgr, &_hot_mgr, &_notifier);
-		_engine = &_cta_engine;
-	}
+    if (strlen(name) == 0 || wt_stricmp(name, "cta") == 0) { // cta is the default
+        _is_hft = false;
+        _is_sel = false;
+    }
+    else if (wt_stricmp(name, "sel") == 0)
+        _is_sel = true;
+    else //if (wt_stricmp(name, "hft") == 0)
+        _is_hft = true;
 
-	_engine->set_adapter_mgr(&_traders);
+    if (_is_hft) {
+        WTSLogger::info("Trading enviroment initialzied with engine: HFT");
+        _hft_engine.init(cfg, &_bd_mgr, &_data_mgr, &_hot_mgr, &_notifier);
+        _engine = &_hft_engine;
+    }
+    else if (_is_sel) {
+        WTSLogger::info("Trading enviroment initialzied with engine: SEL");
+        _sel_engine.init(cfg, &_bd_mgr, &_data_mgr, &_hot_mgr, &_notifier);
+        _engine = &_sel_engine;
+    }
+    else {
+        WTSLogger::info("Trading enviroment initialzied with engine: CTA");
+        _cta_engine.init(cfg, &_bd_mgr, &_data_mgr, &_hot_mgr, &_notifier);
+        _engine = &_cta_engine;
+    }
 
-	return true;
+    _engine->set_adapter_mgr(&_traders);
+
+    return true;
 }
 
 bool WtRunner::initActionPolicy()
