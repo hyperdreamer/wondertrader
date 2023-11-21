@@ -191,7 +191,9 @@ private:
 
 protected:
     uint32_t		_cur_date;		//当前日期
-    uint32_t		_cur_time;		//当前时间, 是1分钟线时间, 比如0900, 这个时候的1分钟线是0901, _cur_time也就是0901, 这个是为了CTA里面方便
+    uint32_t		_cur_time;		//当前时间, 是1分钟线时间, 比如0900, 
+                                    //这个时候的1分钟线是0901, _cur_time也就是0901, 
+                                    //这个是为了CTA里面方便
     uint32_t		_cur_raw_time;	//当前真实时间
     uint32_t		_cur_secs;		//当前秒数, 包含毫秒
     uint32_t		_cur_tdate;		//当前交易日
