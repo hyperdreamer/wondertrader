@@ -32,14 +32,14 @@ private:
         }
      
     } RTKlineBlockPair;
+
     typedef wt_hashmap<std::string, RTKlineBlockPair>	RTKBlockFilesMap;
 
-    typedef struct _TBlockPair
-    {
+    typedef struct _TBlockPair {
         RTTickBlock*	_block;
         BoostMFPtr		_file;
         uint64_t		_last_cap;
-
+     
         _TBlockPair()
         {
             _block = NULL;
@@ -47,16 +47,16 @@ private:
             _last_cap = 0;
         }
     } TickBlockPair;
+
     typedef wt_hashmap<std::string, TickBlockPair>	TBlockFilesMap;
 
-    typedef struct _TransBlockPair
-    {
+    typedef struct _TransBlockPair {
         RTTransBlock*	_block;
         BoostMFPtr		_file;
         uint64_t		_last_cap;
-
+     
         std::shared_ptr< std::ofstream>	_fstream;
-
+     
         _TransBlockPair()
         {
             _block = NULL;
@@ -64,16 +64,16 @@ private:
             _last_cap = 0;
         }
     } TransBlockPair;
+
     typedef wt_hashmap<std::string, TransBlockPair>	TransBlockFilesMap;
 
-    typedef struct _OdrDtlBlockPair
-    {
+    typedef struct _OdrDtlBlockPair {
         RTOrdDtlBlock*	_block;
         BoostMFPtr		_file;
         uint64_t		_last_cap;
-
+     
         std::shared_ptr< std::ofstream>	_fstream;
-
+     
         _OdrDtlBlockPair()
         {
             _block = NULL;
@@ -81,16 +81,16 @@ private:
             _last_cap = 0;
         }
     } OrdDtlBlockPair;
+
     typedef wt_hashmap<std::string, OrdDtlBlockPair>	OrdDtlBlockFilesMap;
 
-    typedef struct _OdrQueBlockPair
-    {
+    typedef struct _OdrQueBlockPair {
         RTOrdQueBlock*	_block;
         BoostMFPtr		_file;
         uint64_t		_last_cap;
-
+     
         std::shared_ptr< std::ofstream>	_fstream;
-
+     
         _OdrQueBlockPair()
         {
             _block = NULL;
@@ -98,6 +98,7 @@ private:
             _last_cap = 0;
         }
     } OrdQueBlockPair;
+
     typedef wt_hashmap<std::string, OrdQueBlockPair>	OrdQueBlockFilesMap;
 
     RTKBlockFilesMap	_rt_min1_map;
@@ -108,12 +109,11 @@ private:
     OrdDtlBlockFilesMap	_rt_orddtl_map;
     OrdQueBlockFilesMap	_rt_ordque_map;
 
-    typedef struct _HisTBlockPair
-    {
+    typedef struct _HisTBlockPair {
         HisTickBlock*	_block;
         uint64_t		_date;
         std::string		_buffer;
-
+     
         _HisTBlockPair()
         {
             _block = NULL;
@@ -124,12 +124,11 @@ private:
 
     typedef wt_hashmap<std::string, HisTBlockPair>	HisTickBlockMap;
 
-    typedef struct _HisTransBlockPair
-    {
+    typedef struct _HisTransBlockPair {
         HisTransBlock*	_block;
         uint64_t		_date;
         std::string		_buffer;
-
+     
         _HisTransBlockPair()
         {
             _block = NULL;
@@ -140,12 +139,11 @@ private:
 
     typedef wt_hashmap<std::string, HisTransBlockPair>	HisTransBlockMap;
 
-    typedef struct _HisOrdDtlBlockPair
-    {
+    typedef struct _HisOrdDtlBlockPair {
         HisOrdDtlBlock*	_block;
         uint64_t		_date;
         std::string		_buffer;
-
+     
         _HisOrdDtlBlockPair()
         {
             _block = NULL;
@@ -156,12 +154,11 @@ private:
 
     typedef wt_hashmap<std::string, HisOrdDtlBlockPair>	HisOrdDtlBlockMap;
 
-    typedef struct _HisOrdQueBlockPair
-    {
+    typedef struct _HisOrdQueBlockPair {
         HisOrdQueBlock*	_block;
         uint64_t		_date;
         std::string		_buffer;
-
+     
         _HisOrdQueBlockPair()
         {
             _block = NULL;
@@ -251,7 +248,6 @@ private:
     AdjFactorMap	_adj_factors;
 
     const AdjFactorList& getAdjFactors(const char* code, const char* exchg, const char* pid);
-
 };
 
 NS_WTP_END
