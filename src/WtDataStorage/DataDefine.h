@@ -93,9 +93,8 @@ typedef struct _RTTickBlock : RTDayBlockHeader {
 } RTTickBlock;
 
 //逐笔成交数据块
-typedef struct _RTTransBlock : RTDayBlockHeader
-{
-	WTSTransStruct	_trans[0];
+typedef struct _RTTransBlock : RTDayBlockHeader {
+    WTSTransStruct	_trans[0];
 } RTTransBlock;
 
 //逐笔委托数据块
