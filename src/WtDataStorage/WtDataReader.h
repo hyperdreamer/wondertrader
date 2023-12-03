@@ -55,7 +55,7 @@ private:
         BoostMFPtr		_file;
         uint64_t		_last_cap;
      
-        std::shared_ptr< std::ofstream>	_fstream;
+        std::shared_ptr<std::ofstream>	_fstream;
      
         _TransBlockPair()
         {
@@ -72,7 +72,7 @@ private:
         BoostMFPtr		_file;
         uint64_t		_last_cap;
      
-        std::shared_ptr< std::ofstream>	_fstream;
+        std::shared_ptr<std::ofstream>	_fstream;
      
         _OdrDtlBlockPair()
         {
