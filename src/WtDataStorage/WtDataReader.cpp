@@ -31,16 +31,16 @@ inline void pipe_reader_log(IDataReaderSink* sink, WTSLogLevel ll, const char* f
 
 extern "C"
 {
-	EXPORT_FLAG IDataReader* createDataReader()
-	{
-		IDataReader* ret = new WtDataReader();
-		return ret;
-	}
+    EXPORT_FLAG IDataReader* createDataReader()
+    {
+        IDataReader* ret = new WtDataReader();
+        return ret;
+    }
 
-	EXPORT_FLAG void deleteDataReader(IDataReader* reader)
-	{
-		if (reader != NULL) delete reader;
-	}
+    EXPORT_FLAG void deleteDataReader(IDataReader* reader)
+    {
+        if (reader != NULL) delete reader;
+    }
 };
 
 /*
