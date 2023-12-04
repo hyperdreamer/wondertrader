@@ -121,9 +121,8 @@ typedef struct _RTTickCache : RTBlockHeader
 
 
 //历史Tick数据
-typedef struct _HisTickBlock : BlockHeader
-{
-	WTSTickStruct	_ticks[0];
+typedef struct _HisTickBlock : BlockHeader {
+    WTSTickStruct	_ticks[0];
 } HisTickBlock;
 
 //历史Tick数据V2
@@ -142,9 +141,8 @@ typedef struct _HisTransBlockV2 : BlockHeaderV2
 	char			_data[0];
 } HisTransBlockV2;
 
-typedef struct _HisOrdDtlBlock : BlockHeader
-{
-	WTSOrdDtlStruct	_items[0];
+typedef struct _HisOrdDtlBlock : BlockHeader {
+    WTSOrdDtlStruct	_items[0];
 } HisOrdDtlBlock;
 
 typedef struct _HisOrdDtlBlockV2 : BlockHeaderV2
