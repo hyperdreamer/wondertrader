@@ -98,15 +98,13 @@ typedef struct _RTTransBlock : RTDayBlockHeader {
 } RTTransBlock;
 
 //逐笔委托数据块
-typedef struct _RTOrdDtlBlock : RTDayBlockHeader
-{
-	WTSOrdDtlStruct	_details[0];
+typedef struct _RTOrdDtlBlock : RTDayBlockHeader {
+    WTSOrdDtlStruct	_details[0];
 } RTOrdDtlBlock;
 
 //委托队列数据块
-typedef struct _RTOrdQueBlock : RTDayBlockHeader
-{
-	WTSOrdQueStruct	_queues[0];
+typedef struct _RTOrdQueBlock : RTDayBlockHeader {
+    WTSOrdQueStruct	_queues[0];
 } RTOrdQueBlock;
 
 typedef struct _TickCacheItem
