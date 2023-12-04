@@ -16,11 +16,10 @@ typedef enum tagBlockType
 
 #define BLOCK_VERSION_RAW	1	//∆’Õ®∞Ê±æ
 
-typedef struct _BlockHeader
-{
-	char		_blk_flag[FLAG_SIZE];
-	uint16_t	_type;
-	uint16_t	_version;
+typedef struct _BlockHeader {
+    char		_blk_flag[FLAG_SIZE];
+    uint16_t	_type;
+    uint16_t	_version;
 } BlockHeader;
 
 #define BLOCK_HEADER_SIZE	sizeof(BlockHeader)
