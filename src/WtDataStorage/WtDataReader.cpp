@@ -187,8 +187,7 @@ void WtDataReader::init(WTSVariant* cfg, IDataReaderSink* sink, IHisDataLoader* 
 
 bool WtDataReader::loadStkAdjFactorsFromLoader()
 {
-	if (NULL == _loader)
-		return false;
+	if (NULL == _loader) return false;
 
 	bool ret = _loader->loadAllAdjFactors(&_adj_factors, [](void* obj, const char* stdCode, uint32_t* dates, double* factors, uint32_t count) {
 		AdjFactorMap* fact_map = (AdjFactorMap*)obj;
@@ -1950,175 +1949,173 @@ WtDataReader::TransBlockPair* WtDataReader::getRTTransBlock(const char* exchg, c
 	return &block;
 }
 
-WtDataReader::RTKlineBlockPair* WtDataReader::getRTKilneBlock(const char* exchg, const char* code, WTSKlinePeriod period)
+/*
+ * @code: rawcode, IF2312 e.g.
+ */
+WtDataReader::RTKlineBlockPair* WtDataReader::getRTKilneBlock(const char* exchg, 
+                                                              const char* code, 
+                                                              WTSKlinePeriod period)
 {
-	if (period != KP_Minute1 && period != KP_Minute5)
-		return NULL;
+    if (period != KP_Minute1 && period != KP_Minute5) return NULL;
 
-	//std::string key = StrUtil::printf("%s.%s", exchg, code);
-	thread_local static char key[64] = { 0 };
-	fmtutil::format_to(key, "{}.{}", exchg, code);
+    //std::string key = StrUtil::printf("%s.%s", exchg, code);
+    thread_local static char key[64] = { 0 };
+    fmtutil::format_to(key, "{}.{}", exchg, code);
 
-	RTKBlockFilesMap* cache_map = NULL;
-	std::string subdir = "";
-	BlockType bType;
-	switch (period)
-	{
-	case KP_Minute1:
-		cache_map = &_rt_min1_map;
-		subdir = "min1";
-		bType = BT_RT_Minute1;
-		break;
-	case KP_Minute5:
-		cache_map = &_rt_min5_map;
-		subdir = "min5";
-		bType = BT_RT_Minute5;
-		break;
-	default: break;
-	}
+    RTKBlockFilesMap* cache_map = NULL;
+    std::string subdir = "";
+    BlockType bType;
+    switch (period) {
+    case KP_Minute1:
+        cache_map = &_rt_min1_map;
+        subdir = "min1";
+        bType = BT_RT_Minute1;
+        break;
+    case KP_Minute5:
+        cache_map = &_rt_min5_map;
+        subdir = "min5";
+        bType = BT_RT_Minute5;
+        break;
+    default: break;
+    }
 
-	//std::string path = StrUtil::printf("%srt/%s/%s/%s.dmb", _base_dir.c_str(), subdir.c_str(), exchg, code);
-	thread_local static char path[256] = { 0 };
-	fmtutil::format_to(path, "{}{}/{}/{}.dmb", _rt_dir, subdir, exchg, code);
+    //std::string path = StrUtil::printf("%srt/%s/%s/%s.dmb", _base_dir.c_str(), subdir.c_str(), exchg, code);
+    thread_local static char path[256] = { 0 };
+    fmtutil::format_to(path, "{}{}/{}/{}.dmb", _rt_dir, subdir, exchg, code);
+    if (!StdFile::exists(path)) return NULL;
 
-	if (!StdFile::exists(path))
-		return NULL;
+    RTKlineBlockPair& block = (*cache_map)[key];
+    if (block._file == NULL || block._block == NULL) {
+        if (block._file == NULL) block._file.reset(new BoostMappingFile());
+     
+        if (!block._file->map(path, boost::interprocess::read_only, boost::interprocess::read_only))
+            return NULL;
+     
+        block._block = (RTKlineBlock*) block._file->addr();
+        block._last_cap = block._block->_capacity;
+        pipe_reader_log(_sink, LL_DEBUG, "RT {} block of {}.{} loaded", subdir.c_str(), exchg, code);
+    }
+    else if (block._last_cap != block._block->_capacity) {
+        //说明文件大小已变, 需要重新映射
+        pipe_reader_log(_sink, LL_DEBUG, "RT {} block of {}.{} expanded to {}, remapping...", 
+                        subdir.c_str(), exchg, code, block._block->_capacity);
+     
+        block._file.reset(new BoostMappingFile());
+        block._last_cap = 0;
+        block._block = NULL;
+     
+        if (!block._file->map(path, boost::interprocess::read_only, boost::interprocess::read_only))
+            return NULL;
+     
+        block._block = (RTKlineBlock*) block._file->addr();
+        block._last_cap = block._block->_capacity;
+    }	
 
-	RTKlineBlockPair& block = (*cache_map)[key];
-	if (block._file == NULL || block._block == NULL)
-	{
-		if (block._file == NULL)
-		{
-			block._file.reset(new BoostMappingFile());
-		}
-
-		if (!block._file->map(path, boost::interprocess::read_only, boost::interprocess::read_only))
-			return NULL;
-
-		block._block = (RTKlineBlock*)block._file->addr();
-		block._last_cap = block._block->_capacity;
-		pipe_reader_log(_sink, LL_DEBUG, "RT {} block of {}.{} loaded", subdir.c_str(), exchg, code);
-	}
-	else if (block._last_cap != block._block->_capacity)
-	{
-		//说明文件大小已变, 需要重新映射
-		pipe_reader_log(_sink, LL_DEBUG, "RT {} block of {}.{} expanded to {}, remapping...", subdir.c_str(), exchg, code, block._block->_capacity);
-
-		block._file.reset(new BoostMappingFile());
-		block._last_cap = 0;
-		block._block = NULL;
-
-		if (!block._file->map(path, boost::interprocess::read_only, boost::interprocess::read_only))
-			return NULL;
-
-		block._block = (RTKlineBlock*)block._file->addr();
-		block._last_cap = block._block->_capacity;
-	}	
-
-	return &block;
+    return &block;
 }
 
+/*
+ * @uDate: 20231201
+ * @uTime: 0930
+ */
 void WtDataReader::onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate /* = 0 */)
 {
-	//这里应该触发检查
-	uint64_t nowTime = (uint64_t)uDate * 10000 + uTime;
-	if (nowTime <= _last_time)
-		return;
+    //这里应该触发检查
+    uint64_t nowTime = (uint64_t) (uDate * 10000 + uTime);
+    if (nowTime <= _last_time) return;
 
-	for (auto it = _bars_cache.begin(); it != _bars_cache.end(); it++)
-	{
-		BarsList& barsList = (BarsList&)it->second;
-		if (barsList._period != KP_DAY)
-		{
-			if (!barsList._raw_code.empty())
-			{
-				RTKlineBlockPair* kBlk = getRTKilneBlock(barsList._exchg.c_str(), barsList._raw_code.c_str(), barsList._period);
-				if (kBlk == NULL)
-					continue;
+    for (auto it = _bars_cache.begin(); it != _bars_cache.end(); ++it) {
+        BarsList& barsList = (BarsList&) it->second;
+        if (barsList._period != KP_DAY) {
+            if (!barsList._raw_code.empty()) {
+                RTKlineBlockPair* kBlk = getRTKilneBlock(barsList._exchg.c_str(), 
+                                                         barsList._raw_code.c_str(), 
+                                                         barsList._period);
+                if (kBlk == NULL) continue;
+             
+                //确定上一次的读取过的实时K线条数
+                uint32_t preCnt = 0;
+                //如果实时K线没有初始化过，则已读取的条数为0
+                //如果已经初始化过，则已读取的条数为光标+1
+                if (barsList._rt_cursor == UINT_MAX)
+                    preCnt = 0;
+                else
+                    preCnt = barsList._rt_cursor + 1;
 
-				//确定上一次的读取过的实时K线条数
-				uint32_t preCnt = 0;
-				//如果实时K线没有初始化过，则已读取的条数为0
-				//如果已经初始化过，则已读取的条数为光标+1
-				if (barsList._rt_cursor == UINT_MAX)
-					preCnt = 0;
-				else
-					preCnt = barsList._rt_cursor + 1;
+                for (;;)
+                {
+                    if (kBlk->_block->_size <= preCnt)
+                        break;
 
-				for (;;)
-				{
-					if (kBlk->_block->_size <= preCnt)
-						break;
+                    WTSBarStruct& nextBar = kBlk->_block->_bars[preCnt];
 
-					WTSBarStruct& nextBar = kBlk->_block->_bars[preCnt];
+                    uint64_t barTime = 199000000000 + nextBar.time;
+                    if (barTime <= nowTime)
+                    {
+                        //如果不是后复权，则直接回调onbar
+                        //如果是后复权，则将最新bar复权处理以后，添加到cache中，再回调onbar
+                        if(barsList._factor == DBL_MAX)
+                        {
+                            _sink->on_bar(barsList._code.c_str(), barsList._period, &nextBar);
+                        }
+                        else
+                        {
+                            WTSBarStruct cpBar = nextBar;
+                            cpBar.open *= barsList._factor;
+                            cpBar.high *= barsList._factor;
+                            cpBar.low *= barsList._factor;
+                            cpBar.close *= barsList._factor;
 
-					uint64_t barTime = 199000000000 + nextBar.time;
-					if (barTime <= nowTime)
-					{
-						//如果不是后复权，则直接回调onbar
-						//如果是后复权，则将最新bar复权处理以后，添加到cache中，再回调onbar
-						if(barsList._factor == DBL_MAX)
-						{
-							_sink->on_bar(barsList._code.c_str(), barsList._period, &nextBar);
-						}
-						else
-						{
-							WTSBarStruct cpBar = nextBar;
-							cpBar.open *= barsList._factor;
-							cpBar.high *= barsList._factor;
-							cpBar.low *= barsList._factor;
-							cpBar.close *= barsList._factor;
+                            barsList._bars.emplace_back(cpBar);
 
-							barsList._bars.emplace_back(cpBar);
+                            _sink->on_bar(barsList._code.c_str(), barsList._period, &barsList._bars[barsList._bars.size()-1]);
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
 
-							_sink->on_bar(barsList._code.c_str(), barsList._period, &barsList._bars[barsList._bars.size()-1]);
-						}
-					}
-					else
-					{
-						break;
-					}
+                    preCnt++;
+                }
 
-					preCnt++;
-				}
+                //如果已处理的K线条数不为0，则修改光标位置
+                if (preCnt > 0)
+                    barsList._rt_cursor = preCnt - 1;
+            }
+        }
+        //这一段逻辑没有用了，在实盘中日线是不会闭合的，所以也不存在当日K线闭合的情况
+        //实盘中都通过ontick处理当日实时数据
+        //else if (barsList._period == KP_DAY)
+        //{
+        //	if (barsList._his_cursor != UINT_MAX && barsList._bars.size() - 1 > barsList._his_cursor)
+        //	{
+        //		for (;;)
+        //		{
+        //			WTSBarStruct& nextBar = barsList._bars[barsList._his_cursor + 1];
 
-				//如果已处理的K线条数不为0，则修改光标位置
-				if (preCnt > 0)
-					barsList._rt_cursor = preCnt - 1;
-			}
-		}
-		//这一段逻辑没有用了，在实盘中日线是不会闭合的，所以也不存在当日K线闭合的情况
-		//实盘中都通过ontick处理当日实时数据
-		//else if (barsList._period == KP_DAY)
-		//{
-		//	if (barsList._his_cursor != UINT_MAX && barsList._bars.size() - 1 > barsList._his_cursor)
-		//	{
-		//		for (;;)
-		//		{
-		//			WTSBarStruct& nextBar = barsList._bars[barsList._his_cursor + 1];
+        //			if (nextBar.date <= endTDate)
+        //			{
+        //				_sink->on_bar(barsList._code.c_str(), barsList._period, &nextBar);
+        //			}
+        //			else
+        //			{
+        //				break;
+        //			}
 
-		//			if (nextBar.date <= endTDate)
-		//			{
-		//				_sink->on_bar(barsList._code.c_str(), barsList._period, &nextBar);
-		//			}
-		//			else
-		//			{
-		//				break;
-		//			}
+        //			barsList._his_cursor++;
 
-		//			barsList._his_cursor++;
+        //			if (barsList._his_cursor == barsList._bars.size() - 1)
+        //				break;
+        //		}
+        //	}
+        //}
+    }
 
-		//			if (barsList._his_cursor == barsList._bars.size() - 1)
-		//				break;
-		//		}
-		//	}
-		//}
-	}
+    if (_sink)
+        _sink->on_all_bar_updated(uTime);
 
-	if (_sink)
-		_sink->on_all_bar_updated(uTime);
-
-	_last_time = nowTime;
+    _last_time = nowTime;
 }
 
 double WtDataReader::getAdjFactorByDate(const char* stdCode, uint32_t date /* = 0 */)
