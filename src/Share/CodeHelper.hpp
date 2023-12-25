@@ -74,18 +74,18 @@ public:
      
             return _fullpid;
         }
-
+        
         _CodeInfo()
         {
             memset(this, 0, sizeof(_CodeInfo));
             //_category = CC_Future;
         }
-
+     
         inline void clear()
         {
             memset(this, 0, sizeof(_CodeInfo));
         }
-
+     
         inline bool hasRule() const
         {
             return strlen(_ruletag) > 0;
