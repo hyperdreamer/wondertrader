@@ -96,27 +96,17 @@ private:
     static inline std::size_t find(const char* src, char symbol = '.', bool bReverse = false)
     {
         std::size_t len = strlen(src);
-        if (len != 0)
-        {
-            if (bReverse)
-            {
+        if (len != 0) {
+            if (bReverse) {
                 for (std::size_t idx = len - 1; idx >= 0; idx--)
-                {
-                    if (src[idx] == symbol)
-                        return idx;
-                }
+                    if (src[idx] == symbol) return idx;
             }
-            else
-            {
+            else {
                 for (std::size_t idx = 0; idx < len; idx++)
-                {
-                    if (src[idx] == symbol)
-                        return idx;
-                }
+                    if (src[idx] == symbol) return idx;
             }
         }
-
-
+     
         return std::string::npos;
     }
 

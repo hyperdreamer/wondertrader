@@ -1552,7 +1552,10 @@ bool WtDataReader::cacheHisBarsFromFile(void* codeInfo, const std::string& key, 
 	return true;
 }
 
-WTSKlineSlice* WtDataReader::readKlineSlice(const char* stdCode, WTSKlinePeriod period, uint32_t count, uint64_t etime /* = 0 */)
+WTSKlineSlice* WtDataReader::readKlineSlice(const char* stdCode, 
+                                            WTSKlinePeriod period, 
+                                            uint32_t count, 
+                                            uint64_t etime /* = 0 */)
 {
 	CodeHelper::CodeInfo cInfo = CodeHelper::extractStdCode(stdCode, _hot_mgr);
 	const char* stdPID = cInfo.stdCommID();
@@ -1995,8 +1998,7 @@ WtDataReader::RTKlineBlockPair* WtDataReader::getRTKilneBlock(const char* exchg,
         block._last_cap = block._block->_capacity;
         pipe_reader_log(_sink, LL_DEBUG, "RT {} block of {}.{} loaded", subdir.c_str(), exchg, code);
     }
-    else if (block._last_cap != block._block->_capacity) {
-        //说明文件大小已变, 需要重新映射
+    else if (block._last_cap != block._block->_capacity) { //说明文件大小已变, 需要重新映射
         pipe_reader_log(_sink, LL_DEBUG, "RT {} block of {}.{} expanded to {}, remapping...", 
                         subdir.c_str(), exchg, code, block._block->_capacity);
      
@@ -2041,47 +2043,40 @@ void WtDataReader::onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate
                     preCnt = 0;
                 else
                     preCnt = barsList._rt_cursor + 1;
-
-                for (;;)
-                {
-                    if (kBlk->_block->_size <= preCnt)
-                        break;
-
+                
+                for (;;) {
+                    if (kBlk->_block->_size <= preCnt) break;
+                 
                     WTSBarStruct& nextBar = kBlk->_block->_bars[preCnt];
-
+                 
                     uint64_t barTime = 199000000000 + nextBar.time;
-                    if (barTime <= nowTime)
-                    {
+                    if (barTime <= nowTime) {
                         //如果不是后复权，则直接回调onbar
                         //如果是后复权，则将最新bar复权处理以后，添加到cache中，再回调onbar
                         if(barsList._factor == DBL_MAX)
-                        {
                             _sink->on_bar(barsList._code.c_str(), barsList._period, &nextBar);
-                        }
-                        else
-                        {
+                        else {
                             WTSBarStruct cpBar = nextBar;
                             cpBar.open *= barsList._factor;
                             cpBar.high *= barsList._factor;
                             cpBar.low *= barsList._factor;
                             cpBar.close *= barsList._factor;
-
+                         
                             barsList._bars.emplace_back(cpBar);
-
-                            _sink->on_bar(barsList._code.c_str(), barsList._period, &barsList._bars[barsList._bars.size()-1]);
+                         
+                            _sink->on_bar(barsList._code.c_str(), 
+                                          barsList._period, 
+                                          &barsList._bars[barsList._bars.size()-1]);
                         }
                     }
                     else
-                    {
                         break;
-                    }
-
-                    preCnt++;
+                 
+                    ++preCnt;
                 }
-
+                
                 //如果已处理的K线条数不为0，则修改光标位置
-                if (preCnt > 0)
-                    barsList._rt_cursor = preCnt - 1;
+                if (preCnt > 0) barsList._rt_cursor = preCnt - 1;
             }
         }
         //这一段逻辑没有用了，在实盘中日线是不会闭合的，所以也不存在当日K线闭合的情况
@@ -2093,7 +2088,7 @@ void WtDataReader::onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate
         //		for (;;)
         //		{
         //			WTSBarStruct& nextBar = barsList._bars[barsList._his_cursor + 1];
-
+        
         //			if (nextBar.date <= endTDate)
         //			{
         //				_sink->on_bar(barsList._code.c_str(), barsList._period, &nextBar);
@@ -2102,9 +2097,9 @@ void WtDataReader::onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate
         //			{
         //				break;
         //			}
-
+     
         //			barsList._his_cursor++;
-
+     
         //			if (barsList._his_cursor == barsList._bars.size() - 1)
         //				break;
         //		}
@@ -2112,8 +2107,7 @@ void WtDataReader::onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate
         //}
     }
 
-    if (_sink)
-        _sink->on_all_bar_updated(uTime);
+    if (_sink) _sink->on_all_bar_updated(uTime);
 
     _last_time = nowTime;
 }

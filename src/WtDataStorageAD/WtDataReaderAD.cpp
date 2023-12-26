@@ -56,22 +56,21 @@ WtDataReaderAD::~WtDataReaderAD()
 
 void WtDataReaderAD::init(WTSVariant* cfg, IDataReaderSink* sink, IHisDataLoader* loader /* = NULL */)
 {
-	IDataReader::init(cfg, sink, loader);
+    IDataReader::init(cfg, sink, loader);
 
-	_base_data_mgr = sink->get_basedata_mgr();
-	_hot_mgr = sink->get_hot_mgr();
+    _base_data_mgr = sink->get_basedata_mgr();
+    _hot_mgr = sink->get_hot_mgr();
 
-	if (cfg == NULL)
-		return ;
+    if (cfg == NULL) return ;
 
-	_base_dir = cfg->getCString("path");
-	_base_dir = StrUtil::standardisePath(_base_dir);
+    _base_dir = cfg->getCString("path");
+    _base_dir = StrUtil::standardisePath(_base_dir);
 
-	_d1_cache._filename = "cache_d1.dmb";
-	_m1_cache._filename = "cache_m1.dmb";
-	_m5_cache._filename = "cache_m5.dmb";
+    _d1_cache._filename = "cache_d1.dmb";
+    _m1_cache._filename = "cache_m1.dmb";
+    _m5_cache._filename = "cache_m5.dmb";
 
-	pipe_reader_log(sink, LL_INFO, "WtDataReaderAD initialized, root data folder is {}", _base_dir);
+    pipe_reader_log(sink, LL_INFO, "WtDataReaderAD initialized, root data folder is {}", _base_dir);
 }
 
 WTSTickSlice* WtDataReaderAD::readTickSlice(const char* stdCode, uint32_t count, uint64_t etime /* = 0 */)
