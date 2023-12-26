@@ -229,7 +229,7 @@ private:
         std::vector<WTSBarStruct>	_bars;
         double			_factor;
      
-        _BarsList() :_rt_cursor(UINT_MAX), _factor(DBL_MAX){}
+        _BarsList() :_rt_cursor(UINT_MAX), _factor(DBL_MAX) {}
     } BarsList;
 
     typedef wt_hashmap<std::string, BarsList> BarsCache;
