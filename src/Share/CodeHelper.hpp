@@ -114,6 +114,7 @@ public:
     /*
      *	是否是期货期权合约代码
      *	CFFEX.IO2007.C.4000
+     *	implemented by FSM
      */
     static bool	isStdChnFutOptCode(const char* code)
     {
@@ -121,91 +122,75 @@ public:
         //static cregex reg_stk = cregex::compile("^[A-Z]+.[A-z]+\\d{4}.(C|P).\\d+$");	//CFFEX.IO2007.C.4000
         //return 	regex_match(code, reg_stk);
         char state = 0;
-        std::size_t i = 0;
-        for(; ; i++)
-        {
+        
+        for (std::size_t i = 0; ; i++) {
             char ch = code[i];
-            if(ch == '\0')
-                break;
-
-            if(state == 0)
-            {
-                if (!('A' <= ch && ch <= 'Z'))
-                    return false;
-
+            if (ch == '\0') break;
+         
+            if (state == 0) {
+                if (!('A' <= ch && ch <= 'Z')) return false;
+             
                 state += 1;
             }
-            else if (state == 1)
-            {
-                if ('A' <= ch && ch <= 'Z')
-                    continue;
-
+            else if (state == 1) {
+                if ('A' <= ch && ch <= 'Z') continue;
+             
                 if (ch == '.')
                     state += 1;
                 else
                     return false;
             }
-            else if (state == 2)
-            {
-                if (!('A' <= ch && ch <= 'z'))
-                    return false;
-
+            else if (state == 2) {
+                if (!('A' <= ch && ch <= 'z')) return false;
+             
                 state += 1;
             }
-            else if (state == 3)
-            {
-                if ('A' <= ch && ch <= 'z')
-                    continue;
-
+            else if (state == 3) {
+                if ('A' <= ch && ch <= 'z') continue;
+             
                 if ('0' <= ch && ch <= '9')
                     state += 1;
                 else
                     return false;
             }
-            else if (state >= 4 && state <= 6)
-            {
+            else if (state >= 4 && state <= 6) {
                 if ('0' <= ch && ch <= '9')
                     state += 1;
                 else
                     return false;
             }
-            else if (state == 7)
-            {
+            else if (state == 7) {
                 if (ch == '.')
                     state += 1;
                 else
                     return false;
             }
-            else if (state == 8)
-            {
+            else if (state == 8) {
                 if (ch == 'C' || ch == 'P')
                     state += 1;
                 else
                     return false;
             }
-            else if (state == 9)
-            {
+            else if (state == 9) {
                 if (ch == '.')
                     state += 1;
                 else
                     return false;
             }
-            else if (state == 10)
-            {
+            else if (state == 10) {
                 if ('0' <= ch && ch <= '9')
                     state += 1;
                 else
                     return false;
             }
-            else if (state == 11)
-            {
+            else if (state == 11) {
                 if ('0' <= ch && ch <= '9')
                     continue;
                 else
                     return false;
             }
         }
-
+     
         return (state == 11);
     }
 
