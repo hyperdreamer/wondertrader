@@ -215,14 +215,12 @@ public:
     {
         auto idx = find(stdCode, '.', true);
         auto idx2 = find(stdCode, '.', false);
-        if (idx != idx2)
-        {
+        if (idx != idx2) {
             //前后两个.不是同一个，说明是三段的代码
             //提取前两段作为品种代码
             return std::string(stdCode, idx);
         }
-        else
-        {
+        else {
             //两段的代码，直接返回
             //主要针对某些交易所，每个合约的交易规则都不同的情况
             //这种情况，就把合约直接当成品种来用
@@ -239,60 +237,56 @@ public:
     static inline std::string rawMonthCodeToRawCommID(const char* code)
     {
         int nLen = 0;
-        while ('A' <= code[nLen] && code[nLen] <= 'z')
-            nLen++;
-
+        while ('A' <= code[nLen] && code[nLen] <= 'z') nLen++;
+     
         return std::string(code, nLen);
     }
 
     /*
      *	基础分月合约代码转标准码
-     *	如ag1912转成全码
+     *	Example 1: isComm == true:  code == IF,     exchg == CFFEX --> CFFEX.IF
+     *	Example 2: isComm == false: code == IF2312, exchg == CFFEX --> CFFEX.IF.2312
+     *	Example 3: isComm == false: code == ZC312,  exchg == CZCE  --> CZCE.ZC.2312
+     *	Example 3: isComm == false: code == ZC812,  exchg == CZCE  --> CZCE.ZC.1812
      *	这个不会有永续合约的代码传到这里来，如果有的话就是调用的地方有Bug!
+     *	TODO
      */
     static inline std::string rawMonthCodeToStdCode(const char* code, const char* exchg, bool isComm = false)
     {
         thread_local static char buffer[64] = { 0 };
         std::size_t len = 0;
-        if(isComm)
-        {
+        if (isComm) {
             len = strlen(exchg);
             memcpy(buffer, exchg, len);
             buffer[len] = '.';
             len += 1;
-
+         
             auto clen = strlen(code);
             memcpy(buffer+len, code, clen);
             len += clen;
             buffer[len] = '\0';
             len += 1;
         }
-        else
-        {
+        else {
             std::string pid = rawMonthCodeToRawCommID(code);
             len = strlen(exchg);
             memcpy(buffer, exchg, len);
             buffer[len] = '.';
             len += 1;
-
+         
             memcpy(buffer + len, pid.c_str(), pid.size());
             len += pid.size();
             buffer[len] = '.';
             len += 1;
-
-            char* s = (char*)code;
-            s += pid.size();
-            if (strlen(s) == 4)
-            {
+         
+            char* s = (char*) code;
+            s += pid.size();    // pid.size() 1 or 2: 1 for i, 2 for rb e.g.
+            if (strlen(s) == 4) { // for contracts traded in exchg other than CZCE
                 wt_strcpy(buffer + len, s, 4);
                 len += 4;
             }
-            else
-            {
-                if (s[0] > '5')
-                    buffer[len] = '1';
-                else
-                    buffer[len] = '2';
+            else { // for contracts traded in CZCE, like ZC312
+                buffer[len] = s[0] > '5' ? '1' : '2';   // problematic:  TODO
                 len += 1;
                 wt_strcpy(buffer + len, s, 3);
                 len += 3;
