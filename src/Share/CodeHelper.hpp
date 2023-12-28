@@ -292,7 +292,7 @@ public:
                 len += 3;
             }
         }
-
+     
         return std::string(buffer, len);
     }
 
@@ -307,28 +307,26 @@ public:
         memcpy(buffer, exchg, len);
         buffer[len] = '.';
         len += 1;
-
+     
         auto plen = strlen(pid);
         auto clen = strlen(code);
-
-        if (strcmp(code, pid) == 0 || plen == 0)
-        {
+     
+        if (strcmp(code, pid) == 0 || plen == 0) {
             memcpy(buffer + len, code, clen);
             len += clen;
             buffer[len] = '\0';
         }
-        else
-        {
+        else {
             memcpy(buffer + len, pid, plen);
             len += plen;
             buffer[len] = '.';
             len += 1;
-
+            
             memcpy(buffer + len, code, clen);
             len += clen;
             buffer[len] = '\0';
         }
-
+     
         return buffer;
     }
 
