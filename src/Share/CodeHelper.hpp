@@ -299,6 +299,7 @@ public:
     /*
      *	原始常规代码转标准代码
      *	这种主要针对非分月合约而言
+     *  Example: exchg == SSE, pid == STK, code == 600519 --> SSE.STK.600519
      */
     static inline std::string rawFlatCodeToStdCode(const char* code, const char* exchg, const char* pid)
     {
