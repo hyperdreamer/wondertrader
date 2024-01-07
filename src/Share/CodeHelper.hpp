@@ -468,20 +468,21 @@ public:
         return ret;
     }
 
+    /*
+     * Example 1: if code == ag1912, then it returns 2 (the index of the month)
+     * Example 2: if code == CFFEX.IF.1912, then it returns 9
+     */
     static inline int indexCodeMonth(const char* code)
     {
-        if (strlen(code) == 0)
-            return -1;
-
+        if (strlen(code) == 0) return -1;
+     
         std::size_t idx = 0;
         std::size_t len = strlen(code);
-        while(idx < len)
-        {
-            if (isdigit(code[idx]))
-                return (int)idx;
-
+        while(idx < len) {
+            if (isdigit(code[idx])) return (int) idx;
             idx++;
         }
+     
         return -1;
     }
 
