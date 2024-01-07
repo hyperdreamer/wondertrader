@@ -331,6 +331,9 @@ public:
         return buffer;
     }
 
+    /*
+     * TODO: problematic?
+     */
     static inline bool isMonthlyCode(const char* code)
     {
         //using namespace boost::xpressive;
@@ -339,59 +342,45 @@ public:
         //return 	regex_match(code, reg_stk);
         auto len = strlen(code);
         char state = 0;
-        for (std::size_t i = 0; i < len; i++)
-        {
+        for (std::size_t i = 0; i < len; ++i) {
             char ch = code[len - i - 1];
-            if (0 <= state && state < 3)
-            {
-                if (!('0' <= ch && ch <= '9'))
-                    return false;
-
+            if (0 <= state && state < 3) {
+                if (!('0' <= ch && ch <= '9')) return false;
+             
                 state += 1;
             }
-            else if (3 == state || 4 == state)
-            {
+            else if (3 == state || 4 == state) {
                 if ('0' <= ch && ch <= '9')
                     state += 1;
-
-                else if ('A' <= ch && ch <= 'z')
-                {
+                else if ('A' <= ch && ch <= 'z') {
                     state = 7;
                     break;
                 }
             }
-            else if (4 == state)
-            {
+            else if (4 == state) { // redundant?
                 if ('0' <= ch && ch <= '9')
                     state += 1;
-
-                else if (('A' <= ch && ch <= 'z') || ch == '-')
-                {
+                else if (('A' <= ch && ch <= 'z') || ch == '-') {
                     state = 7;
                     break;
                 }
             }
-            else if (state < 6)
-            {
+            else if (state < 6) {
                 if ('0' <= ch && ch <= '9')
                     state += 1;
                 else
                     return false;
             }
-            else if (state >= 6)
-            {
-                if (('A' <= ch && ch <= 'z') || ch == '-')
-                {
+            else if (state >= 6) {
+                if (('A' <= ch && ch <= 'z') || ch == '-') {
                     state = 7;
                     break;
                 }
                 else
-                {
                     return false;
-                }
             }
         }
-
+     
         return state == 7;
     }
 
@@ -406,47 +395,40 @@ public:
         /* 定义正则表达式 */
         static cregex reg_stk = cregex::compile("^[A-z]+\\d{4}-(C|P)-\\d+$");	//中金所、大商所格式IO2013-C-4000
         bool bMatch = regex_match(code, reg_stk);
-        if(bMatch)
-        {
+        if (bMatch) {
             std::string s = std::move(fmt::format("{}.{}", exchg, code));
             StrUtil::replace(s, "-", ".");
             return s;
         }
-        else
-        {
-            //郑商所上期所期权代码格式ZC010P11600
-
-            //先从后往前定位到P或C的位置
-            std::size_t idx = strlen(code) - 1;
-            for(; idx >= 0; idx--)
-            {
-                if(!isdigit(code[idx]))
-                    break;
-            }
-
-            std::string s = exchg;
-            s.append(".");
-            s.append(code, idx-3);
-            if(strcmp(exchg, "CZCE") == 0)
-                s.append("2");
-            s.append(&code[idx - 3], 3);
-            s.append(".");
-            s.append(&code[idx], 1);
-            s.append(".");
-            s.append(&code[idx + 1]);
-            return s;
-        }
+     
+        //郑商所上期所期权代码格式ZC010P11600
+        //先从后往前定位到P或C的位置
+        std::size_t idx = strlen(code) - 1;
+        for (; idx >= 0; --idx)
+            if (!isdigit(code[idx])) break;
+     
+        std::string s = exchg;
+        s.append(".");
+        s.append(code, idx-3);
+        if (strcmp(exchg, "CZCE") == 0) 
+            s.append("2");
+        s.append(&code[idx - 3], 3);
+        s.append(".");
+        s.append(&code[idx], 1);
+        s.append(".");
+        s.append(&code[idx + 1]);
+        return s;
     }
 
     /*
      *	标准合约代码转主力代码
+     *	Example: if input stdCode == CFFEX.IF2007, output is CFFEX.IF2007.HOT
      */
     static inline std::string stdCodeToStdHotCode(const char* stdCode)
     {
         std::size_t idx = find(stdCode, '.', true);
-        if (idx == std::string::npos)
-            return "";		
-
+        if (idx == std::string::npos) return "";		
+     
         std::string stdWrappedCode;
         stdWrappedCode.resize(idx + strlen(SUFFIX_HOT) + 1);
         memcpy((char*)stdWrappedCode.data(), stdCode, idx);
@@ -456,13 +438,13 @@ public:
 
     /*
      *	标准合约代码转次主力代码
+     *	Example: if input stdCode == CFFEX.IF2007, output is CFFEX.IF2007.2ND
      */
     static inline std::string stdCodeToStd2ndCode(const char* stdCode)
     {
         std::size_t idx = find(stdCode, '.', true);
-        if (idx == std::string::npos)
-            return "";
-
+        if (idx == std::string::npos) return "";
+     
         std::string stdWrappedCode;
         stdWrappedCode.resize(idx + strlen(SUFFIX_2ND) + 1);
         memcpy((char*)stdWrappedCode.data(), stdCode, idx);
