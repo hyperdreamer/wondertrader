@@ -487,123 +487,134 @@ public:
     }
 
     /*
-     *	提取标准期货期权代码的信息
+     * 提取标准期货期权代码的信息
+     * Example 1: if stdCode == CZCE.ZC2312.C.800, then codeInfo._exchg = CZCE, 
+     * codeInfo._code = ZC312C800, codeInfo._product = ZCC
+     *
+     * Example 2: if stdCode == CFFEX.IO2007.C.4000, then codeInfo._exchg = CFFEX,
+     * codeInfo._code = IO2007-C-4000, codeInfo._product = IO
+     *
+     * Example 3: if stdCode == SHFE.rb2401.C.3200, then codeInfo._exchg = SHFE,
+     * codeInfo._code = rb2401-C-3200, codeInfo._product = rb_o
+     *
+     * TODO: Why the products are so different? thread_local static problem???
      */
     static CodeInfo extractStdChnFutOptCode(const char* stdCode)
     {
-        CodeInfo codeInfo;
-
+        CodeInfo codeInfo;  // TODO: thread_local static???
+     
         StringVector ay = StrUtil::split(stdCode, ".");
         wt_strcpy(codeInfo._exchg, ay[0].c_str());
         if(strcmp(codeInfo._exchg, "SHFE") == 0 || strcmp(codeInfo._exchg, "INE") == 0)
-        {
             fmt::format_to(codeInfo._code, "{}{}{}", ay[1], ay[2], ay[3]);
-        }
-        else if (strcmp(codeInfo._exchg, "CZCE") == 0)
-        {
+        else if (strcmp(codeInfo._exchg, "CZCE") == 0) {
             std::string& s = ay[1];
             fmt::format_to(codeInfo._code, "{}{}{}{}", s.substr(0, s.size()-4), s.substr(s.size()-3), ay[2], ay[3]);
         }
         else
-        {
             fmt::format_to(codeInfo._code, "{}-{}-{}", ay[1], ay[2], ay[3]);
-        }
-
+     
         int mpos = indexCodeMonth(ay[1].c_str());
-
-        if(strcmp(codeInfo._exchg, "CZCE") == 0)
-        {
-            memcpy(codeInfo._product, ay[1].c_str(), mpos);
+     
+        if(strcmp(codeInfo._exchg, "CZCE") == 0) {
+            memcpy(codeInfo._product, ay[1].c_str(), mpos); // TODO
             strcat(codeInfo._product, ay[2].c_str());
         }
         else if (strcmp(codeInfo._exchg, "CFFEX") == 0)
-        {
             memcpy(codeInfo._product, ay[1].c_str(), mpos);
-        }
-        else
-        {
+        else {
             memcpy(codeInfo._product, ay[1].c_str(), mpos);
             strcat(codeInfo._product, "_o");
         }
-
+     
         return codeInfo;
     }
 
     /*
-     *	提起标准代码的信息
+     * 提起标准代码的信息
+     * Example 1: if stdCode == SSE.STK.600000Q, then codeInfo._exchg = SSE,
+     * codeInfo._product = STK, codeinfo._exright = 1, codeinfo._code = 600000
+     * 
+     * Example 2: if stdCode == SSE.STK.600000H, then codeInfo._exchg = SSE,
+     * codeInfo._product = STK, codeinfo._exright = 2, codeinfo._code = 600000
+     *
+     * Example 3: if stdCode == SSE.STK.600000, then codeInfo._exchg = SSE,
+     * codeInfo._product = STK, codeinfo._exright = 0, codeinfo._code = 600000
+     * 
+     * Example 4: if stdCode == OKEX.BTC-USDT, then codeInfo._exchg = OKEX,
+     * codeInfo._product = codeInfo._code = BTC-USDT
+     *
+     * Example 5: if stdCode == CFFEX.IF.2112, then codeInfo._exchg = CFFEX,
+     * codeInfo._product = IF, codeinfo._code = IF2112
+     *
+     * Example 6: if stdCode == CZCE.ZC.1812, then codeInfo._exchg = CZCE,
+     * codeInfo._product = ZC, codeinfo._code = ZC812
+     *
+     * Example 7: if stdCode == CZCE.ZC.HOT, then codeInfo._exchg = CZCE,
+     * codeInfo._product = ZC, codeinfo._code = ZC, codeInfo._ruletag = ???
      */
     static CodeInfo extractStdCode(const char* stdCode, IHotMgr *hotMgr)
     {
         //期权的代码规则和其他都不一样，所以单独判断
-        if(isStdChnFutOptCode(stdCode))
-        {
-            return extractStdChnFutOptCode(stdCode);
+        if(isStdChnFutOptCode(stdCode)) return extractStdChnFutOptCode(stdCode);
+     
+        /*
+         *	By Wesley @ 2021.12.25
+         *	1、先看是不是Q和H结尾的，如果是复权标记确认以后，最后一段长度-1，复制到code，如SSE.STK.600000Q
+         *	2、再看是不是分月合约，如果是，则将product字段拼接月份给code（郑商所特殊处理），如CFFEX.IF.2112
+         *	3、最后看看是不是HOT和2ND结尾的，如果是，则将product拷贝给code，如DCE.m.HOT
+         *	4、如果都不是，则原样复制第三段，如BINANCE.DC.BTCUSDT/SSE.STK.600000
+         */
+        thread_local static CodeInfo codeInfo;
+        codeInfo.clear();
+        auto idx = StrUtil::findFirst(stdCode, '.');
+        wt_strcpy(codeInfo._exchg, stdCode, idx);
+     
+        auto idx2 = StrUtil::findFirst(stdCode + idx + 1, '.');
+        if (idx2 == std::string::npos) {
+            wt_strcpy(codeInfo._product, stdCode + idx + 1);
+         
+            //By Wesley @ 2021.12.29
+            //如果是两段的合约代码，如OKEX.BTC-USDT
+            //则品种代码和合约代码一致
+            wt_strcpy(codeInfo._code, stdCode + idx + 1);
         }
-        else
-        {
-            /*
-             *	By Wesley @ 2021.12.25
-             *	1、先看是不是Q和H结尾的，如果是复权标记确认以后，最后一段长度-1，复制到code，如SSE.STK.600000Q
-             *	2、再看是不是分月合约，如果是，则将product字段拼接月份给code（郑商所特殊处理），如CFFEX.IF.2112
-             *	3、最后看看是不是HOT和2ND结尾的，如果是，则将product拷贝给code，如DCE.m.HOT
-             *	4、如果都不是，则原样复制第三段，如BINANCE.DC.BTCUSDT/SSE.STK.600000
-             */
-            thread_local static CodeInfo codeInfo;
-            codeInfo.clear();
-            auto idx = StrUtil::findFirst(stdCode, '.');
-            wt_strcpy(codeInfo._exchg, stdCode, idx);
-
-            auto idx2 = StrUtil::findFirst(stdCode + idx + 1, '.');
-            if (idx2 == std::string::npos)
-            {
-                wt_strcpy(codeInfo._product, stdCode + idx + 1);
-
-                //By Wesley @ 2021.12.29
-                //如果是两段的合约代码，如OKEX.BTC-USDT
-                //则品种代码和合约代码一致
-                wt_strcpy(codeInfo._code, stdCode + idx + 1);
+        else {
+            wt_strcpy(codeInfo._product, stdCode + idx + 1, idx2);
+         
+            const char* ext = stdCode + idx + idx2 + 2;
+            std::size_t extlen = strlen(ext);
+            char lastCh = ext[extlen - 1];
+            if (lastCh == SUFFIX_QFQ || lastCh == SUFFIX_HFQ) {
+                codeInfo._exright = (lastCh == SUFFIX_QFQ) ? 1 : 2;
+             
+                --extlen;
+                lastCh = ext[extlen - 1];
             }
-            else
-            {
-                wt_strcpy(codeInfo._product, stdCode + idx + 1, idx2);
-                const char* ext = stdCode + idx + idx2 + 2;
-                std::size_t extlen = strlen(ext);
-                char lastCh = ext[extlen - 1];
-                if (lastCh == SUFFIX_QFQ || lastCh == SUFFIX_HFQ)
-                {
-                    codeInfo._exright = (lastCh == SUFFIX_QFQ) ? 1 : 2;
-
-                    extlen--;
-                    lastCh = ext[extlen - 1];
-                }
-
-                if (extlen == 4 && '0' <= lastCh && lastCh <= '9')
-                {
-                    //如果最后一段是4位数字，说明是分月合约
-                    //TODO: 这样的判断存在一个假设，最后一位是数字的一定是期货分月合约，以后可能会有问题，先注释一下
-                    //那么code得加上品种id
-                    //郑商所得单独处理一下，这个只能hardcode了
-                    auto i = wt_strcpy(codeInfo._code, codeInfo._product);
-                    if (memcmp(codeInfo._exchg, "CZCE", 4) == 0)
-                        wt_strcpy(codeInfo._code + i, ext + 1, extlen-1);
-                    else
-                        wt_strcpy(codeInfo._code + i, ext, extlen);
-                }
+            
+            if (extlen == 4 && '0' <= lastCh && lastCh <= '9') {
+                //如果最后一段是4位数字，说明是分月合约
+                //TODO: 这样的判断存在一个假设，最后一位是数字的一定是期货分月合约，以后可能会有问题，先注释一下
+                //那么code得加上品种id
+                //郑商所得单独处理一下，这个只能hardcode了
+                auto i = wt_strcpy(codeInfo._code, codeInfo._product);
+                if (memcmp(codeInfo._exchg, "CZCE", 4) == 0)
+                    wt_strcpy(codeInfo._code + i, ext + 1, extlen-1);
                 else
-                {
-                    const char* ruleTag = (hotMgr != NULL) ? hotMgr->getRuleTag(ext) :"";
-                    if (strlen(ruleTag) == 0)
-                        wt_strcpy(codeInfo._code, ext, extlen);
-                    else
-                    {
-                        wt_strcpy(codeInfo._code, codeInfo._product);
-                        wt_strcpy(codeInfo._ruletag, ruleTag);
-                    }
+                    wt_strcpy(codeInfo._code + i, ext, extlen);
+            }
+            else {
+                const char* ruleTag = (hotMgr != NULL) ? hotMgr->getRuleTag(ext) :"";
+                if (strlen(ruleTag) == 0)
+                    wt_strcpy(codeInfo._code, ext, extlen);
+                else {
+                    wt_strcpy(codeInfo._code, codeInfo._product);
+                    wt_strcpy(codeInfo._ruletag, ruleTag);
                 }
-            }			
-
-            return codeInfo;
-        }
+            }
+        }			
+     
+        return codeInfo;
     }
 };
 
