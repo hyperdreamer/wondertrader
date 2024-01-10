@@ -1557,222 +1557,222 @@ WTSKlineSlice* WtDataReader::readKlineSlice(const char* stdCode,
                                             uint32_t count, 
                                             uint64_t etime /* = 0 */)
 {
-	CodeHelper::CodeInfo cInfo = CodeHelper::extractStdCode(stdCode, _hot_mgr);
-	const char* stdPID = cInfo.stdCommID();
+    CodeHelper::CodeInfo cInfo = CodeHelper::extractStdCode(stdCode, _hot_mgr);
+    const char* stdPID = cInfo.stdCommID(); // CFFEX.IF e.g.
 
-	thread_local static char key[64] = { 0 };
-	fmtutil::format_to(key, "{}#{}", stdCode, period);
-	auto it = _bars_cache.find(key);
-	bool bHasHisData = false;
-	if (it == _bars_cache.end())
-	{
-		/*
-		 *	By Wesley @ 2021.12.20
-		 *	先从extloader加载最终的K线数据（如果是复权）
-		 *	如果加载失败，则再从文件加载K线数据
-		 */
-		bHasHisData = cacheFinalBarsFromLoader(&cInfo, key, stdCode, period);
+    thread_local static char key[64] = { 0 };
+    fmtutil::format_to(key, "{}#{}", stdCode, period);
+    auto it = _bars_cache.find(key);
+    bool bHasHisData = false;
+    if (it == _bars_cache.end())
+    {
+        /*
+         *	By Wesley @ 2021.12.20
+         *	先从extloader加载最终的K线数据（如果是复权）
+         *	如果加载失败，则再从文件加载K线数据
+         */
+        bHasHisData = cacheFinalBarsFromLoader(&cInfo, key, stdCode, period);
 
-		if(!bHasHisData)
-			bHasHisData = cacheHisBarsFromFile(&cInfo, key, stdCode, period);
-	}
-	else
-	{
-		bHasHisData = true;
-	}
+        if(!bHasHisData)
+            bHasHisData = cacheHisBarsFromFile(&cInfo, key, stdCode, period);
+    }
+    else
+    {
+        bHasHisData = true;
+    }
 
-	uint32_t curDate, curTime;
-	if (etime == 0)
-	{
-		curDate = _sink->get_date();
-		curTime = _sink->get_min_time();
-		etime = (uint64_t)curDate * 10000 + curTime;
-	}
-	else
-	{
-		curDate = (uint32_t)(etime / 10000);
-		curTime = (uint32_t)(etime % 10000);
-	}
+    uint32_t curDate, curTime;
+    if (etime == 0)
+    {
+        curDate = _sink->get_date();
+        curTime = _sink->get_min_time();
+        etime = (uint64_t)curDate * 10000 + curTime;
+    }
+    else
+    {
+        curDate = (uint32_t)(etime / 10000);
+        curTime = (uint32_t)(etime % 10000);
+    }
 
-	uint32_t endTDate = _base_data_mgr->calcTradingDate(stdPID, curDate, curTime, false);
-	uint32_t curTDate = _base_data_mgr->calcTradingDate(stdPID, 0, 0, false);
+    uint32_t endTDate = _base_data_mgr->calcTradingDate(stdPID, curDate, curTime, false);
+    uint32_t curTDate = _base_data_mgr->calcTradingDate(stdPID, 0, 0, false);
 
-	BarsList& barsList = _bars_cache[key];
-	WTSKlineSlice* slice = WTSKlineSlice::create(stdCode, period, 1, NULL, 0);;
-	WTSBarStruct* head = NULL;
-	uint32_t hisCnt = 0;
-	uint32_t rtCnt = 0;
-	uint32_t totalCnt = 0;
-	std::string pname;
-	switch (period)
-	{
-	case KP_Minute1: pname = "min1"; break;
-	case KP_Minute5: pname = "min5"; break;
-	default: pname = "day"; break;
-	}
+    BarsList& barsList = _bars_cache[key];
+    WTSKlineSlice* slice = WTSKlineSlice::create(stdCode, period, 1, NULL, 0);;
+    WTSBarStruct* head = NULL;
+    uint32_t hisCnt = 0;
+    uint32_t rtCnt = 0;
+    uint32_t totalCnt = 0;
+    std::string pname;
+    switch (period)
+    {
+    case KP_Minute1: pname = "min1"; break;
+    case KP_Minute5: pname = "min5"; break;
+    default: pname = "day"; break;
+    }
 
-	uint32_t left = count;
+    uint32_t left = count;
 
-	//是否包含当天的
-	bool bHasToday = (endTDate == curTDate);
+    //是否包含当天的
+    bool bHasToday = (endTDate == curTDate);
 
-	//By Wesley @ 2022.05.28
-	//不需要区分是否是期货了
-	const char* ruleTag = cInfo._ruletag;
-	if (strlen(ruleTag) > 0)
-	{
-		barsList._raw_code = _hot_mgr->getCustomRawCode(ruleTag, cInfo.stdCommID(), curTDate);
-		pipe_reader_log(_sink, LL_INFO, "{} contract on {} confirmed: {} -> {}", ruleTag, curTDate, stdCode, barsList._raw_code.c_str());
-	}
-	else
-	{
-		barsList._raw_code = cInfo._code;
-	}
+    //By Wesley @ 2022.05.28
+    //不需要区分是否是期货了
+    const char* ruleTag = cInfo._ruletag;
+    if (strlen(ruleTag) > 0)
+    {
+        barsList._raw_code = _hot_mgr->getCustomRawCode(ruleTag, cInfo.stdCommID(), curTDate);
+        pipe_reader_log(_sink, LL_INFO, "{} contract on {} confirmed: {} -> {}", ruleTag, curTDate, stdCode, barsList._raw_code.c_str());
+    }
+    else
+    {
+        barsList._raw_code = cInfo._code;
+    }
 
-	/*
-	if (commInfo->isFuture())
-	{
-		const char* ruleTag = cInfo._ruletag;
-		if (strlen(ruleTag) > 0)
-		{
-			barsList._raw_code = _hot_mgr->getCustomRawCode(ruleTag, cInfo.stdCommID(), curTDate);
-			pipe_reader_log(_sink, LL_INFO, "{} contract on {} confirmed with rule {}: {} -> {}", ruleTag, curTDate, stdCode, barsList._raw_code.c_str());
-		}
-		//else if (cInfo.isHot())
-		//{
-		//	barsList._raw_code = _hot_mgr->getRawCode(cInfo._exchg, cInfo._product, curTDate);
-		//	pipe_reader_log(_sink, LL_INFO, "Hot contract on {}  confirmed: {} -> {}", curTDate, stdCode, barsList._raw_code.c_str());
-		//}
-		//else if (cInfo.isSecond())
-		//{
-		//	barsList._raw_code = _hot_mgr->getSecondRawCode(cInfo._exchg, cInfo._product, curTDate);
-		//	pipe_reader_log(_sink, LL_INFO, "Second contract on {} confirmed: {} -> {}", curTDate, stdCode, barsList._raw_code.c_str());
-		//}
-		else
-		{
-			barsList._raw_code = cInfo._code;
-		}
-	}
-	else
-	{
-		barsList._raw_code = cInfo._code;
-	}
-	*/
+    /*
+       if (commInfo->isFuture())
+       {
+       const char* ruleTag = cInfo._ruletag;
+       if (strlen(ruleTag) > 0)
+       {
+       barsList._raw_code = _hot_mgr->getCustomRawCode(ruleTag, cInfo.stdCommID(), curTDate);
+       pipe_reader_log(_sink, LL_INFO, "{} contract on {} confirmed with rule {}: {} -> {}", ruleTag, curTDate, stdCode, barsList._raw_code.c_str());
+       }
+    //else if (cInfo.isHot())
+    //{
+    //	barsList._raw_code = _hot_mgr->getRawCode(cInfo._exchg, cInfo._product, curTDate);
+    //	pipe_reader_log(_sink, LL_INFO, "Hot contract on {}  confirmed: {} -> {}", curTDate, stdCode, barsList._raw_code.c_str());
+    //}
+    //else if (cInfo.isSecond())
+    //{
+    //	barsList._raw_code = _hot_mgr->getSecondRawCode(cInfo._exchg, cInfo._product, curTDate);
+    //	pipe_reader_log(_sink, LL_INFO, "Second contract on {} confirmed: {} -> {}", curTDate, stdCode, barsList._raw_code.c_str());
+    //}
+    else
+    {
+    barsList._raw_code = cInfo._code;
+    }
+    }
+    else
+    {
+    barsList._raw_code = cInfo._code;
+    }
+    */
 
-	if (bHasToday)
-	{
-		WTSBarStruct bar;
-		bar.date = curDate;
-		bar.time = (curDate - 19900000) * 10000 + curTime;
+    if (bHasToday)
+    {
+        WTSBarStruct bar;
+        bar.date = curDate;
+        bar.time = (curDate - 19900000) * 10000 + curTime;
 
-		const char* curCode = barsList._raw_code.c_str();
+        const char* curCode = barsList._raw_code.c_str();
 
-		//读取实时的
-		RTKlineBlockPair* kPair = getRTKilneBlock(cInfo._exchg, curCode, period);
-		if (kPair != NULL && kPair->_block && kPair->_block->_size>0)
-		{
-			//读取当日的数据
-			WTSBarStruct* pBar = NULL;
-			pBar = std::lower_bound(kPair->_block->_bars, kPair->_block->_bars + (kPair->_block->_size - 1), bar, [period](const WTSBarStruct& a, const WTSBarStruct& b) {
-				if (period == KP_DAY)
-					return a.date < b.date;
-				else
-					return a.time < b.time;
-			});
+        //读取实时的
+        RTKlineBlockPair* kPair = getRTKilneBlock(cInfo._exchg, curCode, period);
+        if (kPair != NULL && kPair->_block && kPair->_block->_size>0)
+        {
+            //读取当日的数据
+            WTSBarStruct* pBar = NULL;
+            pBar = std::lower_bound(kPair->_block->_bars, kPair->_block->_bars + (kPair->_block->_size - 1), bar, [period](const WTSBarStruct& a, const WTSBarStruct& b) {
+                                    if (period == KP_DAY)
+                                    return a.date < b.date;
+                                    else
+                                    return a.time < b.time;
+                                    });
 
-			uint32_t idx = 0;
-			if (pBar != NULL)
-				idx = pBar - kPair->_block->_bars;
-			else
-				idx = kPair->_block->_size;
+            uint32_t idx = 0;
+            if (pBar != NULL)
+                idx = pBar - kPair->_block->_bars;
+            else
+                idx = kPair->_block->_size;
 
-			if ((period == KP_DAY && pBar->date > bar.date) || (period != KP_DAY && pBar->time > bar.time))
-			{
-				pBar--;
-				idx--;
-			}
+            if ((period == KP_DAY && pBar->date > bar.date) || (period != KP_DAY && pBar->time > bar.time))
+            {
+                pBar--;
+                idx--;
+            }
 
-			uint32_t sIdx = 0;
-			if (left <= idx + 1)
-			{
-				sIdx = idx - left + 1;
-			}
+            uint32_t sIdx = 0;
+            if (left <= idx + 1)
+            {
+                sIdx = idx - left + 1;
+            }
 
-			uint32_t curCnt = (idx - sIdx + 1);
-			left -= (idx - sIdx + 1);
-			hisCnt = bHasHisData ? left : 0;
-			rtCnt = curCnt;
-			//By Wesley @ 2022.05.28
-			//连续合约也要支持复权
-			if(cInfo._exright == 2/* && commInfo->isStock()*/)
-			{
-				//后复权数据要把最新的数据进行复权处理，所以要作为历史数据追加到尾部
-				//虽然后复权数据要进行复权处理，但是实时数据的位置标记也要更新到最新，不然OnMinuteEnd会从开盘开始回放的
-				//复权数据是创建副本后修改
-				if (barsList._rt_cursor == UINT_MAX || idx > barsList._rt_cursor)
-				{
-					barsList._rt_cursor = idx;
-					double factor = barsList._factor;
-					uint32_t oldSize = barsList._bars.size();
-					uint32_t newSize = oldSize + curCnt;
-					barsList._bars.resize(newSize);
-					memcpy(&barsList._bars[oldSize], &kPair->_block->_bars[sIdx], sizeof(WTSBarStruct)* curCnt);
-					for(uint32_t thisIdx = oldSize; thisIdx < newSize; thisIdx++)
-					{
-						WTSBarStruct* pBar = &barsList._bars[thisIdx];
-						pBar->open *= factor;
-						pBar->high *= factor;
-						pBar->low *= factor;
-						pBar->close *= factor;
-					}
-				}
-				totalCnt = hisCnt + rtCnt;
-				totalCnt = min(totalCnt, (uint32_t)barsList._bars.size());
-				// 复权后的数据直接从barlist中截取
-				if (totalCnt > 0)
-				{
-					head = &barsList._bars[barsList._bars.size() - totalCnt];
-					slice->appendBlock(head, totalCnt);
-				}
-			}
-			else
-			{
-				// 普通数据由历史和rt拼接，其中rt直接引用
-				barsList._rt_cursor = idx;
-				hisCnt = min(hisCnt, (uint32_t)barsList._bars.size());
-				if (hisCnt > 0)
-				{
-					head = &barsList._bars[barsList._bars.size() - hisCnt];
-					slice->appendBlock(head, hisCnt);
-				}
-				// 添加rt
-				if (rtCnt > 0)
-				{
-					head = &kPair->_block->_bars[sIdx];
-					slice->appendBlock(head, rtCnt);
-				}
-			}
-		}
-		else
-		{
-			rtCnt = 0;
-			hisCnt = count;
-			hisCnt = min(hisCnt, (uint32_t)barsList._bars.size());
-			head = &barsList._bars[barsList._bars.size() - hisCnt];
-			slice->appendBlock(head, hisCnt);
-		}
-	}
-	else
-	{
-		rtCnt = 0;
-		hisCnt = count;
-		hisCnt = min(hisCnt, (uint32_t)barsList._bars.size());
-		head = &barsList._bars[barsList._bars.size() - hisCnt];
-		slice->appendBlock(head, hisCnt);
-	}
+            uint32_t curCnt = (idx - sIdx + 1);
+            left -= (idx - sIdx + 1);
+            hisCnt = bHasHisData ? left : 0;
+            rtCnt = curCnt;
+            //By Wesley @ 2022.05.28
+            //连续合约也要支持复权
+            if(cInfo._exright == 2/* && commInfo->isStock()*/)
+            {
+                //后复权数据要把最新的数据进行复权处理，所以要作为历史数据追加到尾部
+                //虽然后复权数据要进行复权处理，但是实时数据的位置标记也要更新到最新，不然OnMinuteEnd会从开盘开始回放的
+                //复权数据是创建副本后修改
+                if (barsList._rt_cursor == UINT_MAX || idx > barsList._rt_cursor)
+                {
+                    barsList._rt_cursor = idx;
+                    double factor = barsList._factor;
+                    uint32_t oldSize = barsList._bars.size();
+                    uint32_t newSize = oldSize + curCnt;
+                    barsList._bars.resize(newSize);
+                    memcpy(&barsList._bars[oldSize], &kPair->_block->_bars[sIdx], sizeof(WTSBarStruct)* curCnt);
+                    for(uint32_t thisIdx = oldSize; thisIdx < newSize; thisIdx++)
+                    {
+                        WTSBarStruct* pBar = &barsList._bars[thisIdx];
+                        pBar->open *= factor;
+                        pBar->high *= factor;
+                        pBar->low *= factor;
+                        pBar->close *= factor;
+                    }
+                }
+                totalCnt = hisCnt + rtCnt;
+                totalCnt = min(totalCnt, (uint32_t)barsList._bars.size());
+                // 复权后的数据直接从barlist中截取
+                if (totalCnt > 0)
+                {
+                    head = &barsList._bars[barsList._bars.size() - totalCnt];
+                    slice->appendBlock(head, totalCnt);
+                }
+            }
+            else
+            {
+                // 普通数据由历史和rt拼接，其中rt直接引用
+                barsList._rt_cursor = idx;
+                hisCnt = min(hisCnt, (uint32_t)barsList._bars.size());
+                if (hisCnt > 0)
+                {
+                    head = &barsList._bars[barsList._bars.size() - hisCnt];
+                    slice->appendBlock(head, hisCnt);
+                }
+                // 添加rt
+                if (rtCnt > 0)
+                {
+                    head = &kPair->_block->_bars[sIdx];
+                    slice->appendBlock(head, rtCnt);
+                }
+            }
+        }
+        else
+        {
+            rtCnt = 0;
+            hisCnt = count;
+            hisCnt = min(hisCnt, (uint32_t)barsList._bars.size());
+            head = &barsList._bars[barsList._bars.size() - hisCnt];
+            slice->appendBlock(head, hisCnt);
+        }
+    }
+    else
+    {
+        rtCnt = 0;
+        hisCnt = count;
+        hisCnt = min(hisCnt, (uint32_t)barsList._bars.size());
+        head = &barsList._bars[barsList._bars.size() - hisCnt];
+        slice->appendBlock(head, hisCnt);
+    }
 
-	pipe_reader_log(_sink, LL_DEBUG, "His {} bars of {} loaded, {} from history, {} from realtime", PERIOD_NAME[period], stdCode, hisCnt, rtCnt);
-	return slice;
+    pipe_reader_log(_sink, LL_DEBUG, "His {} bars of {} loaded, {} from history, {} from realtime", PERIOD_NAME[period], stdCode, hisCnt, rtCnt);
+    return slice;
 }
 
 WtDataReader::TickBlockPair* WtDataReader::getRTTickBlock(const char* exchg, const char* code)
@@ -2039,10 +2039,7 @@ void WtDataReader::onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate
                 uint32_t preCnt = 0;
                 //如果实时K线没有初始化过，则已读取的条数为0
                 //如果已经初始化过，则已读取的条数为光标+1
-                if (barsList._rt_cursor == UINT_MAX)
-                    preCnt = 0;
-                else
-                    preCnt = barsList._rt_cursor + 1;
+                if (barsList._rt_cursor != UINT_MAX) preCnt = barsList._rt_cursor + 1;
                 
                 for (;;) {
                     if (kBlk->_block->_size <= preCnt) break;
