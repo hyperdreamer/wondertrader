@@ -204,27 +204,23 @@ void WtRtRunner::registerHftCallbacks(FuncStraInitCallback cbInit, FuncStraTickC
 
 bool WtRtRunner::loadFinalHisBars(void* obj, const char* stdCode, WTSKlinePeriod period, FuncReadBars cb)
 {
-	StdUniqueLock lock(_feed_mtx);
-	if (_ext_fnl_bar_loader == NULL)
-		return false;
+    StdUniqueLock lock(_feed_mtx);
+    if (_ext_fnl_bar_loader == NULL) return false;
 
-	_feed_obj = obj;
-	_feeder_bars = cb;
+    _feed_obj = obj;
+    _feeder_bars = cb;
 
-	switch (period)
-	{
-	case KP_DAY:
-		return _ext_fnl_bar_loader(stdCode, "d1");
-	case KP_Minute1:
-		return _ext_fnl_bar_loader(stdCode, "m1");
-	case KP_Minute5:
-		return _ext_fnl_bar_loader(stdCode, "m5");
-	default:
-	{
-		WTSLogger::error("Unsupported period of extended data loader");
-		return false;
-	}
-	}
+    switch (period) {
+    case KP_DAY:
+        return _ext_fnl_bar_loader(stdCode, "d1");
+    case KP_Minute1:
+        return _ext_fnl_bar_loader(stdCode, "m1");
+    case KP_Minute5:
+        return _ext_fnl_bar_loader(stdCode, "m5");
+    default:
+        WTSLogger::error("Unsupported period of extended data loader");
+        return false;
+    }
 }
 
 bool WtRtRunner::loadRawHisBars(void* obj, const char* stdCode, WTSKlinePeriod period, FuncReadBars cb)
