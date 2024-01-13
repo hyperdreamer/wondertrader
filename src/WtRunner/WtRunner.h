@@ -85,6 +85,7 @@ private:
 	CtaStrategyMgr		_cta_stra_mgr;
 	HftStrategyMgr		_hft_stra_mgr;
 	SelStrategyMgr		_sel_stra_mgr;
+
 	ActionPolicyMgr		_act_policy;
 
 	bool				_is_hft;
