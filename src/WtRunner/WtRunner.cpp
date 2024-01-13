@@ -327,7 +327,6 @@ bool WtRunner::initHftStrategies()
 	return true;
 }
 
-
 bool WtRunner::initEngine()
 {
     WTSVariant* cfg = _config->get("env");
