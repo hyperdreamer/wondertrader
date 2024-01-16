@@ -33,48 +33,48 @@ public:
 	 *	@e	事件类型,如连接、断开、登录、登出
 	 *	@ec	错误码,0为没有错误
 	 */
-	virtual void handleEvent(WTSParserEvent e, int32_t ec){}
+	virtual void handleEvent(WTSParserEvent e, int32_t ec) {}
 
 	/*
 	 *	处理合约列表
 	 *	@aySymbols	合约列表,基础元素为WTSContractInfo,WTSArray的用法请参考定义
 	 */
-	virtual void handleSymbolList(const WTSArray* aySymbols)		= 0;
+	virtual void handleSymbolList(const WTSArray* aySymbols) = 0;
 
 	/*
 	 *	处理实时行情
 	 *	@quote		实时行情
 	 *	@procFlag	处理标记，0-切片行情，无需处理(ParserUDP)；1-完整快照，需要切片(国内各路通道)；2-极简快照，需要缓存累加（主要针对日线、tick，m1和m5都是自动累加的，虚拟货币行情）
 	 */
-	virtual void handleQuote(WTSTickData *quote, uint32_t procFlag)	= 0;
+	virtual void handleQuote(WTSTickData* quote, uint32_t procFlag)	= 0;
 
 	/*
 	 *	处理委托队列数据（股票level2）
 	 *	@ordQueData	委托对垒数据
 	 */
-	virtual void handleOrderQueue(WTSOrdQueData* ordQueData){}
+	virtual void handleOrderQueue(WTSOrdQueData* ordQueData) {}
 
 	/*
 	 *	处理逐笔委托数据（股票level2）
 	 *	@ordDetailData	逐笔委托数据
 	 */
-	virtual void handleOrderDetail(WTSOrdDtlData* ordDetailData){}
+	virtual void handleOrderDetail(WTSOrdDtlData* ordDetailData) {}
 
 	/*
 	 *	处理逐笔成交数据
 	 *	@transData	逐笔成交数据
 	 */
-	virtual void handleTransaction(WTSTransData* transData){}
+	virtual void handleTransaction(WTSTransData* transData) {}
 
 	/*
 	 *	处理解析模块的日志
 	 *	@ll			日志级别
 	 *	@message	日志内容
 	 */
-	virtual void handleParserLog(WTSLogLevel ll, const char* message)	= 0;
+	virtual void handleParserLog(WTSLogLevel ll, const char* message) = 0;
 
 public:
-	virtual IBaseDataMgr*	getBaseDataMgr()	= 0;
+	virtual IBaseDataMgr* getBaseDataMgr() = 0;
 };
 
 /*
