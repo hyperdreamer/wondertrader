@@ -122,22 +122,17 @@ bool WtRunner::config()
     //初始化数据管理
     initDataMgr();
 
-    if (!initActionPolicy())
-        return false;
+    if (!initActionPolicy()) return false;
 
     //初始化行情通道
     WTSVariant* cfgParser = _config->get("parsers");
-    if (cfgParser)
-    {
-        if (cfgParser->type() == WTSVariant::VT_String)
-        {
+    if (cfgParser) {
+        if (cfgParser->type() == WTSVariant::VT_String) {
             const char* filename = cfgParser->asCString();
-            if (StdFile::exists(filename))
-            {
+            if (StdFile::exists(filename)) {
                 WTSLogger::info("Reading parser config from {}...", filename);
                 WTSVariant* var = WTSCfgLoader::load_from_file(filename);
-                if(var)
-                {
+                if (var) {
                     if (!initParsers(var->get("parsers")))
                         WTSLogger::error("Loading parsers failed");
                     var->release();
@@ -382,35 +377,32 @@ bool WtRunner::initDataMgr()
 
 bool WtRunner::initParsers(WTSVariant* cfgParser)
 {
-	if (cfgParser == NULL)
-		return false;
+    if (cfgParser == NULL) return false;
 
-	uint32_t count = 0;
-	for (uint32_t idx = 0; idx < cfgParser->size(); idx++)
-	{
-		WTSVariant* cfgItem = cfgParser->get(idx);
-		if(!cfgItem->getBoolean("active"))
-			continue;
+    uint32_t count = 0;
+    for (uint32_t idx = 0; idx < cfgParser->size(); ++idx) {
+        WTSVariant* cfgItem = cfgParser->get(idx);
+        if(!cfgItem->getBoolean("active")) continue;
+     
+        const char* id = cfgItem->getCString("id");
+        // By Wesley @ 2021.12.14
+        // 如果id为空，则生成自动id
+        std::string realid = id;
+        if (realid.empty())
+        {
+            static uint32_t auto_parserid = 1000;
+            realid = StrUtil::printf("auto_parser_%u", auto_parserid++);
+        }
 
-		const char* id = cfgItem->getCString("id");
-		// By Wesley @ 2021.12.14
-		// 如果id为空，则生成自动id
-		std::string realid = id;
-		if (realid.empty())
-		{
-			static uint32_t auto_parserid = 1000;
-			realid = StrUtil::printf("auto_parser_%u", auto_parserid++);
-		}
+        ParserAdapterPtr adapter(new ParserAdapter);
+        adapter->init(realid.c_str(), cfgItem, _engine, &_bd_mgr, &_hot_mgr);
+        _parsers.addAdapter(realid.c_str(), adapter);
 
-		ParserAdapterPtr adapter(new ParserAdapter);
-		adapter->init(realid.c_str(), cfgItem, _engine, &_bd_mgr, &_hot_mgr);
-		_parsers.addAdapter(realid.c_str(), adapter);
+        count++;
+    }
 
-		count++;
-	}
-
-	WTSLogger::info("{} parsers loaded", count);
-	return true;
+    WTSLogger::info("{} parsers loaded", count);
+    return true;
 }
 
 bool WtRunner::initExecuters(WTSVariant* cfgExecuter)
