@@ -445,9 +445,8 @@ public:
     inline uint32_t size() const
     {
         if (_type != VT_Array && _type != VT_Object) return 0;
-        if (_type == VT_Array) 
-            return _value._array ? _value._array->size() : 0;
-        return _value._map ? _value._map->size() : 0;
+        if (_type == VT_Array) return (_value._array ? _value._array->size() : 0);
+        return (_value._map ? _value._map->size() : 0);
     }
 
     inline MemberNames memberNames() const
