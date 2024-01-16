@@ -388,17 +388,16 @@ bool WtRunner::initParsers(WTSVariant* cfgParser)
         // By Wesley @ 2021.12.14
         // 如果id为空，则生成自动id
         std::string realid = id;
-        if (realid.empty())
-        {
+        if (realid.empty()) {
             static uint32_t auto_parserid = 1000;
             realid = StrUtil::printf("auto_parser_%u", auto_parserid++);
         }
-
+     
         ParserAdapterPtr adapter(new ParserAdapter);
         adapter->init(realid.c_str(), cfgItem, _engine, &_bd_mgr, &_hot_mgr);
         _parsers.addAdapter(realid.c_str(), adapter);
-
-        count++;
+     
+        ++count;
     }
 
     WTSLogger::info("{} parsers loaded", count);
