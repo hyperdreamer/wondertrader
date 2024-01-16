@@ -118,15 +118,14 @@ static const char* PERIOD_NAME[] =
 /*
  *	日志级别
  */
-typedef enum tagLogLevel
-{
-	LL_ALL	= 100,
-	LL_DEBUG,
-	LL_INFO,
-	LL_WARN,
-	LL_ERROR,
-	LL_FATAL,
-	LL_NONE
+typedef enum tagLogLevel {
+    LL_ALL	= 100,
+    LL_DEBUG,
+    LL_INFO,
+    LL_WARN,
+    LL_ERROR,
+    LL_FATAL,
+    LL_NONE
 } WTSLogLevel;
 
 /*

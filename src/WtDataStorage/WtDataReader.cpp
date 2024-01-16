@@ -863,38 +863,38 @@ WTSTransSlice* WtDataReader::readTransSlice(const char* stdCode, uint32_t count,
 
 bool WtDataReader::cacheFinalBarsFromLoader(void* codeInfo, const std::string& key, const char* stdCode, WTSKlinePeriod period)
 {
-	if (NULL == _loader)
-		return false;
+    if (NULL == _loader) return false;
 
-	CodeHelper::CodeInfo* cInfo = (CodeHelper::CodeInfo*)codeInfo;
+    CodeHelper::CodeInfo* cInfo = (CodeHelper::CodeInfo*) codeInfo;
 
-	BarsList& barList = _bars_cache[key];
-	barList._code = stdCode;
-	barList._period = period;
-	barList._exchg = cInfo->_exchg;
+    BarsList& barList = _bars_cache[key];
+    barList._code = stdCode;
+    barList._period = period;
+    barList._exchg = cInfo->_exchg;
 
-	std::string pname;
-	switch (period)
-	{
-	case KP_Minute1: pname = "m1"; break;
-	case KP_Minute5: pname = "m5"; break;
-	case KP_DAY: pname = "d"; break;
-	default: pname = ""; break;
-	}
+    std::string pname;
+    switch (period) {
+    case KP_Minute1:    pname = "m1"; break;
+    case KP_Minute5:    pname = "m5"; break;
+    case KP_DAY:        pname = "d"; break;
+    default:            pname = ""; break;
+    }
 
-	pipe_reader_log(_sink,LL_INFO, "Reading final bars of {} via extended loader...", stdCode);
+    pipe_reader_log(_sink,LL_INFO, "Reading final bars of {} via extended loader...", stdCode);
 
-	bool ret = _loader->loadFinalHisBars(&barList, stdCode, period, [](void* obj, WTSBarStruct* firstBar, uint32_t count) {
-		BarsList* bars = (BarsList*)obj;
-		bars->_factor = 1.0;
-		bars->_bars.resize(count);
-		memcpy(bars->_bars.data(), firstBar, sizeof(WTSBarStruct)*count);
-	});
+    bool ret = _loader->loadFinalHisBars(&barList, stdCode, period, 
+                                         [](void* obj, WTSBarStruct* firstBar, uint32_t count) 
+                                         {
+                                            BarsList* bars = (BarsList*) obj;
+                                            bars->_factor = 1.0;
+                                            bars->_bars.resize(count);
+                                            memcpy(bars->_bars.data(), firstBar, sizeof(WTSBarStruct)*count);
+                                         });
 
-	if(ret)
-		pipe_reader_log(_sink,LL_INFO, "{} items of back {} data of {} loaded via extended loader", barList._bars.size(), pname.c_str(), stdCode);
+    if (ret) pipe_reader_log(_sink,LL_INFO, "{} items of back {} data of {} loaded via extended loader", 
+                             barList._bars.size(), pname.c_str(), stdCode);
 
-	return ret;
+    return ret;
 }
 
 
@@ -1564,22 +1564,17 @@ WTSKlineSlice* WtDataReader::readKlineSlice(const char* stdCode,
     fmtutil::format_to(key, "{}#{}", stdCode, period);
     auto it = _bars_cache.find(key);
     bool bHasHisData = false;
-    if (it == _bars_cache.end())
-    {
+    if (it == _bars_cache.end()) { // not in the Kline cache
         /*
          *	By Wesley @ 2021.12.20
          *	先从extloader加载最终的K线数据（如果是复权）
          *	如果加载失败，则再从文件加载K线数据
          */
         bHasHisData = cacheFinalBarsFromLoader(&cInfo, key, stdCode, period);
-
-        if(!bHasHisData)
-            bHasHisData = cacheHisBarsFromFile(&cInfo, key, stdCode, period);
+        if(!bHasHisData) bHasHisData = cacheHisBarsFromFile(&cInfo, key, stdCode, period);
     }
     else
-    {
         bHasHisData = true;
-    }
 
     uint32_t curDate, curTime;
     if (etime == 0)
@@ -2039,7 +2034,7 @@ void WtDataReader::onMinuteEnd(uint32_t uDate, uint32_t uTime, uint32_t endTDate
                 uint32_t preCnt = 0;
                 //如果实时K线没有初始化过，则已读取的条数为0
                 //如果已经初始化过，则已读取的条数为光标+1
-                if (barsList._rt_cursor != UINT_MAX) preCnt = barsList._rt_cursor + 1;
+                if (barsList._rt_cursor != UINT_MAX) preCnt = barsList._rt_cursor + 1; // NOTE: my fix
                 
                 for (;;) {
                     if (kBlk->_block->_size <= preCnt) break;

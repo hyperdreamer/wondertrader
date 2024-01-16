@@ -69,9 +69,7 @@ public:
         //标准品种ID
         inline const char* stdCommID()
         {
-            if (strlen(_fullpid) == 0)
-                fmtutil::format_to(_fullpid, "{}.{}", _exchg, _product);
-     
+            if (strlen(_fullpid) == 0) fmtutil::format_to(_fullpid, "{}.{}", _exchg, _product);
             return _fullpid;
         }
         

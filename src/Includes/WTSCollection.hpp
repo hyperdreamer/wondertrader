@@ -58,7 +58,10 @@ public:
     /*
      *	读取数组长度
      */
-    uint32_t size() const { return (uint32_t) _vec.size(); }
+    uint32_t size() const 
+    { 
+        return (uint32_t) _vec.size(); 
+    }
 
     /*
      *	清空数组,并重新分配空间
@@ -108,7 +111,7 @@ public:
      *	[]操作符重载
      *	用法同at函数
      */
-    WTSObject* operator [](uint32_t idx)
+    WTSObject* operator[](uint32_t idx)
     {
         if (idx < 0 || idx >= _vec.size()) return NULL;
      
