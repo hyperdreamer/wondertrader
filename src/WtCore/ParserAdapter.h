@@ -20,9 +20,8 @@ class IHotMgr;
 
 class IParserStub {
 public:
-    virtual void			handle_push_quote(WTSTickData* curTick, uint32_t hotFlag = 0){}
-
-    virtual void			handle_push_order_detail(WTSOrdDtlData* curOrdDtl){}
+    virtual void			handle_push_quote(WTSTickData* curTick, uint32_t hotFlag = 0) {}
+    virtual void			handle_push_order_detail(WTSOrdDtlData* curOrdDtl) {}
     virtual void			handle_push_order_queue(WTSOrdQueData* curOrdQue) {}
     virtual void			handle_push_transaction(WTSTransData* curTrans) {}
 };
@@ -33,10 +32,10 @@ public:
     ~ParserAdapter();
 
 public:
-    bool	init(const char* id, WTSVariant* cfg, IParserStub* stub, IBaseDataMgr* bgMgr, IHotMgr* hotMgr = NULL);
-    bool	initExt(const char* id, IParserApi* api, IParserStub* stub, IBaseDataMgr* bgMgr, IHotMgr* hotMgr = NULL);
-    void	release();
-    bool	run();
+    bool init(const char* id, WTSVariant* cfg, IParserStub* stub, IBaseDataMgr* bgMgr, IHotMgr* hotMgr = NULL);
+    bool initExt(const char* id, IParserApi* api, IParserStub* stub, IBaseDataMgr* bgMgr, IHotMgr* hotMgr = NULL);
+    void release();
+    bool run();
 
     inline const char* id() const { return _id.c_str(); }
 
@@ -71,7 +70,6 @@ public:
     virtual void handleParserLog(WTSLogLevel ll, const char* message) override;
 
     virtual IBaseDataMgr* getBaseDataMgr() override { return _bd_mgr; }
-
 
 private:
     IParserApi*			_parser_api;
