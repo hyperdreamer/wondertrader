@@ -20,10 +20,10 @@ class IHotMgr;
 
 class IParserStub {
 public:
-    virtual void			handle_push_quote(WTSTickData* curTick, uint32_t hotFlag = 0) {}
-    virtual void			handle_push_order_detail(WTSOrdDtlData* curOrdDtl) {}
-    virtual void			handle_push_order_queue(WTSOrdQueData* curOrdQue) {}
-    virtual void			handle_push_transaction(WTSTransData* curTrans) {}
+    virtual void handle_push_quote(WTSTickData* curTick, uint32_t hotFlag = 0) {}
+    virtual void handle_push_order_detail(WTSOrdDtlData* curOrdDtl) {}
+    virtual void handle_push_order_queue(WTSOrdQueData* curOrdQue) {}
+    virtual void handle_push_transaction(WTSTransData* curTrans) {}
 };
 
 class ParserAdapter : public IParserSpi, private boost::noncopyable {
@@ -99,20 +99,16 @@ private:
 typedef std::shared_ptr<ParserAdapter>	ParserAdapterPtr;
 typedef wt_hashmap<std::string, ParserAdapterPtr>	ParserAdapterMap;
 
-class ParserAdapterMgr : private boost::noncopyable
-{
+class ParserAdapterMgr : private boost::noncopyable {
 public:
-	void	release();
+    void release();
+    void run();
 
-	void	run();
-
-	ParserAdapterPtr getAdapter(const char* id);
-
-	bool	addAdapter(const char* id, ParserAdapterPtr& adapter);
-
+    ParserAdapterPtr getAdapter(const char* id);
+    bool addAdapter(const char* id, ParserAdapterPtr& adapter);
 
 public:
-	ParserAdapterMap _adapters;
+    ParserAdapterMap _adapters;
 };
 
 NS_WTP_END
