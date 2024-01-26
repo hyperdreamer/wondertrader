@@ -42,6 +42,9 @@ ParserAdapter::~ParserAdapter()
 {
 }
 
+/*
+ * @stub: points to the engine, since WtEngine is a child class IParserStub
+ */
 bool ParserAdapter::initExt(const char* id, IParserApi* api, IParserStub* stub, IBaseDataMgr* bgMgr, IHotMgr* hotMgr/* = NULL*/)
 {
 	if (api == NULL)
@@ -82,178 +85,176 @@ bool ParserAdapter::initExt(const char* id, IParserApi* api, IParserStub* stub, 
 	return true;
 }
 
-bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBaseDataMgr* bgMgr, IHotMgr* hotMgr/* = NULL*/)
+/*
+ * @stub: points to the engine, since WtEngine is a child class IParserStub
+ * @cfg: check the configuration file, tdparsers.yaml
+ */
+bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBaseDataMgr* bgMgr, 
+                         IHotMgr* hotMgr/* = NULL*/)
 {
-	if (cfg == NULL)
-		return false;
+    if (cfg == NULL) return false;
 
-	_stub = stub;
-	_bd_mgr = bgMgr;
-	_hot_mgr = hotMgr;
-	_id = id;
+    _stub = stub;
+    _bd_mgr = bgMgr;
+    _hot_mgr = hotMgr;
+    _id = id;
 
-	if (_cfg != NULL)
-		return false;
+    if (_cfg != NULL) return false;
 
-	_cfg = cfg;
-	_cfg->retain();
+    _cfg = cfg;
+    _cfg->retain();
 
-	_check_time = cfg->getBoolean("check_time");
+    _check_time = cfg->getBoolean("check_time");
+    //////////////////////////////////////////////////////////////////////////
+    //加载模块
+    if (cfg->getString("module").empty()) return false;
+    std::string module = DLLHelper::wrap_module(cfg->getCString("module"), "lib");;
 
-	{
-		//加载模块
-		if (cfg->getString("module").empty())
-			return false;
+    //先看工作目录下是否有交易模块
+    std::string dllpath = WtHelper::getModulePath(module.c_str(), "parsers", true);
+    //如果没有,则再看模块目录,即dll同目录下
+    if (!StdFile::exists(dllpath.c_str())) dllpath = WtHelper::getModulePath(module.c_str(), "parsers", false);
 
-		std::string module = DLLHelper::wrap_module(cfg->getCString("module"), "lib");;
+    DllHandle hInst = DLLHelper::load_library(dllpath.c_str());
+    if (hInst == NULL)
+    {
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser module {} loading failed", _id.c_str(), dllpath.c_str());
+        return false;
+    }
+    else
+    {
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, "[{}] Parser module {} loaded", _id.c_str(), dllpath.c_str());
+    }
 
-		//先看工作目录下是否有交易模块
-		std::string dllpath = WtHelper::getModulePath(module.c_str(), "parsers", true);
-		//如果没有,则再看模块目录,即dll同目录下
-		if (!StdFile::exists(dllpath.c_str()))
-			dllpath = WtHelper::getModulePath(module.c_str(), "parsers", false);
+    FuncCreateParser pFuncCreateParser = (FuncCreateParser)DLLHelper::get_symbol(hInst, "createParser");
+    if (NULL == pFuncCreateParser)
+    {
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, "[{}] Entrance function createParser not found", _id.c_str());
+        return false;
+    }
 
-		DllHandle hInst = DLLHelper::load_library(dllpath.c_str());
-		if (hInst == NULL)
-		{
-			WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser module {} loading failed", _id.c_str(), dllpath.c_str());
-			return false;
-		}
-		else
-		{
-			WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, "[{}] Parser module {} loaded", _id.c_str(), dllpath.c_str());
-		}
+    _parser_api = pFuncCreateParser();
+    if (NULL == _parser_api)
+    {
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, "[{}] Creating parser api failed", _id.c_str());
+        return false;
+    }
 
-		FuncCreateParser pFuncCreateParser = (FuncCreateParser)DLLHelper::get_symbol(hInst, "createParser");
-		if (NULL == pFuncCreateParser)
-		{
-			WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, "[{}] Entrance function createParser not found", _id.c_str());
-			return false;
-		}
+    _remover = (FuncDeleteParser)DLLHelper::get_symbol(hInst, "deleteParser");
+    //////////////////////////////////////////////////////////////////////////
 
-		_parser_api = pFuncCreateParser();
-		if (NULL == _parser_api)
-		{
-			WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, "[{}] Creating parser api failed", _id.c_str());
-			return false;
-		}
+    const std::string& strFilter = cfg->getString("filter");
+    if (!strFilter.empty())
+    {
+        const StringVector &ayFilter = StrUtil::split(strFilter, ",");
+        auto it = ayFilter.begin();
+        for (; it != ayFilter.end(); it++)
+        {
+            _exchg_filter.insert(*it);
+        }
+    }
 
-		_remover = (FuncDeleteParser)DLLHelper::get_symbol(hInst, "deleteParser");
-	}
-	
+    std::string strCodes = cfg->getString("code");
+    if (!strCodes.empty())
+    {
+        const StringVector &ayCodes = StrUtil::split(strCodes, ",");
+        auto it = ayCodes.begin();
+        for (; it != ayCodes.end(); it++)
+        {
+            _code_filter.insert(*it);
+        }
+    }
 
-	const std::string& strFilter = cfg->getString("filter");
-	if (!strFilter.empty())
-	{
-		const StringVector &ayFilter = StrUtil::split(strFilter, ",");
-		auto it = ayFilter.begin();
-		for (; it != ayFilter.end(); it++)
-		{
-			_exchg_filter.insert(*it);
-		}
-	}
+    if (_parser_api)
+    {
+        _parser_api->registerSpi(this);
 
-	std::string strCodes = cfg->getString("code");
-	if (!strCodes.empty())
-	{
-		const StringVector &ayCodes = StrUtil::split(strCodes, ",");
-		auto it = ayCodes.begin();
-		for (; it != ayCodes.end(); it++)
-		{
-			_code_filter.insert(*it);
-		}
-	}
+        if (_parser_api->init(cfg))
+        {
+            ContractSet contractSet;
+            if (!_code_filter.empty())//优先判断合约过滤器
+            {
+                ExchgFilter::iterator it = _code_filter.begin();
+                for (; it != _code_filter.end(); it++)
+                {
+                    //全代码,形式如SSE.600000,期货代码为CFFEX.IF2005
+                    std::string code, exchg;
+                    auto ay = StrUtil::split((*it).c_str(), ".");
+                    if (ay.size() == 1)
+                        code = ay[0];
+                    else if (ay.size() == 2)
+                    {
+                        exchg = ay[0];
+                        code = ay[1];
+                    }
+                    else if (ay.size() == 3)
+                    {
+                        exchg = ay[0];
+                        code = ay[2];
+                    }
+                    WTSContractInfo* contract = _bd_mgr->getContract(code.c_str(), exchg.c_str());
+                    if(contract)
+                        contractSet.insert(contract->getFullCode());
+                    else
+                    {
+                        //如果是品种ID，则将该品种下全部合约都加到订阅列表
+                        WTSCommodityInfo* commInfo = _bd_mgr->getCommodity(exchg.c_str(), code.c_str());
+                        if(commInfo)
+                        {
+                            const auto& codes = commInfo->getCodes();
+                            for(const auto& c : codes)
+                            {
+                                contractSet.insert(fmt::format("{}.{}", exchg, c.c_str()));
+                            }							
+                        }
+                    }
+                }
+            }
+            else if (!_exchg_filter.empty())
+            {
+                ExchgFilter::iterator it = _exchg_filter.begin();
+                for (; it != _exchg_filter.end(); it++)
+                {
+                    WTSArray* ayContract =_bd_mgr->getContracts((*it).c_str());
+                    WTSArray::Iterator it = ayContract->begin();
+                    for (; it != ayContract->end(); it++)
+                    {
+                        WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
+                        contractSet.insert(contract->getFullCode());
+                    }
 
-	if (_parser_api)
-	{
-		_parser_api->registerSpi(this);
+                    ayContract->release();
+                }
+            }
+            else
+            {
+                WTSArray* ayContract =_bd_mgr->getContracts();
+                WTSArray::Iterator it = ayContract->begin();
+                for (; it != ayContract->end(); it++)
+                {
+                    WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
+                    contractSet.insert(contract->getFullCode());
+                }
 
-		if (_parser_api->init(cfg))
-		{
-			ContractSet contractSet;
-			if (!_code_filter.empty())//优先判断合约过滤器
-			{
-				ExchgFilter::iterator it = _code_filter.begin();
-				for (; it != _code_filter.end(); it++)
-				{
-					//全代码,形式如SSE.600000,期货代码为CFFEX.IF2005
-					std::string code, exchg;
-					auto ay = StrUtil::split((*it).c_str(), ".");
-					if (ay.size() == 1)
-						code = ay[0];
-					else if (ay.size() == 2)
-					{
-						exchg = ay[0];
-						code = ay[1];
-					}
-					else if (ay.size() == 3)
-					{
-						exchg = ay[0];
-						code = ay[2];
-					}
-					WTSContractInfo* contract = _bd_mgr->getContract(code.c_str(), exchg.c_str());
-					if(contract)
-						contractSet.insert(contract->getFullCode());
-					else
-					{
-						//如果是品种ID，则将该品种下全部合约都加到订阅列表
-						WTSCommodityInfo* commInfo = _bd_mgr->getCommodity(exchg.c_str(), code.c_str());
-						if(commInfo)
-						{
-							const auto& codes = commInfo->getCodes();
-							for(const auto& c : codes)
-							{
-								contractSet.insert(fmt::format("{}.{}", exchg, c.c_str()));
-							}							
-						}
-					}
-				}
-			}
-			else if (!_exchg_filter.empty())
-			{
-				ExchgFilter::iterator it = _exchg_filter.begin();
-				for (; it != _exchg_filter.end(); it++)
-				{
-					WTSArray* ayContract =_bd_mgr->getContracts((*it).c_str());
-					WTSArray::Iterator it = ayContract->begin();
-					for (; it != ayContract->end(); it++)
-					{
-						WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
-						contractSet.insert(contract->getFullCode());
-					}
+                ayContract->release();
+            }
 
-					ayContract->release();
-				}
-			}
-			else
-			{
-				WTSArray* ayContract =_bd_mgr->getContracts();
-				WTSArray::Iterator it = ayContract->begin();
-				for (; it != ayContract->end(); it++)
-				{
-					WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
-					contractSet.insert(contract->getFullCode());
-				}
+            _parser_api->subscribe(contractSet);
+            contractSet.clear();
+        }
+        else
+        {
+            WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser initializing failed: api initializing failed...", _id.c_str());
+        }
+    }
+    else
+    {
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser initializing failed: creating api failed...", _id.c_str());
+    }
 
-				ayContract->release();
-			}
+    WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, "[{}] Parser initialzied, check_time: {}", _id.c_str(), _check_time);
 
-			_parser_api->subscribe(contractSet);
-			contractSet.clear();
-		}
-		else
-		{
-			WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser initializing failed: api initializing failed...", _id.c_str());
-		}
-	}
-	else
-	{
-		WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser initializing failed: creating api failed...", _id.c_str());
-	}
-
-	WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, "[{}] Parser initialzied, check_time: {}", _id.c_str(), _check_time);
-
-	return true;
+    return true;
 }
 
 void ParserAdapter::release()
