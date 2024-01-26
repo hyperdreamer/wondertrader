@@ -46,9 +46,9 @@ std::string WtHelper::getCWD()
 
 std::string WtHelper::getModulePath(const char* moduleName, const char* subDir, bool isCWD /* = true */)
 {
-	std::stringstream ss;
-	ss << (isCWD?getCWD():getInstDir()) << subDir << "/" << moduleName;
-	return ss.str();
+    std::stringstream ss;
+    ss << (isCWD?getCWD():getInstDir()) << subDir << "/" << moduleName;
+    return ss.str();
 }
 
 const char* WtHelper::getStraDataDir()
