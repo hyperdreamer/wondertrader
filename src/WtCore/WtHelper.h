@@ -33,15 +33,15 @@ public:
         _cur_secs = secs;
     }
 
-    static inline void setTDate(uint32_t tDate){ _cur_tdate = tDate; }
+    static inline void setTDate(uint32_t tDate) { _cur_tdate = tDate; }
 
-    static inline uint32_t getDate(){ return _cur_date; }
-    static inline uint32_t getTime(){ return _cur_time; }
-    static inline uint32_t getSecs(){ return _cur_secs; }
-    static inline uint32_t getTradingDate(){ return _cur_tdate; }
+    static inline uint32_t getDate() { return _cur_date; }
+    static inline uint32_t getTime() { return _cur_time; }
+    static inline uint32_t getSecs() { return _cur_secs; }
+    static inline uint32_t getTradingDate() { return _cur_tdate; }
 
     static const std::string& getInstDir() { return _inst_dir; }
-    static void setInstDir(const char* inst_dir){ _inst_dir = inst_dir; }
+    static void setInstDir(const char* inst_dir) { _inst_dir = inst_dir; }
 
     static void setGenerateDir(const char* gen_dir) { _gen_dir = gen_dir; }
 
