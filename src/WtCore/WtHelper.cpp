@@ -27,27 +27,27 @@ uint32_t WtHelper::_cur_tdate = 0;
 std::string WtHelper::_inst_dir;
 std::string WtHelper::_gen_dir = "./generated/";
 
-
 std::string WtHelper::getCWD()
 {
-	static std::string _cwd;
-	if(_cwd.empty())
-	{
-		char   buffer[256];
+    static std::string _cwd;
+
+    if (_cwd.empty()) {
+        char   buffer[256];
 #ifdef _MSC_VER
-		_getcwd(buffer, 255);
+        _getcwd(buffer, 255);
 #else	//UNIX
-		getcwd(buffer, 255);
+        getcwd(buffer, 255);
 #endif
-		_cwd = StrUtil::standardisePath(buffer);
-	}	
-	return _cwd;
+        _cwd = StrUtil::standardisePath(buffer);
+    }	
+
+    return _cwd;
 }
 
 std::string WtHelper::getModulePath(const char* moduleName, const char* subDir, bool isCWD /* = true */)
 {
     std::stringstream ss;
-    ss << (isCWD?getCWD():getInstDir()) << subDir << "/" << moduleName;
+    ss << (isCWD ? getCWD() : getInstDir()) << subDir << "/" << moduleName;
     return ss.str();
 }
 
