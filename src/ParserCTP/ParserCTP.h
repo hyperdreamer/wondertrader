@@ -19,8 +19,7 @@ NS_WTP_END
 
 USING_NS_WTP;
 
-class ParserCTP :	public IParserApi, public CThostFtdcMdSpi
-{
+class ParserCTP : public IParserApi, public CThostFtdcMdSpi {
 public:
 	ParserCTP();
 	virtual ~ParserCTP();
@@ -32,8 +31,8 @@ public:
 		LS_LOGINING,
 		LS_LOGINED
 	};
-
-//IQuoteParser 接口
+//////////////////////////////////////////////////////////////////////////
+// IParserApi 接口
 public:
 	virtual bool init(WTSVariant* config) override;
 
@@ -49,9 +48,8 @@ public:
 	virtual void unsubscribe(const CodeSet &vecSymbols) override;
 
 	virtual void registerSpi(IParserSpi* listener) override;
-
-
-//CThostFtdcMdSpi 接口
+//////////////////////////////////////////////////////////////////////////
+// CThostFtdcMdSpi 接口
 public:
 	virtual void OnRspError( CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
 

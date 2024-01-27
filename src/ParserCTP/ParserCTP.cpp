@@ -34,22 +34,21 @@ inline void write_log(IParserSpi* sink, WTSLogLevel ll, const char* format, cons
 	sink->handleParserLog(ll, buffer);
 }
 
-extern "C"
-{
-	EXPORT_FLAG IParserApi* createParser()
-	{
-		ParserCTP* parser = new ParserCTP();
-		return parser;
-	}
+extern "C" {
+    EXPORT_FLAG IParserApi* createParser()
+    {
+        ParserCTP* parser = new ParserCTP();
+        return parser;
+    }
 
-	EXPORT_FLAG void deleteParser(IParserApi* &parser)
-	{
-		if (NULL != parser)
-		{
-			delete parser;
-			parser = NULL;
-		}
-	}
+    EXPORT_FLAG void deleteParser(IParserApi* &parser)
+    {
+        if (NULL != parser)
+        {
+            delete parser;
+            parser = NULL;
+        }
+    }
 };
 
 
