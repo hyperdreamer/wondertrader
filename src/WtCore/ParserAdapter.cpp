@@ -133,8 +133,7 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
     }
 
     _parser_api = pFuncCreateParser();
-    if (NULL == _parser_api)
-    {
+    if (NULL == _parser_api) {
         WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, "[{}] Creating parser api failed", _id.c_str());
         return false;
     }
