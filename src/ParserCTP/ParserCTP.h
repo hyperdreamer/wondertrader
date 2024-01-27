@@ -84,7 +84,6 @@ private:
 	 */
 	bool IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo);
 
-
 private:
 	uint32_t			m_uTradingDate;
 	CThostFtdcMdApi*	m_pUserAPI;
@@ -103,8 +102,9 @@ private:
 	IParserSpi*			m_sink;
 	IBaseDataMgr*		m_pBaseDataMgr;
 
-	DllHandle		m_hInstCTP;
-	typedef CThostFtdcMdApi* (*CTPCreator)(const char *, const bool, const bool);
-	CTPCreator		m_funcCreator;
+	DllHandle		    m_hInstCTP;
+
+	typedef CThostFtdcMdApi* (*CTPCreator)(const char*, const bool, const bool);
+	CTPCreator		    m_funcCreator;
 };
 
