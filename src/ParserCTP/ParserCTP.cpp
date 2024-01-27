@@ -25,13 +25,12 @@
 template<typename... Args>
 inline void write_log(IParserSpi* sink, WTSLogLevel ll, const char* format, const Args&... args)
 {
-	if (sink == NULL)
-		return;
+    if (sink == NULL) return;
 
-	static thread_local char buffer[512] = { 0 };
-	fmtutil::format_to(buffer, format, args...);
+    static thread_local char buffer[512] = { 0 };
+    fmtutil::format_to(buffer, format, args...);
 
-	sink->handleParserLog(ll, buffer);
+    sink->handleParserLog(ll, buffer);
 }
 
 extern "C" {
@@ -51,39 +50,36 @@ extern "C" {
     }
 };
 
-
+/*
+ * Example: if strTime == "21:30:00", return 213000
+ */
 inline uint32_t strToTime(const char* strTime)
-{
-	static char str[10] = { 0 };
-	const char *pos = strTime;
-	int idx = 0;
-	auto len = strlen(strTime);
-	for(std::size_t i = 0; i < len; i++)
-	{
-		if(strTime[i] != ':')
-		{
-			str[idx] = strTime[i];
-			idx++;
-		}
-	}
-	str[idx] = '\0';
+{ // NOTE: my fix
+    static char str[10] = { 0 };
 
-	return strtoul(str, NULL, 10);
+    int idx = 0;
+    auto len = strlen(strTime);
+    for (std::size_t i = 0; i < len; ++i)
+        if(strTime[i] != ':') {
+            str[idx] = strTime[i];
+            ++idx;
+        }
+    str[idx] = '\0';
+
+    return strtoul(str, NULL, 10);
 }
 
 inline double checkValid(double val)
 {
-	if (val == DBL_MAX || val == FLT_MAX)
-		return 0;
-
-	return val;
+    if (val == DBL_MAX || val == FLT_MAX) return 0;
+    return val;
 }
 
 ParserCTP::ParserCTP()
-	:m_pUserAPI(NULL)
-	,m_iRequestID(0)
-	,m_uTradingDate(0)
-    ,m_bLocaltime(false)
+    : m_pUserAPI(NULL)
+    , m_iRequestID(0)
+    , m_uTradingDate(0)
+    , m_bLocaltime(false)
 {
 }
 
