@@ -47,9 +47,9 @@ CTPCreator		g_ctpCreator = NULL;
 int iRequestID = 0;
 
 #ifdef _MSC_VER
-#	define EXPORT_FLAG __declspec(dllexport)
+#define EXPORT_FLAG __declspec(dllexport)
 #else
-#	define EXPORT_FLAG __attribute__((__visibility__("default")))
+#define EXPORT_FLAG __attribute__((__visibility__("default")))
 #endif
 
 #ifdef __cplusplus

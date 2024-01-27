@@ -116,20 +116,19 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
     if (!StdFile::exists(dllpath.c_str())) dllpath = WtHelper::getModulePath(module.c_str(), "parsers", false);
 
     DllHandle hInst = DLLHelper::load_library(dllpath.c_str());
-    if (hInst == NULL)
-    {
-        WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser module {} loading failed", _id.c_str(), dllpath.c_str());
+    if (hInst == NULL) {
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, 
+                           "[{}] Parser module {} loading failed", _id.c_str(), dllpath.c_str());
         return false;
     }
     else
-    {
-        WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, "[{}] Parser module {} loaded", _id.c_str(), dllpath.c_str());
-    }
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, 
+                           "[{}] Parser module {} loaded", _id.c_str(), dllpath.c_str());
 
-    FuncCreateParser pFuncCreateParser = (FuncCreateParser)DLLHelper::get_symbol(hInst, "createParser");
-    if (NULL == pFuncCreateParser)
-    {
-        WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, "[{}] Entrance function createParser not found", _id.c_str());
+    FuncCreateParser pFuncCreateParser = (FuncCreateParser) DLLHelper::get_symbol(hInst, "createParser");
+    if (NULL == pFuncCreateParser) {
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, 
+                           "[{}] Entrance function createParser not found", _id.c_str());
         return false;
     }
 
@@ -142,7 +141,6 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
 
     _remover = (FuncDeleteParser)DLLHelper::get_symbol(hInst, "deleteParser");
     //////////////////////////////////////////////////////////////////////////
-
     const std::string& strFilter = cfg->getString("filter");
     if (!strFilter.empty())
     {
