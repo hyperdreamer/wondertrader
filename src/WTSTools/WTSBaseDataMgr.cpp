@@ -95,6 +95,7 @@ WTSContractInfo* WTSBaseDataMgr::getContract(const char* code, const char* exchg
 WTSArray* WTSBaseDataMgr::getContracts(const char* exchg /* = "" */)
 {
     WTSArray* ay = WTSArray::create();
+    //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     if (strlen(exchg) > 0) {
         auto it = m_mapExchgContract->find(std::string(exchg));
         if (it != m_mapExchgContract->end()) {
