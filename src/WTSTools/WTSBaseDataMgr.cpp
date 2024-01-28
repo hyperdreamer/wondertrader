@@ -70,39 +70,28 @@ WTSCommodityInfo* WTSBaseDataMgr::getCommodity(const char* exchg, const char* pi
 
 WTSContractInfo* WTSBaseDataMgr::getContract(const char* code, const char* exchg)
 {
-	//如果直接找到对应的市场代码,则直接
-	
-	auto lKey = std::string(code);
+    auto lKey = std::string(code);
 
-	if (strlen(exchg) == 0)
-	{
-		auto it = m_mapContracts->find(lKey);
-		if (it == m_mapContracts->end())
-			return NULL;
+    if (strlen(exchg) == 0) {
+        auto it = m_mapContracts->find(lKey);
+        if (it == m_mapContracts->end()) return NULL;
+     
+        WTSArray* ayInst = (WTSArray*) it->second;
+        if (ayInst == NULL || ayInst->size() == 0) return NULL;
+     
+        return (WTSContractInfo*) ayInst->at(0);
+    }
+    else {
+        auto sKey = std::string(exchg);
+        auto it = m_mapExchgContract->find(sKey);
+        if (it != m_mapExchgContract->end()) {
+            WTSContractList* contractList = (WTSContractList*) it->second;
+            auto it = contractList->find(lKey);
+            if (it != contractList->end()) return (WTSContractInfo*) it->second;
+        }
+    }
 
-		WTSArray* ayInst = (WTSArray*)it->second;
-		if (ayInst == NULL || ayInst->size() == 0)
-			return NULL;
-
-		return (WTSContractInfo*)ayInst->at(0);
-	}
-	else
-	{
-		auto sKey = std::string(exchg);
-		auto it = m_mapExchgContract->find(sKey);
-		if (it != m_mapExchgContract->end())
-		{
-			WTSContractList* contractList = (WTSContractList*)it->second;
-			auto it = contractList->find(lKey);
-			if (it != contractList->end())
-			{
-				return (WTSContractInfo*)it->second;
-			}
-		}
-
-	}
-
-	return NULL;
+    return NULL;
 }
 
 WTSArray* WTSBaseDataMgr::getContracts(const char* exchg /* = "" */)
