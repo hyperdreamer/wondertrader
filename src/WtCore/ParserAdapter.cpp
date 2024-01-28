@@ -158,10 +158,9 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
         _parser_api->registerSpi(this);
      
         if (_parser_api->init(cfg)) {
-            ContractSet contractSet;
+            ContractSet contractSet; // if IF2312 in _code_filter, then all contracts of IF is in contractSet
             if (!_code_filter.empty()) { // 优先判断合约过滤器
-                ExchgFilter::iterator it = _code_filter.begin();
-                for (; it != _code_filter.end(); ++it) {
+                for (ExchgFilter::iterator it = _code_filter.begin(); it != _code_filter.end(); ++it) {
                     std::string code, exchg;
                     auto ay = StrUtil::split((*it).c_str(), ".");
                     if (ay.size() == 1) // raw code?
@@ -180,25 +179,21 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
                         contractSet.insert(contract->getFullCode());
                     else { //如果是品种ID，则将该品种下全部合约都加到订阅列表
                         WTSCommodityInfo* commInfo = _bd_mgr->getCommodity(exchg.c_str(), code.c_str());
-                        if(commInfo) {
+                        if (commInfo) {
                             const auto& codes = commInfo->getCodes();
-                            for(const auto& c : codes) contractSet.insert(fmt::format("{}.{}", exchg, c.c_str()));
+                            for (const auto& c : codes) contractSet.insert(fmt::format("{}.{}", exchg, c.c_str()));
                         }
                     }
                 }
             }
             else if (!_exchg_filter.empty()) {
-                ExchgFilter::iterator it = _exchg_filter.begin();
-                for (; it != _exchg_filter.end(); it++)
-                {
-                    WTSArray* ayContract =_bd_mgr->getContracts((*it).c_str());
-                    WTSArray::Iterator it = ayContract->begin();
-                    for (; it != ayContract->end(); it++)
-                    {
+                for (ExchgFilter::iterator It = _exchg_filter.begin(); It != _exchg_filter.end(); ++It) {
+                    // NOTE: my fix: it-->It
+                    WTSArray* ayContract =_bd_mgr->getContracts((*It).c_str());
+                    for (WTSArray::Iterator it = ayContract->begin(); it != ayContract->end(); ++it) {
                         WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
                         contractSet.insert(contract->getFullCode());
                     }
-
                     ayContract->release();
                 }
             }
