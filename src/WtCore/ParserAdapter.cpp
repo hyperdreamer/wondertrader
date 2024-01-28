@@ -159,6 +159,8 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
      
         if (_parser_api->init(cfg)) {
             ContractSet contractSet; // if IF2312 in _code_filter, then all contracts of IF is in contractSet
+                                     // if CFFEX is in _exchg_filter, then all contracts of CFFEX is in contractSet
+         
             if (!_code_filter.empty()) { // 优先判断合约过滤器
                 for (ExchgFilter::iterator it = _code_filter.begin(); it != _code_filter.end(); ++it) {
                     std::string code, exchg;
