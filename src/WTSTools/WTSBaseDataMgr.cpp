@@ -28,7 +28,6 @@ WTSBaseDataMgr::WTSBaseDataMgr()
     m_mapContracts = WTSContractMap::create();
 }
 
-
 WTSBaseDataMgr::~WTSBaseDataMgr()
 {
     if (m_mapExchgContract) {
@@ -54,9 +53,9 @@ WTSBaseDataMgr::~WTSBaseDataMgr()
 
 WTSCommodityInfo* WTSBaseDataMgr::getCommodity(const char* exchgpid)
 {
-	return (WTSCommodityInfo*)m_mapCommodities->get(exchgpid);
+    if (m_mapCommodities == NULL) return NULL; // NOTE: my fix
+    return (WTSCommodityInfo*) m_mapCommodities->get(exchgpid);
 }
-
 
 WTSCommodityInfo* WTSBaseDataMgr::getCommodity(const char* exchg, const char* pid)
 {
@@ -66,7 +65,6 @@ WTSCommodityInfo* WTSBaseDataMgr::getCommodity(const char* exchg, const char* pi
     fmt::format_to(key, "{}.{}", exchg, pid);
     return (WTSCommodityInfo*) m_mapCommodities->get(key);
 }
-
 
 WTSContractInfo* WTSBaseDataMgr::getContract(const char* code, const char* exchg)
 {
