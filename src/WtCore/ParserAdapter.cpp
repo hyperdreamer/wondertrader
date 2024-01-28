@@ -138,77 +138,56 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
         return false;
     }
 
-    _remover = (FuncDeleteParser)DLLHelper::get_symbol(hInst, "deleteParser");
+    _remover = (FuncDeleteParser) DLLHelper::get_symbol(hInst, "deleteParser");
     //////////////////////////////////////////////////////////////////////////
     const std::string& strFilter = cfg->getString("filter");
-    if (!strFilter.empty())
-    {
+    if (!strFilter.empty()) {
         const StringVector &ayFilter = StrUtil::split(strFilter, ",");
-        auto it = ayFilter.begin();
-        for (; it != ayFilter.end(); it++)
-        {
+        for (auto it = ayFilter.begin(); it != ayFilter.end(); ++it)
             _exchg_filter.insert(*it);
-        }
     }
 
     std::string strCodes = cfg->getString("code");
-    if (!strCodes.empty())
-    {
+    if (!strCodes.empty()) {
         const StringVector &ayCodes = StrUtil::split(strCodes, ",");
-        auto it = ayCodes.begin();
-        for (; it != ayCodes.end(); it++)
-        {
+        for (auto it = ayCodes.begin(); it != ayCodes.end(); ++it)
             _code_filter.insert(*it);
-        }
     }
 
-    if (_parser_api)
-    {
+    if (_parser_api) {
         _parser_api->registerSpi(this);
-
-        if (_parser_api->init(cfg))
-        {
+     
+        if (_parser_api->init(cfg)) {
             ContractSet contractSet;
-            if (!_code_filter.empty())//优先判断合约过滤器
-            {
+            if (!_code_filter.empty()) { // 优先判断合约过滤器
                 ExchgFilter::iterator it = _code_filter.begin();
-                for (; it != _code_filter.end(); it++)
-                {
-                    //全代码,形式如SSE.600000,期货代码为CFFEX.IF2005
+                for (; it != _code_filter.end(); ++it) {
                     std::string code, exchg;
                     auto ay = StrUtil::split((*it).c_str(), ".");
-                    if (ay.size() == 1)
+                    if (ay.size() == 1) // raw code?
                         code = ay[0];
-                    else if (ay.size() == 2)
-                    {
+                    else if (ay.size() == 2) { // 全代码(Full Code),形式如SSE.600000,期货代码为CFFEX.IF2005
                         exchg = ay[0];
                         code = ay[1];
                     }
-                    else if (ay.size() == 3)
-                    {
+                    else if (ay.size() == 3) { // ???
                         exchg = ay[0];
                         code = ay[2];
                     }
+                 
                     WTSContractInfo* contract = _bd_mgr->getContract(code.c_str(), exchg.c_str());
                     if(contract)
                         contractSet.insert(contract->getFullCode());
-                    else
-                    {
-                        //如果是品种ID，则将该品种下全部合约都加到订阅列表
+                    else { //如果是品种ID，则将该品种下全部合约都加到订阅列表
                         WTSCommodityInfo* commInfo = _bd_mgr->getCommodity(exchg.c_str(), code.c_str());
-                        if(commInfo)
-                        {
+                        if(commInfo) {
                             const auto& codes = commInfo->getCodes();
-                            for(const auto& c : codes)
-                            {
-                                contractSet.insert(fmt::format("{}.{}", exchg, c.c_str()));
-                            }							
+                            for(const auto& c : codes) contractSet.insert(fmt::format("{}.{}", exchg, c.c_str()));
                         }
                     }
                 }
             }
-            else if (!_exchg_filter.empty())
-            {
+            else if (!_exchg_filter.empty()) {
                 ExchgFilter::iterator it = _exchg_filter.begin();
                 for (; it != _exchg_filter.end(); it++)
                 {
