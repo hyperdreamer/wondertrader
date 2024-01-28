@@ -94,35 +94,24 @@ WTSContractInfo* WTSBaseDataMgr::getContract(const char* code, const char* exchg
 
 WTSArray* WTSBaseDataMgr::getContracts(const char* exchg /* = "" */)
 {
-	WTSArray* ay = WTSArray::create();
-	if(strlen(exchg) > 0)
-	{
-		auto it = m_mapExchgContract->find(std::string(exchg));
-		if (it != m_mapExchgContract->end())
-		{
-			WTSContractList* contractList = (WTSContractList*)it->second;
-			auto it2 = contractList->begin();
-			for (; it2 != contractList->end(); it2++)
-			{
-				ay->append(it2->second, true);
-			}
-		}
-	}
-	else
-	{
-		auto it = m_mapExchgContract->begin();
-		for (; it != m_mapExchgContract->end(); it++)
-		{
-			WTSContractList* contractList = (WTSContractList*)it->second;
-			auto it2 = contractList->begin();
-			for (; it2 != contractList->end(); it2++)
-			{
-				ay->append(it2->second, true);
-			}
-		}
-	}
+    WTSArray* ay = WTSArray::create();
+    if (strlen(exchg) > 0) {
+        auto it = m_mapExchgContract->find(std::string(exchg));
+        if (it != m_mapExchgContract->end()) {
+            WTSContractList* contractList = (WTSContractList*) it->second;
+            for (auto it2 = contractList->begin(); it2 != contractList->end(); ++it2) 
+                ay->append(it2->second, true);
+        }
+    }
+    else { // returns all contracts
+        for (auto it = m_mapExchgContract->begin(); it != m_mapExchgContract->end(); ++it) {
+            WTSContractList* contractList = (WTSContractList*) it->second;
+            for (auto it2 = contractList->begin(); it2 != contractList->end(); it2++)
+                ay->append(it2->second, true);
+        }
+    }
 
-	return ay;
+    return ay;
 }
 
 WTSArray* WTSBaseDataMgr::getAllSessions()
