@@ -439,8 +439,6 @@ bool ParserCTP::isConnected()
 
 void ParserCTP::registerSpi(IParserSpi* listener)
 {
-	m_sink = listener;
-
-	if(m_sink)
-		m_pBaseDataMgr = m_sink->getBaseDataMgr();
+    m_sink = listener;
+    if (m_sink) m_pBaseDataMgr = m_sink->getBaseDataMgr();
 }
