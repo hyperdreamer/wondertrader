@@ -24,35 +24,34 @@ BOOL APIENTRY DllMain(
 void inst_hlp() {}
 static const std::string& getInstPath()
 {
-	static std::string moduleName;
-	if (moduleName.empty())
-	{
-		Dl_info dl_info;
-		dladdr((void *)inst_hlp, &dl_info);
-		moduleName = dl_info.dli_fname;
-	}
+    static std::string moduleName;
 
-	return moduleName;
+    if (moduleName.empty()) {
+        Dl_info dl_info;
+        dladdr((void*) inst_hlp, &dl_info);
+        moduleName = dl_info.dli_fname;
+    }
+
+    return moduleName;
 }
 #endif
 
 static const char* getBinDir()
 {
-	static std::string g_bin_dir;
+    static std::string g_bin_dir;
 
-	if (g_bin_dir.empty())
-	{
+    if (g_bin_dir.empty()) {
 #ifdef _MSC_VER
-		char strPath[MAX_PATH];
-		GetModuleFileName(g_dllModule, strPath, MAX_PATH);
-
-		g_bin_dir = StrUtil::standardisePath(strPath, false);
+        char strPath[MAX_PATH];
+        GetModuleFileName(g_dllModule, strPath, MAX_PATH);
+     
+        g_bin_dir = StrUtil::standardisePath(strPath, false);
 #else
-		g_bin_dir = getInstPath();
+        g_bin_dir = getInstPath();
 #endif
-		std::size_t nPos = g_bin_dir.find_last_of('/');
-		g_bin_dir = g_bin_dir.substr(0, nPos + 1);
-	}
+        std::size_t nPos = g_bin_dir.find_last_of('/');
+        g_bin_dir = g_bin_dir.substr(0, nPos + 1);
+    }
 
-	return g_bin_dir.c_str();
+    return g_bin_dir.c_str();
 }
