@@ -221,23 +221,23 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
         WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, 
                            "[{}] Parser initializing failed: creating api failed...", _id.c_str());
 
-    WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, "[{}] Parser initialzied, check_time: {}", _id.c_str(), _check_time);
+    WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, 
+                       "[{}] Parser initialzied, check_time: {}", _id.c_str(), _check_time);
 
     return true;
 }
 
 void ParserAdapter::release()
 {
-	_stopped = true;
-	if (_parser_api)
-	{
-		_parser_api->release();
-	}
+    _stopped = true;
+    if (_parser_api) _parser_api->release();
 
-	if (_remover)
-		_remover(_parser_api);
-	else
-		delete _parser_api;
+    if (_remover)
+        _remover(_parser_api);
+    else {
+        delete _parser_api;
+        _parser_api = NULL; // NOTE: my fix
+    }
 }
 
 bool ParserAdapter::run()
