@@ -382,39 +382,31 @@ void ParserCTP::ReqUserLogin()
 
 void ParserCTP::DoSubscribeMD()
 {
-	CodeSet codeFilter = m_filterSubs;
-	if(codeFilter.empty())
-	{//如果订阅礼包只空的,则取出全部合约列表
-		return;
-	}
+    const CodeSet& codeFilter = m_filterSubs; // NOTE: my fix
+    if (codeFilter.empty()) return; //如果订阅礼包只空的,则取出全部合约列表
 
-	char ** subscribe = new char*[codeFilter.size()];
-	int nCount = 0;
-	for(auto& code : codeFilter)
-	{
-		std::size_t pos = code.find('.');
-		if (pos != std::string::npos)
-			subscribe[nCount++] = (char*)code.c_str() + pos + 1;
-		else
-			subscribe[nCount++] = (char*)code.c_str();
-	}
+    char** subscribe = new char*[codeFilter.size()];
+    int nCount = 0;
+    for (auto& code : codeFilter) {
+        std::size_t pos = code.find('.');
+        if (pos != std::string::npos) // if it is a full code, CFFEX.IC2108 e.g.
+            subscribe[nCount++] = (char*) code.c_str() + pos + 1;
+        else
+            subscribe[nCount++] = (char*) code.c_str(); // if it is a raw code, IC2108 e.g.
+    }
 
-	if(m_pUserAPI && nCount > 0)
-	{
-		int iResult = m_pUserAPI->SubscribeMarketData(subscribe, nCount);
-		if(iResult != 0)
-		{
-			if(m_sink)
-				write_log(m_sink, LL_ERROR, "[ParserCTP] Sending md subscribe request failed: {}", iResult);
-		}
-		else
-		{
-			if(m_sink)
-				write_log(m_sink, LL_INFO, "[ParserCTP] Market data of {} contracts subscribed totally", nCount);
-		}
-	}
-	codeFilter.clear();
-	delete[] subscribe;
+    if (m_pUserAPI && nCount > 0) { // NOTE: my fix
+        if (m_sink) {
+            int iResult = m_pUserAPI->SubscribeMarketData(subscribe, nCount);
+         
+            if (iResult) 
+                write_log(m_sink, LL_ERROR, "[ParserCTP] Sending md subscribe request failed: {}", iResult);
+            else
+                write_log(m_sink, LL_INFO, "[ParserCTP] Market data of {} contracts subscribed totally", nCount);
+        }
+    }
+    //codeFilter.clear(); // NOTE: my fix
+    delete[] subscribe;
 }
 
 bool ParserCTP::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
