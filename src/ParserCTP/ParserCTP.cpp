@@ -42,8 +42,7 @@ extern "C" {
 
     EXPORT_FLAG void deleteParser(IParserApi* &parser)
     {
-        if (NULL != parser)
-        {
+        if (NULL != parser) {
             delete parser;
             parser = NULL;
         }
