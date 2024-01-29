@@ -102,7 +102,7 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
     if (_cfg != NULL) return false;
 
     _cfg = cfg;
-    _cfg->retain();
+    _cfg->retain(); // critical
 
     _check_time = cfg->getBoolean("check_time");
     //////////////////////////////////////////////////////////////////////////
@@ -140,14 +140,14 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
 
     _remover = (FuncDeleteParser) DLLHelper::get_symbol(hInst, "deleteParser");
     //////////////////////////////////////////////////////////////////////////
-    const std::string& strFilter = cfg->getString("filter");
+    const std::string& strFilter = cfg->getString("filter"); // exchange filter
     if (!strFilter.empty()) {
         const StringVector &ayFilter = StrUtil::split(strFilter, ",");
         for (auto it = ayFilter.begin(); it != ayFilter.end(); ++it)
             _exchg_filter.insert(*it);
     }
 
-    std::string strCodes = cfg->getString("code");
+    std::string strCodes = cfg->getString("code");  // code filter
     if (!strCodes.empty()) {
         const StringVector &ayCodes = StrUtil::split(strCodes, ",");
         for (auto it = ayCodes.begin(); it != ayCodes.end(); ++it)
@@ -160,10 +160,11 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
         if (_parser_api->init(cfg)) {
             ContractSet contractSet; // if IF2312 in _code_filter, then all contracts of IF is in contractSet
                                      // if CFFEX is in _exchg_filter, then all contracts of CFFEX is in contractSet
-         
+            //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
             if (!_code_filter.empty()) { // 优先判断合约过滤器
                 for (ExchgFilter::iterator it = _code_filter.begin(); it != _code_filter.end(); ++it) {
                     std::string code, exchg;
+                    /***************************************************************/
                     auto ay = StrUtil::split((*it).c_str(), ".");
                     if (ay.size() == 1) // raw code?
                         code = ay[0];
@@ -175,7 +176,7 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
                         exchg = ay[0];
                         code = ay[2];
                     }
-                 
+                    /***************************************************************/
                     WTSContractInfo* contract = _bd_mgr->getContract(code.c_str(), exchg.c_str());
                     if(contract)
                         contractSet.insert(contract->getFullCode());
@@ -199,31 +200,25 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
                     ayContract->release();
                 }
             }
-            else
-            {
+            else { // if both filters are empty, add all contracts
                 WTSArray* ayContract =_bd_mgr->getContracts();
-                WTSArray::Iterator it = ayContract->begin();
-                for (; it != ayContract->end(); it++)
-                {
+                for (WTSArray::Iterator it = ayContract->begin(); it != ayContract->end(); ++it) {
                     WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
                     contractSet.insert(contract->getFullCode());
                 }
-
                 ayContract->release();
-            }
-
+            } // end of filter initiation
+            /***************************************************************/
             _parser_api->subscribe(contractSet);
             contractSet.clear();
         }
         else
-        {
-            WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser initializing failed: api initializing failed...", _id.c_str());
-        }
+            WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, 
+                               "[{}] Parser initializing failed: api initializing failed...", _id.c_str());
     }
     else
-    {
-        WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, "[{}] Parser initializing failed: creating api failed...", _id.c_str());
-    }
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_ERROR, 
+                           "[{}] Parser initializing failed: creating api failed...", _id.c_str());
 
     WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, "[{}] Parser initialzied, check_time: {}", _id.c_str(), _check_time);
 

@@ -44,8 +44,8 @@ public:
 
 	virtual bool isConnected() override;
 
-	virtual void subscribe(const CodeSet &vecSymbols) override;
-	virtual void unsubscribe(const CodeSet &vecSymbols) override;
+	virtual void subscribe(const CodeSet& vecSymbols) override;
+	virtual void unsubscribe(const CodeSet& vecSymbols) override;
 
 	virtual void registerSpi(IParserSpi* listener) override;
 //////////////////////////////////////////////////////////////////////////

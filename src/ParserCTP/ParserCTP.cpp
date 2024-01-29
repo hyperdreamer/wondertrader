@@ -91,11 +91,6 @@ ParserCTP::~ParserCTP()
 
 bool ParserCTP::init(WTSVariant* config)
 {
-	m_strFrontAddr = config->getCString("front");
-	m_strBroker = config->getCString("broker");
-	m_strUserID = config->getCString("user");
-	m_strPassword = config->getCString("pass");
-	m_strFlowDir = config->getCString("flowdir");
     /*
      * By Wesley @ 2022.03.09
      * 这个参数主要是给非标准CTP环境用的
@@ -104,22 +99,23 @@ bool ParserCTP::init(WTSVariant* config)
      */
     m_bLocaltime = config->getBoolean("localtime");
 
-	if (m_strFlowDir.empty())
-		m_strFlowDir = "CTPMDFlow";
-
+	m_strFrontAddr = config->getCString("front");
+	m_strBroker = config->getCString("broker");
+	m_strUserID = config->getCString("user");
+	m_strPassword = config->getCString("pass");
+    
+	m_strFlowDir = config->getCString("flowdir");
+	if (m_strFlowDir.empty()) m_strFlowDir = "CTPMDFlow";
 	m_strFlowDir = StrUtil::standardisePath(m_strFlowDir);
 
+    std::string path = StrUtil::printf("%s%s/%s/", m_strFlowDir.c_str(), m_strBroker.c_str(), m_strUserID.c_str());
+	if (!StdFile::exists(path.c_str())) boost::filesystem::create_directories(boost::filesystem::path(path));
+    
 	std::string module = config->getCString("ctpmodule");
-	if (module.empty())
-		module = "thostmduserapi_se";
-
+	if (module.empty()) module = "thostmduserapi_se";
 	std::string dllpath = getBinDir() + DLLHelper::wrap_module(module.c_str(), "");
 	m_hInstCTP = DLLHelper::load_library(dllpath.c_str());
-	std::string path = StrUtil::printf("%s%s/%s/", m_strFlowDir.c_str(), m_strBroker.c_str(), m_strUserID.c_str());
-	if (!StdFile::exists(path.c_str()))
-	{
-		boost::filesystem::create_directories(boost::filesystem::path(path));
-	}	
+	//////////////////////////////////////////////////////////////////////////
 #ifdef _WIN32
 #	ifdef _WIN64
 	const char* creatorName = "?CreateFtdcMdApi@CThostFtdcMdApi@@SAPEAV1@PEBD_N1@Z";
@@ -129,10 +125,11 @@ bool ParserCTP::init(WTSVariant* config)
 #else
 	const char* creatorName = "_ZN15CThostFtdcMdApi15CreateFtdcMdApiEPKcbb";
 #endif
-	m_funcCreator = (CTPCreator)DLLHelper::get_symbol(m_hInstCTP, creatorName);
+    //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+	m_funcCreator = (CTPCreator) DLLHelper::get_symbol(m_hInstCTP, creatorName);
 	m_pUserAPI = m_funcCreator(path.c_str(), false, false);
 	m_pUserAPI->RegisterSpi(this);
-	m_pUserAPI->RegisterFront((char*)m_strFrontAddr.c_str());
+	m_pUserAPI->RegisterFront((char*) m_strFrontAddr.c_str());
 
 	return true;
 }
@@ -425,20 +422,13 @@ bool ParserCTP::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
 	return false;
 }
 
-void ParserCTP::subscribe(const CodeSet &vecSymbols)
-{
-	if(m_uTradingDate == 0)
-	{
-		m_filterSubs = vecSymbols;
-	}
-	else
-	{
-		m_filterSubs = vecSymbols;
-		DoSubscribeMD();
-	}
+void ParserCTP::subscribe(const CodeSet& vecSymbols)
+{ // NOTE: my fix
+    m_filterSubs = vecSymbols;
+    if (m_uTradingDate) DoSubscribeMD();
 }
 
-void ParserCTP::unsubscribe(const CodeSet &vecSymbols)
+void ParserCTP::unsubscribe(const CodeSet& vecSymbols)
 {
 }
 
