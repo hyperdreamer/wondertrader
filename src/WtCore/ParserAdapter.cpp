@@ -178,7 +178,7 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
                     }
                     /***************************************************************/
                     WTSContractInfo* contract = _bd_mgr->getContract(code.c_str(), exchg.c_str());
-                    if(contract)
+                    if (contract)
                         contractSet.insert(contract->getFullCode());
                     else { //如果是品种ID，则将该品种下全部合约都加到订阅列表
                         WTSCommodityInfo* commInfo = _bd_mgr->getCommodity(exchg.c_str(), code.c_str());
