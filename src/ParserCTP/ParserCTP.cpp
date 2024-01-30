@@ -85,7 +85,7 @@ ParserCTP::ParserCTP()
 
 ParserCTP::~ParserCTP()
 {
-	m_pUserAPI = NULL;
+    m_pUserAPI = NULL;
 }
 
 bool ParserCTP::init(WTSVariant* config)
