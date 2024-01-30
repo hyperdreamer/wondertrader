@@ -25,8 +25,7 @@ public:
 	virtual ~ParserCTP();
 
 public:
-	enum LoginStatus
-	{
+	enum LoginStatus {
 		LS_NOTLOGIN,
 		LS_LOGINING,
 		LS_LOGINED
@@ -51,25 +50,28 @@ public:
 //////////////////////////////////////////////////////////////////////////
 // CThostFtdcMdSpi 接口
 public:
-	virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	virtual void OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	virtual void OnFrontConnected();
 
-	virtual void OnRspUserLogin( CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+	virtual void OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, 
+                                CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///登出请求响应
-	virtual void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	virtual void OnRspUserLogout(CThostFtdcUserLogoutField* pUserLogout, 
+                                 CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	virtual void OnFrontDisconnected( int nReason );
+	virtual void OnFrontDisconnected(int nReason);
 
-	virtual void OnRspUnSubMarketData( CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+	virtual void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField* pSpecificInstrument, 
+                                      CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	virtual void OnRtnDepthMarketData( CThostFtdcDepthMarketDataField *pDepthMarketData );
+	virtual void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData);
 
 	virtual void OnRspSubMarketData( CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
 
 	virtual void OnHeartBeatWarning( int nTimeLapse );
-
+//////////////////////////////////////////////////////////////////////////
 private:
 	/*
 	 *	发送登录请求
