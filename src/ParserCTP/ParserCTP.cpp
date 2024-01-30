@@ -164,7 +164,7 @@ void ParserCTP::OnFrontConnected()
 {
     if (m_sink) {
         write_log(m_sink, LL_INFO, "[ParserCTP] Market data server connected");
-        m_sink->handleEvent(WPE_Connect, 0);
+        m_sink->handleEvent(WPE_Connect, 0); // tag: WTSParserEvent
     }
 
     ReqUserLogin();
@@ -354,23 +354,17 @@ void ParserCTP::OnHeartBeatWarning( int nTimeLapse )
 
 void ParserCTP::ReqUserLogin()
 {
-	if(m_pUserAPI == NULL)
-	{
-		return;
-	}
+    if (m_pUserAPI == NULL) return;
 
-	CThostFtdcReqUserLoginField req;
-	memset(&req, 0, sizeof(req));
-	strcpy(req.BrokerID, m_strBroker.c_str());
-	strcpy(req.UserID, m_strUserID.c_str());
-	strcpy(req.Password, m_strPassword.c_str());
-	strcpy(req.UserProductInfo, "WonderTrader");
-	int iResult = m_pUserAPI->ReqUserLogin(&req, ++m_iRequestID);
-	if(iResult != 0)
-	{
-		if(m_sink)
-			write_log(m_sink, LL_ERROR, "[ParserCTP] Sending login request failed: {}", iResult);
-	}
+    CThostFtdcReqUserLoginField req;
+    memset(&req, 0, sizeof(req));
+    strcpy(req.BrokerID, m_strBroker.c_str());
+    strcpy(req.UserID, m_strUserID.c_str());
+    strcpy(req.Password, m_strPassword.c_str());
+    strcpy(req.UserProductInfo, "WonderTrader");
+
+    int iResult = m_pUserAPI->ReqUserLogin(&req, ++m_iRequestID);
+    if (iResult && m_sink) write_log(m_sink, LL_ERROR, "[ParserCTP] Sending login request failed: {}", iResult);
 }
 
 void ParserCTP::DoSubscribeMD()
