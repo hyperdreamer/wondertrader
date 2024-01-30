@@ -155,20 +155,19 @@ bool ParserCTP::disconnect()
     return true;
 }
 
-void ParserCTP::OnRspError( CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast )
+void ParserCTP::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	IsErrorRspInfo(pRspInfo);
+    IsErrorRspInfo(pRspInfo); // actually nonthing is done!
 }
 
 void ParserCTP::OnFrontConnected()
 {
-	if(m_sink)
-	{
-		write_log(m_sink, LL_INFO, "[ParserCTP] Market data server connected");
-		m_sink->handleEvent(WPE_Connect, 0);
-	}
+    if (m_sink) {
+        write_log(m_sink, LL_INFO, "[ParserCTP] Market data server connected");
+        m_sink->handleEvent(WPE_Connect, 0);
+    }
 
-	ReqUserLogin();
+    ReqUserLogin();
 }
 
 void ParserCTP::OnRspUserLogin( CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast )
@@ -405,7 +404,7 @@ void ParserCTP::DoSubscribeMD()
 
 bool ParserCTP::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
 {
-	return false;
+    return false;
 }
 
 void ParserCTP::subscribe(const CodeSet& vecSymbols)
