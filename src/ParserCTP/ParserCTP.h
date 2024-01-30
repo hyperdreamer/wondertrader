@@ -51,7 +51,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 // CThostFtdcMdSpi ½Ó¿Ú
 public:
-	virtual void OnRspError( CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+	virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 	virtual void OnFrontConnected();
 

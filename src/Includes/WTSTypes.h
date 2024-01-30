@@ -307,13 +307,12 @@ typedef enum tagCompareType
 /*
  *	行情解析器事件
  */
-typedef enum tagParserEvent
-{
-	WPE_Connect			= 0,		//连接事件
-	WPE_Close,						//关闭事件
-	WPE_Login,						//登录
-	WPE_Logout						//注销
-}WTSParserEvent;
+typedef enum tagParserEvent {
+    WPE_Connect			= 0,		//连接事件
+    WPE_Close,						//关闭事件
+    WPE_Login,						//登录
+    WPE_Logout						//注销
+} WTSParserEvent;
 
 /*
  *	交易模块事件
