@@ -68,9 +68,10 @@ public:
 
 	virtual void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData);
 
-	virtual void OnRspSubMarketData( CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+	virtual void OnRspSubMarketData(CThostFtdcSpecificInstrumentField* pSpecificInstrument, 
+                                    CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	virtual void OnHeartBeatWarning( int nTimeLapse );
+	virtual void OnHeartBeatWarning(int nTimeLapse);
 //////////////////////////////////////////////////////////////////////////
 private:
 	/*
