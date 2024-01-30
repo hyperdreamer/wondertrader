@@ -146,14 +146,13 @@ bool ParserCTP::connect()
 
 bool ParserCTP::disconnect()
 {
-	if(m_pUserAPI)
-	{
-		m_pUserAPI->RegisterSpi(NULL);
-		m_pUserAPI->Release();
-		m_pUserAPI = NULL;
-	}
+    if (m_pUserAPI) {
+        m_pUserAPI->RegisterSpi(NULL);
+        m_pUserAPI->Release();
+        m_pUserAPI = NULL;
+    }
 
-	return true;
+    return true;
 }
 
 void ParserCTP::OnRspError( CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast )
@@ -421,7 +420,7 @@ void ParserCTP::unsubscribe(const CodeSet& vecSymbols)
 
 bool ParserCTP::isConnected()
 {
-	return m_pUserAPI!=NULL;
+    return (m_pUserAPI != NULL);
 }
 
 void ParserCTP::registerSpi(IParserSpi* listener)
