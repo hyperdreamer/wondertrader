@@ -140,12 +140,8 @@ void ParserCTP::release()
 
 bool ParserCTP::connect()
 {
-	if(m_pUserAPI)
-	{
-		m_pUserAPI->Init();
-	}
-
-	return true;
+    if (m_pUserAPI) m_pUserAPI->Init();
+    return true;
 }
 
 bool ParserCTP::disconnect()
