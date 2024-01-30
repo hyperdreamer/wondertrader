@@ -259,6 +259,7 @@ void ParserCTP::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarke
     quote.high = checkValid(pDepthMarketData->HighestPrice);
     quote.low = checkValid(pDepthMarketData->LowestPrice);
     quote.total_volume = pDepthMarketData->Volume;
+    quote.open_interest = pDepthMarketData->OpenInterest;
     quote.trading_date = m_uTradingDate;
     /***************************************************************/
     if (pDepthMarketData->SettlementPrice != DBL_MAX) 
@@ -268,47 +269,40 @@ void ParserCTP::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarke
         quote.total_turnover = pDepthMarketData->Turnover * pCommInfo->getVolScale();
     else if (pDepthMarketData->Turnover != DBL_MAX)
         quote.total_turnover = pDepthMarketData->Turnover;
-
-    quote.open_interest = pDepthMarketData->OpenInterest;
-
+    /***************************************************************/
     quote.upper_limit = checkValid(pDepthMarketData->UpperLimitPrice);
     quote.lower_limit = checkValid(pDepthMarketData->LowerLimitPrice);
-
+    /***************************************************************/
     quote.pre_close = checkValid(pDepthMarketData->PreClosePrice);
     quote.pre_settle = checkValid(pDepthMarketData->PreSettlementPrice);
     quote.pre_interest = pDepthMarketData->PreOpenInterest;
-
+    /***************************************************************/
     //委卖价格
     quote.ask_prices[0] = checkValid(pDepthMarketData->AskPrice1);
     quote.ask_prices[1] = checkValid(pDepthMarketData->AskPrice2);
     quote.ask_prices[2] = checkValid(pDepthMarketData->AskPrice3);
     quote.ask_prices[3] = checkValid(pDepthMarketData->AskPrice4);
     quote.ask_prices[4] = checkValid(pDepthMarketData->AskPrice5);
-
     //委买价格
     quote.bid_prices[0] = checkValid(pDepthMarketData->BidPrice1);
     quote.bid_prices[1] = checkValid(pDepthMarketData->BidPrice2);
     quote.bid_prices[2] = checkValid(pDepthMarketData->BidPrice3);
     quote.bid_prices[3] = checkValid(pDepthMarketData->BidPrice4);
     quote.bid_prices[4] = checkValid(pDepthMarketData->BidPrice5);
-
     //委卖量
     quote.ask_qty[0] = pDepthMarketData->AskVolume1;
     quote.ask_qty[1] = pDepthMarketData->AskVolume2;
     quote.ask_qty[2] = pDepthMarketData->AskVolume3;
     quote.ask_qty[3] = pDepthMarketData->AskVolume4;
     quote.ask_qty[4] = pDepthMarketData->AskVolume5;
-
     //委买量
     quote.bid_qty[0] = pDepthMarketData->BidVolume1;
     quote.bid_qty[1] = pDepthMarketData->BidVolume2;
     quote.bid_qty[2] = pDepthMarketData->BidVolume3;
     quote.bid_qty[3] = pDepthMarketData->BidVolume4;
     quote.bid_qty[4] = pDepthMarketData->BidVolume5;
-
-    if(m_sink)
-        m_sink->handleQuote(tick, 1);
-
+    //////////////////////////////////////////////////////////////////////////
+    if (m_sink) m_sink->handleQuote(tick, 1);
     tick->release();
 }
 
