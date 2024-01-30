@@ -306,16 +306,15 @@ void ParserCTP::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarke
     tick->release();
 }
 
-void ParserCTP::OnRspSubMarketData( CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast )
+void ParserCTP::OnRspSubMarketData(CThostFtdcSpecificInstrumentField* pSpecificInstrument, 
+                                   CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
-	if(!IsErrorRspInfo(pRspInfo))
-	{
-
-	}
-	else
-	{
-
-	}
+    if (!IsErrorRspInfo(pRspInfo)) {
+        // nothing
+    }
+    else {
+        // nothing
+    }
 }
 
 void ParserCTP::OnHeartBeatWarning( int nTimeLapse )
