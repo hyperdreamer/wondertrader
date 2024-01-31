@@ -97,7 +97,6 @@ bool ParserUDP::init(WTSVariant* config)
 
     ip::address addr = ip::address::from_string(_host);
     _server_ep = ip::udp::endpoint(addr, _sport);
-
     _broad_ep = ip::udp::endpoint(ip::address_v4::any(), _bport);
 
     return true;
@@ -105,94 +104,87 @@ bool ParserUDP::init(WTSVariant* config)
 
 void ParserUDP::release()
 {
-	
 }
 
 bool ParserUDP::reconnect(uint32_t flag /* = 3 */)
 {
-	if(flag & 1)
-	{//建立广播通道
-		if (_b_socket != NULL)
-		{
-			_b_socket->close();
-			delete _b_socket;
-			_b_socket = NULL;
-		}
+    if (flag & 1) { //建立广播通道
+        if (_b_socket != NULL) {
+            _b_socket->close();
+            delete _b_socket;
+            _b_socket = NULL;
+        }
+     
+        _b_socket = new ip::udp::socket(_io_service);
+     
+        _b_socket->open(_broad_ep.protocol());
+        _b_socket->set_option(ip::udp::socket::reuse_address(true));
+        _b_socket->set_option(ip::udp::socket::broadcast(true));
+        _b_socket->set_option(ip::udp::socket::receive_buffer_size(8 * 1024 * 1024));
+        _b_socket->bind(_broad_ep);
+     
+        _b_socket->async_receive_from(buffer(_b_buffer), _broad_ep,
+                                      boost::bind(&ParserUDP::handle_read, this,
+                                                  boost::asio::placeholders::error,
+                                                  boost::asio::placeholders::bytes_transferred, true));
+    }
 
-		_b_socket = new ip::udp::socket(_io_service);
+    if (flag & 2) {
+        std::queue<std::string> emptyQue;
+        { // essential for the lock???
+            StdUniqueLock lock(_mtx_queue);
+            _send_queue.swap(emptyQue);
+         
+            if (_s_socket != NULL) { //建立订阅通道
+                _s_socket->close();
+                delete _s_socket;
+                _s_socket = NULL;
+            }
+         
+            _s_inited = false;
+            _s_socket = new ip::udp::socket(_io_service, ip::udp::endpoint(ip::udp::v4(), 0));
+        }
+     
+        subscribe();
+    }
 
-		_b_socket->open(_broad_ep.protocol());
-		_b_socket->set_option(ip::udp::socket::reuse_address(true));
-		_b_socket->set_option(ip::udp::socket::broadcast(true));
-		_b_socket->set_option(ip::udp::socket::receive_buffer_size(8 * 1024 * 1024));
-		_b_socket->bind(_broad_ep);
-
-		_b_socket->async_receive_from(buffer(_b_buffer), _broad_ep,
-			boost::bind(&ParserUDP::handle_read, this,
-			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred, true));
-	}
-
-	if (flag & 2)
-	{
-		std::queue<std::string> emptyQue;
-		{
-			StdUniqueLock lock(_mtx_queue);
-			_send_queue.swap(emptyQue);
-
-			//建立订阅通道
-			if (_s_socket != NULL)
-			{
-				_s_socket->close();
-				delete _s_socket;
-				_s_socket = NULL;
-			}
-
-			_s_inited = false;
-			_s_socket = new ip::udp::socket(_io_service, ip::udp::endpoint(ip::udp::v4(), 0));
-		}
-
-		subscribe();
-	}
-	return true;
+    return true;
 }
 
 void ParserUDP::subscribe()
 {
-	std::string data;
-	data.resize(sizeof(UDPReqPacket), 0);
-	UDPReqPacket* req = (UDPReqPacket*)data.data();
-	req->_type = UDP_MSG_SUBSCRIBE;
-	uint32_t length = 0;
-	for (auto& code : _set_subs)
-	{
-		if (length > 0)
-		{
-			req->_data[length] = ',';
-			length++;
-		}
+    std::string data;
+    data.resize(sizeof(UDPReqPacket), 0);
+    UDPReqPacket* req = (UDPReqPacket*) data.data();
+    req->_type = UDP_MSG_SUBSCRIBE;
 
-		std::size_t pos = code.find('.');
-		if (pos != std::string::npos)
-			strcpy(req->_data + length, (char*)code.c_str() + pos + 1);
-		else
-			strcpy(req->_data + length, code.c_str());
+    uint32_t length = 0;
+    for (auto& code : _set_subs) {
+        if (length > 0) {
+            req->_data[length] = ',';
+            ++length;
+        }
+     
+        std::size_t pos = code.find('.');
+        if (pos != std::string::npos)
+            strcpy(req->_data + length, (char*)code.c_str() + pos + 1);
+        else
+            strcpy(req->_data + length, code.c_str());
+     
+        length += code.size();
+     
+        if (length > 1000) {
+            StdUniqueLock lock(_mtx_queue);
+            _send_queue.push(data);
+         
+            data.resize(sizeof(UDPReqPacket), 0);
+            req = (UDPReqPacket*) data.data();
+            req->_type = UDP_MSG_SUBSCRIBE;
+            length = 0;
+        }
+    }
 
-		length += code.size();
-
-		if (length > 1000)
-		{
-			StdUniqueLock lock(_mtx_queue);
-			_send_queue.push(data);
-		}
-
-		data.resize(sizeof(UDPReqPacket), 0);
-		req = (UDPReqPacket*)data.data();
-		req->_type = UDP_MSG_SUBSCRIBE;
-		length = 0;
-	}
-
-	do_send();
+    do_send();
 }
 
 void ParserUDP::do_send()
@@ -270,15 +262,15 @@ bool ParserUDP::isConnected()
 
 void ParserUDP::subscribe( const CodeSet &vecSymbols )
 {
-	auto cit = vecSymbols.begin();
-	for(; cit != vecSymbols.end(); cit++)
-	{
-		const auto &code = *cit;
-		if(_set_subs.find(code) == _set_subs.end())
-		{
-			_set_subs.insert(code);
-		}
-	}
+    auto cit = vecSymbols.begin();
+    for(; cit != vecSymbols.end(); cit++)
+    {
+        const auto &code = *cit;
+        if(_set_subs.find(code) == _set_subs.end())
+        {
+            _set_subs.insert(code);
+        }
+    }
 }
 
 void ParserUDP::unsubscribe(const CodeSet &setSymbols)
