@@ -317,10 +317,9 @@ void ParserCTP::OnRspSubMarketData(CThostFtdcSpecificInstrumentField* pSpecificI
     }
 }
 
-void ParserCTP::OnHeartBeatWarning( int nTimeLapse )
+void ParserCTP::OnHeartBeatWarning(int nTimeLapse)
 {
-	if(m_sink)
-		write_log(m_sink, LL_INFO, "[ParserCTP] Heartbeating, elapse: {}", nTimeLapse);
+    if (m_sink) write_log(m_sink, LL_INFO, "[ParserCTP] Heartbeating, elapse: {}", nTimeLapse);
 }
 
 void ParserCTP::ReqUserLogin()
