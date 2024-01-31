@@ -35,48 +35,42 @@ inline void write_log(IParserSpi* sink, WTSLogLevel ll, const char* format, cons
 
 #pragma pack(push,1)
 
-typedef struct UDPPacketHead
-{
-	uint32_t		_type;
+typedef struct UDPPacketHead {
+    uint32_t _type;
 } UDPPacketHead;
+
 //UDP请求包
-typedef struct _UDPReqPacket : UDPPacketHead
-{
-	char			_data[1020];
+typedef struct _UDPReqPacket : UDPPacketHead {
+    char _data[1020];
 } UDPReqPacket;
 
 //UDPTick数据包
 template <typename T>
-struct UDPDataPacket : UDPPacketHead
-{
-	T			_data;
+struct UDPDataPacket : UDPPacketHead {
+	T _data;
 };
+
 #pragma pack(pop)
 typedef UDPDataPacket<WTSTickStruct>	UDPTickPacket;
 typedef UDPDataPacket<WTSOrdQueStruct>	UDPOrdQuePacket;
 typedef UDPDataPacket<WTSOrdDtlStruct>	UDPOrdDtlPacket;
 typedef UDPDataPacket<WTSTransStruct>	UDPTransPacket;
 
+extern "C" {
+    EXPORT_FLAG IParserApi* createParser()
+    {
+        ParserUDP* parser = new ParserUDP();
+        return parser;
+    }
 
-extern "C"
-{
-	EXPORT_FLAG IParserApi* createParser()
-	{
-		ParserUDP* parser = new ParserUDP();
-		return parser;
-	}
-
-	EXPORT_FLAG void deleteParser(IParserApi* &parser)
-	{
-		if (NULL != parser)
-		{
-			delete parser;
-			parser = NULL;
-		}
-	}
+    EXPORT_FLAG void deleteParser(IParserApi* &parser)
+    {
+        if (NULL != parser) {
+            delete parser;
+            parser = NULL;
+        }
+    }
 };
-
-
 
 ParserUDP::ParserUDP()
 	: _b_socket(NULL)
@@ -89,26 +83,24 @@ ParserUDP::ParserUDP()
 {
 }
 
-
 ParserUDP::~ParserUDP()
 {
 }
 
-bool ParserUDP::init( WTSVariant* config )
+bool ParserUDP::init(WTSVariant* config)
 {
-	_hots = config->getCString("host");
-	_bport = config->getInt32("bport");
-	_sport = config->getInt32("sport");
-	_gpsize = config->getUInt32("gpsize");
-	if (_gpsize == 0)
-		_gpsize = 1000;
+    _host = config->getCString("host");
+    _bport = config->getInt32("bport");
+    _sport = config->getInt32("sport");
+    _gpsize = config->getUInt32("gpsize");
+    if (_gpsize == 0) _gpsize = 1000;
 
-	ip::address addr = ip::address::from_string(_hots);
-	_server_ep = ip::udp::endpoint(addr, _sport);
+    ip::address addr = ip::address::from_string(_host);
+    _server_ep = ip::udp::endpoint(addr, _sport);
 
-	_broad_ep = ip::udp::endpoint(ip::address_v4::any(), _bport);
+    _broad_ep = ip::udp::endpoint(ip::address_v4::any(), _bport);
 
-	return true;
+    return true;
 }
 
 void ParserUDP::release()
