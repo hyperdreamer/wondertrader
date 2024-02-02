@@ -49,7 +49,11 @@ class WTSPoolObject : public WTSObject {
 public:
     WTSPoolObject() :_pool(NULL) {}
     virtual ~WTSPoolObject() {}
-    //////////////////////////////////////////////////////////////////////////
+
+private:
+    typedef ObjectPool<T> MyPool;
+
+public:
     static T* allocate()
     {   /*
          *	By Wesley @ 2022.06.14
@@ -91,7 +95,6 @@ public:
     }
 
 private:
-    typedef ObjectPool<T> MyPool;
     MyPool*	_pool;
     SpinMutex* _mutex;
 };
