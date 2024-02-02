@@ -846,8 +846,6 @@ public:
 	}
 };
 
-
-
 /*
  *	Tick数据对象
  *	内部封装WTSTickStruct
