@@ -308,7 +308,7 @@ void ParserUDP::extract_buffer(uint32_t length, bool isBroad /* = true */)
     else
         header = (UDPTickPacket*) _s_buffer.data();
 
-    if (header->_type == UDP_MSG_PUSHTICK || header->_type == UDP_MSG_SUBSCRIBE) { // TODO: why UDP_MSG_SUBSCRIBE?
+    if (header->_type == UDP_MSG_PUSHTICK || header->_type == UDP_MSG_SUBSCRIBE) {
         UDPTickPacket* packet = (UDPTickPacket*) header;
         WTSTickData* curTick = WTSTickData::create(packet->_data);
         if (_sink) _sink->handleQuote(curTick, 0);

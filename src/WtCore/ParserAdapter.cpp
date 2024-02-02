@@ -37,7 +37,6 @@ ParserAdapter::ParserAdapter()
 {
 }
 
-
 ParserAdapter::~ParserAdapter()
 {
 }
@@ -121,9 +120,8 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
                            "[{}] Parser module {} loading failed", _id.c_str(), dllpath.c_str());
         return false;
     }
-    else
-        WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, 
-                           "[{}] Parser module {} loaded", _id.c_str(), dllpath.c_str());
+    WTSLogger::log_dyn("parser", _id.c_str(), LL_INFO, 
+                       "[{}] Parser module {} loaded", _id.c_str(), dllpath.c_str());
 
     FuncCreateParser pFuncCreateParser = (FuncCreateParser) DLLHelper::get_symbol(hInst, "createParser");
     if (NULL == pFuncCreateParser) {
@@ -139,19 +137,22 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
     }
 
     _remover = (FuncDeleteParser) DLLHelper::get_symbol(hInst, "deleteParser");
+    if (NULL == _remover) { // NOTE: my fix
+        WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, 
+                           "[{}] Deletion function deleteParser not found", _id.c_str());
+        return false;
+    }
     //////////////////////////////////////////////////////////////////////////
     const std::string& strFilter = cfg->getString("filter"); // exchange filter
     if (!strFilter.empty()) {
         const StringVector &ayFilter = StrUtil::split(strFilter, ",");
-        for (auto it = ayFilter.begin(); it != ayFilter.end(); ++it)
-            _exchg_filter.insert(*it);
+        for (auto it = ayFilter.begin(); it != ayFilter.end(); ++it) _exchg_filter.insert(*it);
     }
 
     std::string strCodes = cfg->getString("code");  // code filter
     if (!strCodes.empty()) {
         const StringVector &ayCodes = StrUtil::split(strCodes, ",");
-        for (auto it = ayCodes.begin(); it != ayCodes.end(); ++it)
-            _code_filter.insert(*it);
+        for (auto it = ayCodes.begin(); it != ayCodes.end(); ++it) _code_filter.insert(*it);
     }
 
     if (_parser_api) {

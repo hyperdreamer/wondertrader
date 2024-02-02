@@ -38,7 +38,8 @@ public:
     bool run();
 
     inline const char* id() const { return _id.c_str(); }
-
+//////////////////////////////////////////////////////////////////////////
+// IParserSpi ½Ó¿Ú
 public:
     virtual void handleSymbolList(const WTSArray* aySymbols) override {}
 
@@ -70,7 +71,7 @@ public:
     virtual void handleParserLog(WTSLogLevel ll, const char* message) override;
 
     virtual IBaseDataMgr* getBaseDataMgr() override { return _bd_mgr; }
-
+//////////////////////////////////////////////////////////////////////////
 private:
     IParserApi*			_parser_api;
     FuncDeleteParser	_remover;
