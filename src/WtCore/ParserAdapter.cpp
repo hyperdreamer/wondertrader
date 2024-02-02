@@ -242,76 +242,76 @@ void ParserAdapter::release()
 
 bool ParserAdapter::run()
 {
-	if (_parser_api == NULL)
-		return false;
+    if (_parser_api == NULL) return false;
 
-	_parser_api->connect();
-	return true;
+    _parser_api->connect();
+    return true;
 }
-
+//////////////////////////////////////////////////////////////////////////
+// IParserSpi 接口
 //合理毫秒数时间差
-const int RESONABLE_MILLISECS = 60 * 60 * 1000;
+static const int RESONABLE_MILLISECS = 60 * 60 * 1000;  // my fix
 void ParserAdapter::handleQuote(WTSTickData *quote, uint32_t procFlag)
 {
-	if (quote == NULL || _stopped || quote->actiondate() == 0 || quote->tradingdate() == 0)
-		return;
+    if (quote == NULL || _stopped || quote->actiondate() == 0 || quote->tradingdate() == 0)
+        return;
 
-	if (!_exchg_filter.empty() && (_exchg_filter.find(quote->exchg()) == _exchg_filter.end()))
-		return;
+    if (!_exchg_filter.empty() && (_exchg_filter.find(quote->exchg()) == _exchg_filter.end()))
+        return;
 
-	WTSContractInfo* cInfo = quote->getContractInfo();
-	if (cInfo == NULL)
-	{
-		cInfo = _bd_mgr->getContract(quote->code(), quote->exchg());
-		quote->setContractInfo(cInfo);
-	}
+    WTSContractInfo* cInfo = quote->getContractInfo();
+    if (cInfo == NULL)
+    {
+        cInfo = _bd_mgr->getContract(quote->code(), quote->exchg());
+        quote->setContractInfo(cInfo);
+    }
 
-	if (cInfo == NULL)
-		return;
+    if (cInfo == NULL)
+        return;
 
-	WTSCommodityInfo* commInfo = cInfo->getCommInfo();
-	WTSSessionInfo* sInfo = commInfo->getSessionInfo();
+    WTSCommodityInfo* commInfo = cInfo->getCommInfo();
+    WTSSessionInfo* sInfo = commInfo->getSessionInfo();
 
-	if (_check_time)
-	{
-		int64_t tick_time = TimeUtils::makeTime(quote->actiondate(), quote->actiontime());
-		int64_t local_time = TimeUtils::getLocalTimeNow();
+    if (_check_time)
+    {
+        int64_t tick_time = TimeUtils::makeTime(quote->actiondate(), quote->actiontime());
+        int64_t local_time = TimeUtils::getLocalTimeNow();
 
-		/*
-		 *	By Wesley @ 2022.04.20
-		 *	如果最新的tick时间，和本地时间相差太大
-		 *	则认为tick的时间戳是错误的
-		 *	这里要求本地时间是要时常进行校准的
-		 */
-		if (tick_time - local_time > RESONABLE_MILLISECS)
-		{
-			WTSLogger::warn("Tick of {} with wrong timestamp {}.{} received, skipped", cInfo->getFullCode(), quote->actiondate(), quote->actiontime());
-			return;
-		}
-	}
+        /*
+         *	By Wesley @ 2022.04.20
+         *	如果最新的tick时间，和本地时间相差太大
+         *	则认为tick的时间戳是错误的
+         *	这里要求本地时间是要时常进行校准的
+         */
+        if (tick_time - local_time > RESONABLE_MILLISECS)
+        {
+            WTSLogger::warn("Tick of {} with wrong timestamp {}.{} received, skipped", cInfo->getFullCode(), quote->actiondate(), quote->actiontime());
+            return;
+        }
+    }
 
-	uint32_t hotflag = 0;
+    uint32_t hotflag = 0;
 
-	std::string stdCode;
-	if (commInfo->getCategoty() == CC_FutOption || commInfo->getCategoty() == CC_SpotOption)
-	{
-		stdCode = CodeHelper::rawFutOptCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
-	}
-	else if(CodeHelper::isMonthlyCode(quote->code()))
-	{
-		//如果是分月合约，则进行主力和次主力的判断
-		stdCode = CodeHelper::rawMonthCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
-		bool bHot = _hot_mgr->isHot(quote->exchg(), quote->code(), 0);
-		bool b2nd = _hot_mgr->isSecond(quote->exchg(), quote->code(), 0);
-		hotflag = bHot ? 1 : (b2nd ? 2 : 0);
-	}
-	else
-	{
-		stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), cInfo->getProduct());
-	}
-	quote->setCode(stdCode.c_str());
+    std::string stdCode;
+    if (commInfo->getCategoty() == CC_FutOption || commInfo->getCategoty() == CC_SpotOption)
+    {
+        stdCode = CodeHelper::rawFutOptCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
+    }
+    else if(CodeHelper::isMonthlyCode(quote->code()))
+    {
+        //如果是分月合约，则进行主力和次主力的判断
+        stdCode = CodeHelper::rawMonthCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
+        bool bHot = _hot_mgr->isHot(quote->exchg(), quote->code(), 0);
+        bool b2nd = _hot_mgr->isSecond(quote->exchg(), quote->code(), 0);
+        hotflag = bHot ? 1 : (b2nd ? 2 : 0);
+    }
+    else
+    {
+        stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), cInfo->getProduct());
+    }
+    quote->setCode(stdCode.c_str());
 
-	_stub->handle_push_quote(quote, hotflag);
+    _stub->handle_push_quote(quote, hotflag);
 }
 
 void ParserAdapter::handleOrderQueue(WTSOrdQueData* ordQueData)
@@ -383,7 +383,6 @@ void ParserAdapter::handleTransaction(WTSTransData* transData)
 		_stub->handle_push_transaction(transData);
 }
 
-
 void ParserAdapter::handleParserLog(WTSLogLevel ll, const char* message)
 {
 	if (_stopped)
@@ -391,8 +390,6 @@ void ParserAdapter::handleParserLog(WTSLogLevel ll, const char* message)
 
 	WTSLogger::log_dyn_raw("parser", _id.c_str(), ll, message);
 }
-
-
 //////////////////////////////////////////////////////////////////////////
 //ParserAdapterMgr
 void ParserAdapterMgr::release()
