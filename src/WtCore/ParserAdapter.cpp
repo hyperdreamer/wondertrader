@@ -251,7 +251,8 @@ bool ParserAdapter::run()
 // IParserSpi 接口
 //合理毫秒数时间差
 static const int RESONABLE_MILLISECS = 60 * 60 * 1000;  // my fix
-void ParserAdapter::handleQuote(WTSTickData *quote, uint32_t procFlag)
+
+void ParserAdapter::handleQuote(WTSTickData* quote, uint32_t procFlag)
 {
     if (quote == NULL || _stopped || quote->actiondate() == 0 || quote->tradingdate() == 0) return;
     if (!_exchg_filter.empty() && (_exchg_filter.find(quote->exchg()) == _exchg_filter.end())) return;
