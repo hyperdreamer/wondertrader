@@ -1040,77 +1040,73 @@ private:
     WTSContractInfo*	m_pContract;
 };
 
-class WTSOrdDtlData : public WTSObject
-{
+class WTSOrdDtlData : public WTSObject {
 public:
-	static inline WTSOrdDtlData* create(const char* code)
-	{
-		WTSOrdDtlData* pRet = new WTSOrdDtlData;
-		wt_strcpy(pRet->m_odStruct.code, code);
-		return pRet;
-	}
+    static inline WTSOrdDtlData* create(const char* code)
+    {
+        WTSOrdDtlData* pRet = new WTSOrdDtlData;
+        wt_strcpy(pRet->m_odStruct.code, code);
+        return pRet;
+    }
 
-	static inline WTSOrdDtlData* create(WTSOrdDtlStruct& odData)
-	{
-		WTSOrdDtlData* pRet = new WTSOrdDtlData;
-		memcpy(&pRet->m_odStruct, &odData, sizeof(WTSOrdDtlStruct));
+    static inline WTSOrdDtlData* create(WTSOrdDtlStruct& odData)
+    {
+        WTSOrdDtlData* pRet = new WTSOrdDtlData;
+        memcpy(&pRet->m_odStruct, &odData, sizeof(WTSOrdDtlStruct));
+        return pRet;
+    }
 
-		return pRet;
-	}
+    inline WTSOrdDtlStruct& getOrdDtlStruct() { return m_odStruct; }
 
-	inline WTSOrdDtlStruct& getOrdDtlStruct(){ return m_odStruct; }
+    inline const char* exchg() const{ return m_odStruct.exchg; }
+    inline const char* code() const { return m_odStruct.code; }
+    inline uint32_t tradingdate() const { return m_odStruct.trading_date; }
+    inline uint32_t actiondate() const { return m_odStruct.action_date; }
+    inline uint32_t actiontime() const { return m_odStruct.action_time; }
 
-	inline const char* exchg() const{ return m_odStruct.exchg; }
-	inline const char* code() const{ return m_odStruct.code; }
-	inline uint32_t tradingdate() const{ return m_odStruct.trading_date; }
-	inline uint32_t actiondate() const{ return m_odStruct.action_date; }
-	inline uint32_t actiontime() const { return m_odStruct.action_time; }
+    inline void	setCode(const char* code) { wt_strcpy(m_odStruct.code, code); }
 
-	inline void		setCode(const char* code) { wt_strcpy(m_odStruct.code, code); }
-
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
-
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 private:
-	WTSOrdDtlStruct		m_odStruct;
-	WTSContractInfo*	m_pContract;
+    WTSOrdDtlStruct		m_odStruct;
+    WTSContractInfo*	m_pContract;
 };
 
-class WTSTransData : public WTSObject
-{
+class WTSTransData : public WTSObject {
 public:
-	static inline WTSTransData* create(const char* code)
-	{
-		WTSTransData* pRet = new WTSTransData;
-		wt_strcpy(pRet->m_tsStruct.code, code);
-		return pRet;
-	}
+    static inline WTSTransData* create(const char* code)
+    {
+        WTSTransData* pRet = new WTSTransData;
+        wt_strcpy(pRet->m_tsStruct.code, code);
+        return pRet;
+    }
 
-	static inline WTSTransData* create(WTSTransStruct& transData)
-	{
-		WTSTransData* pRet = new WTSTransData;
-		memcpy(&pRet->m_tsStruct, &transData, sizeof(WTSTransStruct));
+    static inline WTSTransData* create(WTSTransStruct& transData)
+    {
+        WTSTransData* pRet = new WTSTransData;
+        memcpy(&pRet->m_tsStruct, &transData, sizeof(WTSTransStruct));
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	inline const char* exchg() const{ return m_tsStruct.exchg; }
-	inline const char* code() const{ return m_tsStruct.code; }
-	inline uint32_t tradingdate() const{ return m_tsStruct.trading_date; }
-	inline uint32_t actiondate() const{ return m_tsStruct.action_date; }
-	inline uint32_t actiontime() const { return m_tsStruct.action_time; }
+    inline const char* exchg() const{ return m_tsStruct.exchg; }
+    inline const char* code() const{ return m_tsStruct.code; }
+    inline uint32_t tradingdate() const{ return m_tsStruct.trading_date; }
+    inline uint32_t actiondate() const{ return m_tsStruct.action_date; }
+    inline uint32_t actiontime() const { return m_tsStruct.action_time; }
 
-	inline WTSTransStruct& getTransStruct(){ return m_tsStruct; }
+    inline WTSTransStruct& getTransStruct(){ return m_tsStruct; }
 
-	inline void		setCode(const char* code) { wt_strcpy(m_tsStruct.code, code); }
+    inline void	setCode(const char* code) { wt_strcpy(m_tsStruct.code, code); }
 
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 private:
-	WTSTransStruct		m_tsStruct;
-	WTSContractInfo*	m_pContract;
+    WTSTransStruct		m_tsStruct;
+    WTSContractInfo*	m_pContract;
 };
 
 /*
