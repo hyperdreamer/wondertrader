@@ -1030,7 +1030,7 @@ public:
     inline uint32_t actiondate() const { return m_oqStruct.action_date; }
     inline uint32_t actiontime() const { return m_oqStruct.action_time; }
 
-    inline void		setCode(const char* code) { wt_strcpy(m_oqStruct.code, code); }
+    inline void	setCode(const char* code) { wt_strcpy(m_oqStruct.code, code); }
 
     inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
     inline WTSContractInfo* getContractInfo() const { return m_pContract; }
