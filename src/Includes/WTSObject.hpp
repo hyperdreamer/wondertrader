@@ -84,7 +84,7 @@ public:
         try {
             uint32_t cnt = m_uRefs.fetch_sub(1);
             if (cnt == 1) {
-                _mutex->lock();
+                _mutex->lock();     // lock to avoid allocation
                 _pool->destroy((T*) this);
                 _mutex->unlock();
             }
