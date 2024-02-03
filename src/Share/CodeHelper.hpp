@@ -385,7 +385,6 @@ public:
     /*
      *	期货期权代码标准化
      *	标准期货期权代码格式为CFFEX.IO2008.C.4300
-     *	-- 暂时没有地方调用 --
      */
     static inline std::string rawFutOptCodeToStdCode(const char* code, const char* exchg)
     {
