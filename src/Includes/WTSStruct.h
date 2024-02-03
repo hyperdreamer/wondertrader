@@ -43,47 +43,46 @@ public:
 	int32_t		add;	//增仓
 };
 
-struct WTSTickStructOld
-{
-	char		exchg[10];
-	char		code[MAX_INSTRUMENT_LENGTH];
+struct WTSTickStructOld {
+    char		exchg[10];
+    char		code[MAX_INSTRUMENT_LENGTH];
 
-	double		price;				//最新价
-	double		open;				//开盘价
-	double		high;				//最高价
-	double		low;				//最低价
-	double		settle_price;		//结算价
+    double		price;				//最新价
+    double		open;				//开盘价
+    double		high;				//最高价
+    double		low;				//最低价
+    double		settle_price;		//结算价
 
-	double		upper_limit;		//涨停价
-	double		lower_limit;		//跌停价
+    double		upper_limit;		//涨停价
+    double		lower_limit;		//跌停价
 
-	uint32_t	total_volume;		//总成交量
-	uint32_t	volume;				//成交量
-	double		total_turnover;		//总成交额
-	double		turn_over;			//成交额
-	uint32_t	open_interest;		//总持
-	int32_t		diff_interest;		//增仓
+    uint32_t	total_volume;		//总成交量
+    uint32_t	volume;				//成交量
+    double		total_turnover;		//总成交额
+    double		turn_over;			//成交额
+    uint32_t	open_interest;		//总持
+    int32_t		diff_interest;		//增仓
 
-	uint32_t	trading_date;		//交易日,如20140327
-	uint32_t	action_date;		//自然日期,如20140327
-	uint32_t	action_time;		//发生时间,精确到毫秒,如105932000
+    uint32_t	trading_date;		//交易日,如20140327
+    uint32_t	action_date;		//自然日期,如20140327
+    uint32_t	action_time;		//发生时间,精确到毫秒,如105932000
 
-	double		pre_close;			//昨收价
-	double		pre_settle;			//昨结算
-	int32_t		pre_interest;		//上日总持
+    double		pre_close;			//昨收价
+    double		pre_settle;			//昨结算
+    int32_t		pre_interest;		//上日总持
 
-	double		bid_prices[10];		//委买价格
-	double		ask_prices[10];		//委卖价格
-	uint32_t	bid_qty[10];		//委买量
-	uint32_t	ask_qty[10];		//委卖量
-	WTSTickStructOld()
-	{
-		memset(this, 0, sizeof(WTSTickStructOld));
-	}
+    double		bid_prices[10];		//委买价格
+    double		ask_prices[10];		//委卖价格
+    uint32_t	bid_qty[10];		//委买量
+    uint32_t	ask_qty[10];		//委卖量
+
+    WTSTickStructOld()
+    {
+        memset(this, 0, sizeof(WTSTickStructOld));
+    }
 };
 
 #pragma pack(pop)
-
 
 //By Wesley @ 2021.12.31
 //新的结构体，全部改成8字节对齐的方式
