@@ -851,168 +851,168 @@ public:
  *	内部封装WTSTickStruct
  *	封装的主要目的是出于跨语言的考虑
  */
-class WTSTickData : public WTSPoolObject<WTSTickData>
-{
+class WTSTickData : public WTSPoolObject<WTSTickData> {
 public:
-	WTSTickData() :m_pContract(NULL) {}
+    WTSTickData() :m_pContract(NULL) {}
 
-	/*
-	 *	创建一个tick数据对象
-	 *	@stdCode 合约代码
-	 */
-	static inline WTSTickData* create(const char* stdCode)
-	{
-		WTSTickData* pRet = WTSTickData::allocate();
-		auto len = strlen(stdCode);
-		memcpy(pRet->m_tickStruct.code, stdCode, len);
-		pRet->m_tickStruct.code[len] = 0;
+    /*
+     *	创建一个tick数据对象
+     *	@stdCode 合约代码
+     */
+    static inline WTSTickData* create(const char* stdCode)
+    {
+        WTSTickData* pRet = WTSTickData::allocate();
+        auto len = strlen(stdCode);
+     
+        memcpy(pRet->m_tickStruct.code, stdCode, len);
+        pRet->m_tickStruct.code[len] = 0;
+     
+        return pRet;
+    }
 
-		return pRet;
-	}
+    /*
+     *	根据tick结构体创建一个tick数据对象
+     *	@tickData tick结构体
+     */
+    static inline WTSTickData* create(WTSTickStruct& tickData)
+    {
+        WTSTickData* pRet = allocate();
+        memcpy(&pRet->m_tickStruct, &tickData, sizeof(WTSTickStruct));
 
-	/*
-	 *	根据tick结构体创建一个tick数据对象
-	 *	@tickData tick结构体
-	 */
-	static inline WTSTickData* create(WTSTickStruct& tickData)
-	{
-		WTSTickData* pRet = allocate();
-		memcpy(&pRet->m_tickStruct, &tickData, sizeof(WTSTickStruct));
+        return pRet;
+    }
 
-		return pRet;
-	}
+    inline void setCode(const char* code, std::size_t len = 0)
+    {
+        len = (len == 0) ? strlen(code) : len;
 
-	inline void setCode(const char* code, std::size_t len = 0)
-	{
-		len = (len == 0) ? strlen(code) : len;
+        memcpy(m_tickStruct.code, code, len);
+        m_tickStruct.code[len] = '\0';
+    }
 
-		memcpy(m_tickStruct.code, code, len);
-		m_tickStruct.code[len] = '\0';
-	}
+    /*
+     *	读取合约代码
+     */
+    inline const char* code() const{ return m_tickStruct.code; }
 
-	/*
-	 *	读取合约代码
-	 */
-	inline const char* code() const{ return m_tickStruct.code; }
+    /*
+     *	读取市场代码
+     */
+    inline const char*	exchg() const{ return m_tickStruct.exchg; }
 
-	/*
-	 *	读取市场代码
-	 */
-	inline const char*	exchg() const{ return m_tickStruct.exchg; }
+    /*
+     *	读取最新价
+     */
+    inline double	price() const{ return m_tickStruct.price; }
 
-	/*
-	 *	读取最新价
-	 */
-	inline double	price() const{ return m_tickStruct.price; }
+    inline double	open() const{ return m_tickStruct.open; }
 
-	inline double	open() const{ return m_tickStruct.open; }
+    /*
+     *	最高价
+     */
+    inline double	high() const{ return m_tickStruct.high; }
 
-	/*
-	 *	最高价
-	 */
-	inline double	high() const{ return m_tickStruct.high; }
+    /*
+     *	最低价
+     */
+    inline double	low() const{ return m_tickStruct.low; }
 
-	/*
-	 *	最低价
-	 */
-	inline double	low() const{ return m_tickStruct.low; }
+    //昨收价,如果是期货则是昨结算
+    inline double	preclose() const{ return m_tickStruct.pre_close; }
+    inline double	presettle() const{ return m_tickStruct.pre_settle; }
+    inline double	preinterest() const{ return m_tickStruct.pre_interest; }
 
-	//昨收价,如果是期货则是昨结算
-	inline double	preclose() const{ return m_tickStruct.pre_close; }
-	inline double	presettle() const{ return m_tickStruct.pre_settle; }
-	inline double	preinterest() const{ return m_tickStruct.pre_interest; }
+    inline double	upperlimit() const{ return m_tickStruct.upper_limit; }
+    inline double	lowerlimit() const{ return m_tickStruct.lower_limit; }
+    //成交量
+    inline double	totalvolume() const{ return m_tickStruct.total_volume; }
 
-	inline double	upperlimit() const{ return m_tickStruct.upper_limit; }
-	inline double	lowerlimit() const{ return m_tickStruct.lower_limit; }
-	//成交量
-	inline double	totalvolume() const{ return m_tickStruct.total_volume; }
+    //成交量
+    inline double	volume() const{ return m_tickStruct.volume; }
 
-	//成交量
-	inline double	volume() const{ return m_tickStruct.volume; }
+    //结算价
+    inline double	settlepx() const{ return m_tickStruct.settle_price; }
 
-	//结算价
-	inline double	settlepx() const{ return m_tickStruct.settle_price; }
+    //总持
+    inline double	openinterest() const{ return m_tickStruct.open_interest; }
 
-	//总持
-	inline double	openinterest() const{ return m_tickStruct.open_interest; }
+    inline double	additional() const{ return m_tickStruct.diff_interest; }
 
-	inline double	additional() const{ return m_tickStruct.diff_interest; }
+    //成交额
+    inline double	totalturnover() const{ return m_tickStruct.total_turnover; }
 
-	//成交额
-	inline double	totalturnover() const{ return m_tickStruct.total_turnover; }
+    //成交额
+    inline double	turnover() const{ return m_tickStruct.turn_over; }
 
-	//成交额
-	inline double	turnover() const{ return m_tickStruct.turn_over; }
+    //交易日
+    inline uint32_t	tradingdate() const{ return m_tickStruct.trading_date; }
 
-	//交易日
-	inline uint32_t	tradingdate() const{ return m_tickStruct.trading_date; }
+    //数据发生日期
+    inline uint32_t	actiondate() const{ return m_tickStruct.action_date; }
 
-	//数据发生日期
-	inline uint32_t	actiondate() const{ return m_tickStruct.action_date; }
-
-	//数据发生时间
-	inline uint32_t	actiontime() const{ return m_tickStruct.action_time; }
+    //数据发生时间
+    inline uint32_t	actiontime() const{ return m_tickStruct.action_time; }
 
 
-	/*
-	 *	读取指定档位的委买价
-	 *	@idx 0-9
-	 */
-	inline double		bidprice(int idx) const
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+    /*
+     *	读取指定档位的委买价
+     *	@idx 0-9
+     */
+    inline double		bidprice(int idx) const
+    {
+        if(idx < 0 || idx >= 10) 
+            return -1;
 
-		return m_tickStruct.bid_prices[idx];
-	}
+        return m_tickStruct.bid_prices[idx];
+    }
 
-	/*
-	 *	读取指定档位的委卖价
-	 *	@idx 0-9
-	 */
-	inline double		askprice(int idx) const
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+    /*
+     *	读取指定档位的委卖价
+     *	@idx 0-9
+     */
+    inline double		askprice(int idx) const
+    {
+        if(idx < 0 || idx >= 10) 
+            return -1;
 
-		return m_tickStruct.ask_prices[idx];
-	}
+        return m_tickStruct.ask_prices[idx];
+    }
 
-	/*
-	 *	读取指定档位的委买量
-	 *	@idx 0-9
-	 */
-	inline double	bidqty(int idx) const
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+    /*
+     *	读取指定档位的委买量
+     *	@idx 0-9
+     */
+    inline double	bidqty(int idx) const
+    {
+        if(idx < 0 || idx >= 10) 
+            return -1;
 
-		return m_tickStruct.bid_qty[idx];
-	}
+        return m_tickStruct.bid_qty[idx];
+    }
 
-	/*
-	 *	读取指定档位的委卖量
-	 *	@idx 0-9
-	 */
-	inline double	askqty(int idx) const
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+    /*
+     *	读取指定档位的委卖量
+     *	@idx 0-9
+     */
+    inline double	askqty(int idx) const
+    {
+        if(idx < 0 || idx >= 10) 
+            return -1;
 
-		return m_tickStruct.ask_qty[idx];
-	}
+        return m_tickStruct.ask_qty[idx];
+    }
 
-	/*
-	 *	返回tick结构体的引用
-	 */
-	inline WTSTickStruct&	getTickStruct(){ return m_tickStruct; }
+    /*
+     *	返回tick结构体的引用
+     */
+    inline WTSTickStruct&	getTickStruct(){ return m_tickStruct; }
 
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 private:
-	WTSTickStruct		m_tickStruct;
-	WTSContractInfo*	m_pContract;
+    WTSTickStruct		m_tickStruct;
+    WTSContractInfo*	m_pContract;
 };
 
 class WTSOrdQueData : public WTSObject
