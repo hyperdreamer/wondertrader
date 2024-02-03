@@ -258,57 +258,47 @@ void ParserAdapter::handleQuote(WTSTickData* quote, uint32_t procFlag)
     if (!_exchg_filter.empty() && (_exchg_filter.find(quote->exchg()) == _exchg_filter.end())) return;
 
     WTSContractInfo* cInfo = quote->getContractInfo();
-    if (cInfo == NULL)
-    {
+    if (cInfo == NULL) {
         cInfo = _bd_mgr->getContract(quote->code(), quote->exchg());
+        if (cInfo == NULL) return;  // NOTE: my fix
         quote->setContractInfo(cInfo);
     }
-
-    if (cInfo == NULL)
-        return;
 
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
     WTSSessionInfo* sInfo = commInfo->getSessionInfo();
 
-    if (_check_time)
-    {
+    if (_check_time) {
         int64_t tick_time = TimeUtils::makeTime(quote->actiondate(), quote->actiontime());
         int64_t local_time = TimeUtils::getLocalTimeNow();
-
+     
         /*
          *	By Wesley @ 2022.04.20
          *	如果最新的tick时间，和本地时间相差太大
          *	则认为tick的时间戳是错误的
          *	这里要求本地时间是要时常进行校准的
          */
-        if (tick_time - local_time > RESONABLE_MILLISECS)
-        {
-            WTSLogger::warn("Tick of {} with wrong timestamp {}.{} received, skipped", cInfo->getFullCode(), quote->actiondate(), quote->actiontime());
+        if (tick_time - local_time > RESONABLE_MILLISECS) {
+            WTSLogger::warn("Tick of {} with wrong timestamp {}.{} received, skipped", 
+                            cInfo->getFullCode(), quote->actiondate(), quote->actiontime());
             return;
         }
     }
 
     uint32_t hotflag = 0;
-
     std::string stdCode;
-    if (commInfo->getCategoty() == CC_FutOption || commInfo->getCategoty() == CC_SpotOption)
-    {
+    //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+    if (commInfo->getCategoty() == CC_FutOption || commInfo->getCategoty() == CC_SpotOption) // tag: ContractCategory
         stdCode = CodeHelper::rawFutOptCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
-    }
-    else if(CodeHelper::isMonthlyCode(quote->code()))
-    {
-        //如果是分月合约，则进行主力和次主力的判断
+    else if(CodeHelper::isMonthlyCode(quote->code())) { //如果是分月合约，则进行主力和次主力的判断
         stdCode = CodeHelper::rawMonthCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
         bool bHot = _hot_mgr->isHot(quote->exchg(), quote->code(), 0);
         bool b2nd = _hot_mgr->isSecond(quote->exchg(), quote->code(), 0);
         hotflag = bHot ? 1 : (b2nd ? 2 : 0);
     }
     else
-    {
         stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), cInfo->getProduct());
-    }
-    quote->setCode(stdCode.c_str());
 
+    quote->setCode(stdCode.c_str());
     _stub->handle_push_quote(quote, hotflag);
 }
 
