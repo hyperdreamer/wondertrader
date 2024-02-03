@@ -1087,17 +1087,16 @@ public:
     {
         WTSTransData* pRet = new WTSTransData;
         memcpy(&pRet->m_tsStruct, &transData, sizeof(WTSTransStruct));
-
         return pRet;
     }
 
-    inline const char* exchg() const{ return m_tsStruct.exchg; }
-    inline const char* code() const{ return m_tsStruct.code; }
-    inline uint32_t tradingdate() const{ return m_tsStruct.trading_date; }
-    inline uint32_t actiondate() const{ return m_tsStruct.action_date; }
+    inline const char* exchg() const { return m_tsStruct.exchg; }
+    inline const char* code() const { return m_tsStruct.code; }
+    inline uint32_t tradingdate() const { return m_tsStruct.trading_date; }
+    inline uint32_t actiondate() const { return m_tsStruct.action_date; }
     inline uint32_t actiontime() const { return m_tsStruct.action_time; }
 
-    inline WTSTransStruct& getTransStruct(){ return m_tsStruct; }
+    inline WTSTransStruct& getTransStruct() { return m_tsStruct; }
 
     inline void	setCode(const char* code) { wt_strcpy(m_tsStruct.code, code); }
 
