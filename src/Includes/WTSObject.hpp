@@ -95,7 +95,7 @@ public:
     }
 
 private:
-    MyPool*	_pool;
+    MyPool*	_pool;      // you have to do this for future destroying & recycling
     SpinMutex* _mutex;
 };
 NS_WTP_END
