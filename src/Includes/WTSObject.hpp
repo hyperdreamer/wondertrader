@@ -66,7 +66,7 @@ public:
          *	总之如果要彻底安全，那么可能需要加一把锁才行，但是这样会带来性能开销
          *	所以注释一下，如果有问题的可以参考一下
          */
-        thread_local static MyPool		pool;
+        thread_local static MyPool		pool;    // only the creator thread allows to allocate
         thread_local static SpinMutex	mtx;
      
         mtx.lock();
