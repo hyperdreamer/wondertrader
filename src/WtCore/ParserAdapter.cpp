@@ -299,7 +299,7 @@ void ParserAdapter::handleQuote(WTSTickData* quote, uint32_t procFlag)
         stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), cInfo->getProduct());
 
     quote->setCode(stdCode.c_str());
-    _stub->handle_push_quote(quote, hotflag);
+	if (_stub) _stub->handle_push_quote(quote, hotflag); // push to the engine // NOTE: my fix
 }
 
 void ParserAdapter::handleOrderQueue(WTSOrdQueData* ordQueData)
