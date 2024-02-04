@@ -315,6 +315,7 @@ void ParserAdapter::handleOrderQueue(WTSOrdQueData* ordQueData)
 
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
     std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
+
     // TODO: is a commInfo filering process needed?
     ordQueData->setCode(stdCode.c_str());
     if (_stub) _stub->handle_push_order_queue(ordQueData);
@@ -332,32 +333,28 @@ void ParserAdapter::handleOrderDetail(WTSOrdDtlData* ordDtlData)
 
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
     std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
+
     // TODO: is a commInfo filering process needed?
     ordDtlData->setCode(stdCode.c_str());
     if (_stub) _stub->handle_push_order_detail(ordDtlData);
 }
 
+// TODO:
 void ParserAdapter::handleTransaction(WTSTransData* transData)
 {
-	if (_stopped)
-		return;
+    // NOTE: my fix
+    if (transData == NULL || _stopped || transData->actiondate() == 0 || transData->tradingdate() == 0) return;
+    if (!_exchg_filter.empty() && (_exchg_filter.find(transData->exchg()) == _exchg_filter.end())) return;
 
-	if (!_exchg_filter.empty() && (_exchg_filter.find(transData->exchg()) == _exchg_filter.end()))
-		return;
+    WTSContractInfo* cInfo = _bd_mgr->getContract(transData->code(), transData->exchg());
+    if (cInfo == NULL) return;
 
-	if (transData->actiondate() == 0 || transData->tradingdate() == 0)
-		return;
+    WTSCommodityInfo* commInfo = cInfo->getCommInfo();
+    std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
 
-	WTSContractInfo* cInfo = _bd_mgr->getContract(transData->code(), transData->exchg());
-	if (cInfo == NULL)
-		return;
-
-	WTSCommodityInfo* commInfo = cInfo->getCommInfo();
-	std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
-	transData->setCode(stdCode.c_str());
-
-	if (_stub)
-		_stub->handle_push_transaction(transData);
+    // TODO: is a commInfo filering process needed?
+    transData->setCode(stdCode.c_str());
+    if (_stub) _stub->handle_push_transaction(transData);
 }
 
 void ParserAdapter::handleParserLog(WTSLogLevel ll, const char* message)
