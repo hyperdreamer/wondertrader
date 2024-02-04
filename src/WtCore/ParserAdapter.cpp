@@ -252,6 +252,7 @@ bool ParserAdapter::run()
 //合理毫秒数时间差
 static const int RESONABLE_MILLISECS = 60 * 60 * 1000;  // my fix
 
+// TODO: @procFlag: no effects
 void ParserAdapter::handleQuote(WTSTickData* quote, uint32_t procFlag)
 {
     if (quote == NULL || _stopped || quote->actiondate() == 0 || quote->tradingdate() == 0) return;
@@ -289,7 +290,7 @@ void ParserAdapter::handleQuote(WTSTickData* quote, uint32_t procFlag)
     //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     if (commInfo->getCategoty() == CC_FutOption || commInfo->getCategoty() == CC_SpotOption) // tag: ContractCategory
         stdCode = CodeHelper::rawFutOptCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
-    else if(CodeHelper::isMonthlyCode(quote->code())) { //如果是分月合约，则进行主力和次主力的判断
+    else if (CodeHelper::isMonthlyCode(quote->code())) { //如果是分月合约，则进行主力和次主力的判断
         stdCode = CodeHelper::rawMonthCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
         bool bHot = _hot_mgr->isHot(quote->exchg(), quote->code(), 0);
         bool b2nd = _hot_mgr->isSecond(quote->exchg(), quote->code(), 0);
@@ -302,50 +303,38 @@ void ParserAdapter::handleQuote(WTSTickData* quote, uint32_t procFlag)
 	if (_stub) _stub->handle_push_quote(quote, hotflag); // push to the engine // NOTE: my fix
 }
 
+// TODO:
 void ParserAdapter::handleOrderQueue(WTSOrdQueData* ordQueData)
 {
-	if (_stopped)
-		return;
+    // NOTE: my fix
+    if (ordQueData == NULL || _stopped || ordQueData->actiondate() == 0 || ordQueData->tradingdate() == 0) return;
+    if (!_exchg_filter.empty() && (_exchg_filter.find(ordQueData->exchg()) == _exchg_filter.end())) return;
 
-	if (!_exchg_filter.empty() && (_exchg_filter.find(ordQueData->exchg()) == _exchg_filter.end()))
-		return;
+    WTSContractInfo* cInfo = _bd_mgr->getContract(ordQueData->code(), ordQueData->exchg());
+    if (cInfo == NULL) return;
 
-	if (ordQueData->actiondate() == 0 || ordQueData->tradingdate() == 0)
-		return;
-
-	WTSContractInfo* cInfo = _bd_mgr->getContract(ordQueData->code(), ordQueData->exchg());
-	if (cInfo == NULL)
-		return;
-
-	WTSCommodityInfo* commInfo = cInfo->getCommInfo();
-	std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
-	ordQueData->setCode(stdCode.c_str());
-
-	if (_stub)
-		_stub->handle_push_order_queue(ordQueData);
+    WTSCommodityInfo* commInfo = cInfo->getCommInfo();
+    std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
+    // TODO: is a commInfo filering process needed?
+    ordQueData->setCode(stdCode.c_str());
+    if (_stub) _stub->handle_push_order_queue(ordQueData);
 }
 
+// TODO:
 void ParserAdapter::handleOrderDetail(WTSOrdDtlData* ordDtlData)
 {
-	if (_stopped)
-		return;
+    // NOTE: my fix
+    if (ordDtlData == NULL || _stopped || ordDtlData->actiondate() == 0 || ordDtlData->tradingdate() == 0) return;
+    if (!_exchg_filter.empty() && (_exchg_filter.find(ordDtlData->exchg()) == _exchg_filter.end())) return;
 
-	if (!_exchg_filter.empty() && (_exchg_filter.find(ordDtlData->exchg()) == _exchg_filter.end()))
-		return;
+    WTSContractInfo* cInfo = _bd_mgr->getContract(ordDtlData->code(), ordDtlData->exchg());
+    if (cInfo == NULL) return;
 
-	if (ordDtlData->actiondate() == 0 || ordDtlData->tradingdate() == 0)
-		return;
-
-	WTSContractInfo* cInfo = _bd_mgr->getContract(ordDtlData->code(), ordDtlData->exchg());
-	if (cInfo == NULL)
-		return;
-
-	WTSCommodityInfo* commInfo = cInfo->getCommInfo();
-	std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
-	ordDtlData->setCode(stdCode.c_str());
-
-	if (_stub)
-		_stub->handle_push_order_detail(ordDtlData);
+    WTSCommodityInfo* commInfo = cInfo->getCommInfo();
+    std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
+    // TODO: is a commInfo filering process needed?
+    ordDtlData->setCode(stdCode.c_str());
+    if (_stub) _stub->handle_push_order_detail(ordDtlData);
 }
 
 void ParserAdapter::handleTransaction(WTSTransData* transData)
