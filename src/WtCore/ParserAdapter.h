@@ -63,7 +63,7 @@ public:
     virtual void handleOrderDetail(WTSOrdDtlData* ordDetailData) override;
 
     /*
-     *	处理逐笔成交数据
+     *	处理逐笔成交数据（股票level2） // NOTE: my fix
      *	@transData	逐笔成交数据
      */
     virtual void handleTransaction(WTSTransData* transData) override;
