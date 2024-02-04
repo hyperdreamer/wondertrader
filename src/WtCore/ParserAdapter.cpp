@@ -303,7 +303,7 @@ void ParserAdapter::handleQuote(WTSTickData* quote, uint32_t procFlag)
 	if (_stub) _stub->handle_push_quote(quote, hotflag); // push to the engine // NOTE: my fix
 }
 
-// TODO:
+// NOTE: only for STK: non STK should not reach here
 void ParserAdapter::handleOrderQueue(WTSOrdQueData* ordQueData)
 {
     // NOTE: my fix
@@ -316,12 +316,11 @@ void ParserAdapter::handleOrderQueue(WTSOrdQueData* ordQueData)
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
     std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
 
-    // TODO: is a commInfo filering process needed?
     ordQueData->setCode(stdCode.c_str());
     if (_stub) _stub->handle_push_order_queue(ordQueData);
 }
 
-// TODO:
+// NOTE: only for STK: non STK should not reach here
 void ParserAdapter::handleOrderDetail(WTSOrdDtlData* ordDtlData)
 {
     // NOTE: my fix
@@ -334,12 +333,11 @@ void ParserAdapter::handleOrderDetail(WTSOrdDtlData* ordDtlData)
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
     std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
 
-    // TODO: is a commInfo filering process needed?
     ordDtlData->setCode(stdCode.c_str());
     if (_stub) _stub->handle_push_order_detail(ordDtlData);
 }
 
-// TODO:
+// NOTE: only for STK: non STK should not reach here
 void ParserAdapter::handleTransaction(WTSTransData* transData)
 {
     // NOTE: my fix
@@ -352,15 +350,13 @@ void ParserAdapter::handleTransaction(WTSTransData* transData)
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
     std::string stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), commInfo->getProduct());
 
-    // TODO: is a commInfo filering process needed?
     transData->setCode(stdCode.c_str());
     if (_stub) _stub->handle_push_transaction(transData);
 }
 
 void ParserAdapter::handleParserLog(WTSLogLevel ll, const char* message)
 {
-	if (_stopped)
-		return;
+	if (_stopped) return;
 
 	WTSLogger::log_dyn_raw("parser", _id.c_str(), ll, message);
 }
