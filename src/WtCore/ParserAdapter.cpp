@@ -360,49 +360,36 @@ void ParserAdapter::handleParserLog(WTSLogLevel ll, const char* message)
 //ParserAdapterMgr
 void ParserAdapterMgr::release()
 {
-	for (auto it = _adapters.begin(); it != _adapters.end(); it++)
-	{
-		it->second->release();
-	}
+	for (auto it = _adapters.begin(); it != _adapters.end(); it++) it->second->release();
 
 	_adapters.clear();
 }
 
 bool ParserAdapterMgr::addAdapter(const char* id, ParserAdapterPtr& adapter)
 {
-	if (adapter == NULL || strlen(id) == 0)
-		return false;
+    if (adapter == NULL || strlen(id) == 0) return false;
 
-	auto it = _adapters.find(id);
-	if (it != _adapters.end())
-	{
-		WTSLogger::error(" Same name of parsers: {}", id);
-		return false;
-	}
+    auto it = _adapters.find(id);
+    if (it != _adapters.end()) {
+        WTSLogger::error("Same name of parsers: {}", id); // NOTE: my fix
+        return false;
+    }
 
-	_adapters[id] = adapter;
-
-	return true;
+    _adapters[id] = adapter;
+    return true;
 }
 
 
 ParserAdapterPtr ParserAdapterMgr::getAdapter(const char* id)
 {
-	auto it = _adapters.find(id);
-	if (it != _adapters.end())
-	{
-		return it->second;
-	}
-
-	return ParserAdapterPtr();
+    auto it = _adapters.find(id);
+    if (it != _adapters.end()) return it->second;
+    return ParserAdapterPtr();
 }
 
 void ParserAdapterMgr::run()
 {
-	for (auto it = _adapters.begin(); it != _adapters.end(); it++)
-	{
-		it->second->run();
-	}
+    for (auto it = _adapters.begin(); it != _adapters.end(); ++it) it->second->run();
 
-	WTSLogger::info("{} parsers started", _adapters.size());
+    WTSLogger::info("{} parsers started", _adapters.size());
 }
