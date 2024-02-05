@@ -221,7 +221,7 @@ public:
 	/*
 	 *	生成委托单号
 	 */
-	virtual bool makeEntrustID(char* buffer, int length){ return false; }
+	virtual bool makeEntrustID(char* buffer, int length) { return false; }
 
 	/*
 	 *	登录接口
@@ -276,4 +276,4 @@ NS_WTP_END
 
 //获取IDataMgr的函数指针类型
 typedef wtp::ITraderApi* (*FuncCreateTrader)();
-typedef void(*FuncDeleteTrader)(wtp::ITraderApi* &trader);
+typedef void (*FuncDeleteTrader)(wtp::ITraderApi* &trader);
