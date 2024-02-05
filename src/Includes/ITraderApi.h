@@ -36,9 +36,7 @@ typedef std::function<void()>	CommonExecuter;
  *	股票交易接口回调
  *	Added By Wesley @ 2020/05/06
  */
-class IStkTraderSpi
-{
-
+class IStkTraderSpi {
 };
 
 /*
@@ -47,8 +45,7 @@ class IStkTraderSpi
  *	预留起来以后使用,先把接口的相互框架搭建起来
  *	主要提供融资融券等股票特有接口
  */
-class IStkTraderApi
-{
+class IStkTraderApi {
 };
 #pragma endregion
 
@@ -57,8 +54,7 @@ class IStkTraderApi
  *	期权交易接口回调
  *	Added By Wesley @ 2020/05/06
  */
-class IOptTraderSpi
-{
+class IOptTraderSpi {
 public:
 	virtual void onRspEntrustOpt(WTSEntrust* entrust, WTSError *err) {}
 	virtual void onRspOrdersOpt(const WTSArray* ayOrders) {}
@@ -71,8 +67,7 @@ public:
  *	预留起来以后使用,先把接口的相互框架搭建起来
  *	主要提供报价、行权等期权特有接口
  */
-class IOptTraderApi
-{
+class IOptTraderApi {
 public:
 	/*
 	 *	下单接口
@@ -93,103 +88,101 @@ public:
 };
 #pragma endregion
 
-
 //委托回调接口
-class ITraderSpi
-{
+class ITraderSpi {
 public:
-	/*
-	 *	获取基础数据管理器
-	 */
-	virtual IBaseDataMgr*	getBaseDataMgr() = 0;
+    /*
+     *	获取基础数据管理器
+     */
+    virtual IBaseDataMgr* getBaseDataMgr() = 0;
 
-	/*
-	 *	处理交易接口的日志
-	 */
-	virtual void handleTraderLog(WTSLogLevel ll, const char* message){}
+    /*
+     *	处理交易接口的日志
+     */
+    virtual void handleTraderLog(WTSLogLevel ll, const char* message) {}
 
-	/*
-	 *	获取股票交易接口Spi
-	 */
-	virtual IStkTraderSpi* getStkSpi(){ return NULL; }
+    /*
+     *	获取股票交易接口Spi
+     */
+    virtual IStkTraderSpi* getStkSpi() { return NULL; }
 
-	/*
-	 *	获取期权交易接口Spi
-	 */
-	virtual IOptTraderSpi* getOptSpi(){ return NULL; }
+    /*
+     *	获取期权交易接口Spi
+     */
+    virtual IOptTraderSpi* getOptSpi() { return NULL; }
 
 public:
-	/*
-	 *	处理交易接口事件
-	 */
-	virtual void handleEvent(WTSTraderEvent e, int32_t ec) = 0;
+    /*
+     *	处理交易接口事件
+     */
+    virtual void handleEvent(WTSTraderEvent e, int32_t ec) = 0;
 
-	/*
-	 *	登录回报
-	 */
-	virtual void onLoginResult(bool bSucc, const char* msg, uint32_t tradingdate) = 0;
+    /*
+     *	登录回报
+     */
+    virtual void onLoginResult(bool bSucc, const char* msg, uint32_t tradingdate) = 0;
 
-	/*
-	 *	注销回报
-	 */
-	virtual void onLogout(){}
+    /*
+     *	注销回报
+     */
+    virtual void onLogout() {}
 
-	/*
-	 *	委托回报
-	 */
-	virtual void onRspEntrust(WTSEntrust* entrust, WTSError *err){}
+    /*
+     *	委托回报
+     */
+    virtual void onRspEntrust(WTSEntrust* entrust, WTSError* err) {}
 
-	/*
-	 * 资金查询回报
-	 */
-	virtual void onRspAccount(WTSArray* ayAccounts) {}
+    /*
+     * 资金查询回报
+     */
+    virtual void onRspAccount(WTSArray* ayAccounts) {}
 
-	/*
-	 *	持仓查询回报
-	 */
-	virtual void onRspPosition(const WTSArray* ayPositions){}
+    /*
+     *	持仓查询回报
+     */
+    virtual void onRspPosition(const WTSArray* ayPositions) {}
 
-	/*
-	 *	订单查询回报
-	 */
-	virtual void onRspOrders(const WTSArray* ayOrders){}
+    /*
+     *	订单查询回报
+     */
+    virtual void onRspOrders(const WTSArray* ayOrders) {}
 
-	/*
-	 *	成交查询回报
-	 */
-	virtual void onRspTrades(const WTSArray* ayTrades){}
+    /*
+     *	成交查询回报
+     */
+    virtual void onRspTrades(const WTSArray* ayTrades) {}
 
-	/*
-	 *	结算单查询回报
-	 */
-	virtual void onRspSettlementInfo(uint32_t uDate, const char* content){}
+    /*
+     *	结算单查询回报
+     */
+    virtual void onRspSettlementInfo(uint32_t uDate, const char* content) {}
 
-	/*
-	 *	订单回报推送
-	 */
-	virtual void onPushOrder(WTSOrderInfo* orderInfo){}
+    /*
+     *	订单回报推送
+     */
+    virtual void onPushOrder(WTSOrderInfo* orderInfo) {}
 
-	/*
-	 *	成交回报推送
-	 */
-	virtual void onPushTrade(WTSTradeInfo* tradeRecord){}
+    /*
+     *	成交回报推送
+     */
+    virtual void onPushTrade(WTSTradeInfo* tradeRecord) {}
 
-	/*
-	 *	交易接口错误回报
-	 */
-	virtual void onTraderError(WTSError* err){}
+    /*
+     *	交易接口错误回报
+     */
+    virtual void onTraderError(WTSError* err) {}
 
-	/*
-	 *	合约状态推送
-	 */
-	virtual void onPushInstrumentStatus(const char* exchg, const char* code, WTSTradeStatus state) {}
+    /*
+     *	合约状态推送
+     */
+    virtual void onPushInstrumentStatus(const char* exchg, const char* code, WTSTradeStatus state) {}
 };
 
 //下单接口管理接口
 class ITraderApi
 {
 public:
-	virtual ~ITraderApi(){}
+	virtual ~ITraderApi() {}
 
 	virtual IStkTraderApi* getStkTrader() { return NULL; }
 	virtual IOptTraderApi* getOptTrader() { return NULL; }
