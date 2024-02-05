@@ -268,7 +268,7 @@ public:
 	/*
 	 *	≤È—ØΩ·À„µ•
 	 */
-	virtual int querySettlement(uint32_t uDate){ return 0; }
+	virtual int querySettlement(uint32_t uDate) { return 0; }
 
 };
 
