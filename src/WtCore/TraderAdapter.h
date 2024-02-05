@@ -269,26 +269,22 @@ private:
 typedef std::shared_ptr<TraderAdapter>				TraderAdapterPtr;
 typedef wt_hashmap<std::string, TraderAdapterPtr>	TraderAdapterMap;
 
-
 //////////////////////////////////////////////////////////////////////////
 //TraderAdapterMgr
-class TraderAdapterMgr : private boost::noncopyable
-{
+class TraderAdapterMgr : private boost::noncopyable {
 public:
-	void	release();
+    void	release();
+    void	run();
 
-	void	run();
+    const TraderAdapterMap& getAdapters() const { return _adapters; }
+    TraderAdapterPtr getAdapter(const char* tname);
 
-	const TraderAdapterMap& getAdapters() const { return _adapters; }
+    bool	addAdapter(const char* tname, TraderAdapterPtr& adapter);
 
-	TraderAdapterPtr getAdapter(const char* tname);
-
-	bool	addAdapter(const char* tname, TraderAdapterPtr& adapter);
-
-	void	refresh_funds();
+    void	refresh_funds();
 
 private:
-	TraderAdapterMap	_adapters;
+    TraderAdapterMap	_adapters;
 };
 
 NS_WTP_END
