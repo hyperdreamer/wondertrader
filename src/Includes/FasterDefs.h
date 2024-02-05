@@ -95,11 +95,10 @@ public:
 };
 
 template<class Key, class Hash = std::hash<Key>>
-class wt_hashset : public ankerl::unordered_dense::set<Key, Hash>
-{
+class wt_hashset : public ankerl::unordered_dense::set<Key, Hash> {
 public:
-	typedef ankerl::unordered_dense::set<Key, Hash>	Container;
-	wt_hashset() :Container() {}
+    typedef ankerl::unordered_dense::set<Key, Hash>	Container;
+    wt_hashset() :Container() {}
 };
 
 template<>
