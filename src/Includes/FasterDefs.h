@@ -26,8 +26,7 @@
 
 NS_WTP_BEGIN
 
-struct string_hash
-{
+struct string_hash {
     //BKDRHash算法
     std::size_t operator()(const std::string& key) const
     {
@@ -42,35 +41,31 @@ struct string_hash
 };
 
 template<class Key, class T>
-class fastest_hashmap : public tsl::robin_map<Key, T>
-{
+class fastest_hashmap : public tsl::robin_map<Key, T> {
 public:
-	typedef tsl::robin_map<Key, T>	Container;
-	fastest_hashmap():Container(){}
+    typedef tsl::robin_map<Key, T>	Container;
+    fastest_hashmap():Container(){}
 };
 
 template<class T>
-class fastest_hashmap<std::string, T> : public tsl::robin_map<std::string, T, string_hash>
-{
+class fastest_hashmap<std::string, T> : public tsl::robin_map<std::string, T, string_hash> {
 public:
-	typedef tsl::robin_map<std::string, T, string_hash>	Container;
-	fastest_hashmap() :Container() {}
+    typedef tsl::robin_map<std::string, T, string_hash>	Container;
+    fastest_hashmap() :Container() {}
 };
 
 template<class Key>
-class fastest_hashset : public tsl::robin_set<Key>
-{
+class fastest_hashset : public tsl::robin_set<Key> {
 public:
-	typedef tsl::robin_set<Key>	Container;
-	fastest_hashset() :Container() {}
+    typedef tsl::robin_set<Key>	Container;
+    fastest_hashset() :Container() {}
 };
 
 template<>
-class fastest_hashset<std::string> : public tsl::robin_set<std::string, string_hash>
-{
+class fastest_hashset<std::string> : public tsl::robin_set<std::string, string_hash> {
 public:
-	typedef tsl::robin_set<std::string, string_hash>	Container;
-	fastest_hashset() :Container() {}
+    typedef tsl::robin_set<std::string, string_hash>	Container;
+    fastest_hashset() :Container() {}
 };
 
 typedef fastest_hashset<std::string> CodeSet;
@@ -79,19 +74,17 @@ typedef fastest_hashset<std::string> CodeSet;
 //下面使用unordered_dense
 
 template<class Key, class T, class Hash = std::hash<Key>>
-class wt_hashmap : public ankerl::unordered_dense::map<Key, T, Hash>
-{
+class wt_hashmap : public ankerl::unordered_dense::map<Key, T, Hash> {
 public:
-	typedef ankerl::unordered_dense::map<Key, T, Hash>	Container;
-	wt_hashmap() :Container() {}
+    typedef ankerl::unordered_dense::map<Key, T, Hash>	Container;
+    wt_hashmap() :Container() {}
 };
 
 template<class T>
-class wt_hashmap<std::string, T, string_hash> : public ankerl::unordered_dense::map<std::string, T, string_hash>
-{
+class wt_hashmap<std::string, T, string_hash> : public ankerl::unordered_dense::map<std::string, T, string_hash> {
 public:
-	typedef ankerl::unordered_dense::map<std::string, T, string_hash>	Container;
-	wt_hashmap() :Container() {}
+    typedef ankerl::unordered_dense::map<std::string, T, string_hash>	Container;
+    wt_hashmap() :Container() {}
 };
 
 template<class Key, class Hash = std::hash<Key>>
@@ -102,11 +95,10 @@ public:
 };
 
 template<>
-class wt_hashset<std::string, string_hash> : public ankerl::unordered_dense::set<std::string, string_hash>
-{
+class wt_hashset<std::string, string_hash> : public ankerl::unordered_dense::set<std::string, string_hash> {
 public:
-	typedef ankerl::unordered_dense::set<std::string, string_hash>	Container;
-	wt_hashset() :Container() {}
+    typedef ankerl::unordered_dense::set<std::string, string_hash>	Container;
+    wt_hashset() :Container() {}
 };
 
 NS_WTP_END
