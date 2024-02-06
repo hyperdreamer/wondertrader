@@ -133,11 +133,6 @@ bool ParserAdapter::init(const char* id, WTSVariant* cfg, IParserStub* stub, IBa
     }
 
     _remover = (FuncDeleteParser) DLLHelper::get_symbol(hInst, "deleteParser");
-    if (NULL == _remover) { // NOTE: my fix
-        WTSLogger::log_dyn("parser", _id.c_str(), LL_FATAL, 
-                           "[{}] Deletion function deleteParser not found", _id.c_str());
-        return false;
-    }
     //////////////////////////////////////////////////////////////////////////
     const std::string& strFilter = cfg->getString("filter"); // exchange filter
     if (!strFilter.empty()) {
