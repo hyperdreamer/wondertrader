@@ -86,14 +86,12 @@ TraderAdapter::TraderAdapter(EventNotifier* caster /* = NULL */)
 
 TraderAdapter::~TraderAdapter()
 {
-    if (_stat_map)
-        _stat_map->release();
+    if (_stat_map) _stat_map->release();
 }
 
 bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr, ActionPolicyMgr* policyMgr)
 {
-    if (params == NULL)
-        return false;
+    if (params == NULL) return false;
 
     _policy_mgr = policyMgr;
     _bd_mgr = bdMgr;
@@ -101,16 +99,13 @@ bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr
 
     _order_pattern = fmt::format("otp.{}", id);
 
-    if (_cfg != NULL)
-        return false;
-
+    if (_cfg != NULL) return false;
     _cfg = params;
     _cfg->retain();
 
     _ignore_sefmatch = _cfg->getBoolean("ignore_selfmatch");
     _save_data = _cfg->getBoolean("savedata");
-    if (_save_data)
-        initSaveData();
+    if (_save_data) initSaveData();
 
     //这里解析流量风控参数
     WTSVariant* cfgRisk = params->get("riskmon");
