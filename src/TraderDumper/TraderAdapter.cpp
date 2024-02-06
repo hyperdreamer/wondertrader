@@ -80,8 +80,7 @@ bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr
     }
 
     _trader_api = pFunCreateTrader();
-    if (NULL == _trader_api)
-    {
+    if (NULL == _trader_api) {
         WTSLogger::error("[{}]交易接口创建失败", _id.c_str());
         return false;
     }
@@ -89,9 +88,8 @@ bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr
     _remover = (FuncDeleteTrader) DLLHelper::get_symbol(hInst, "deleteTrader");
 
     //这里要强制把quick改成true，不查全部成交和订单
-    params->append("quick", true);
-    if (!_trader_api->init(params))
-    {
+    _cfg->append("quick", true);    // NOTE: my fix
+    if (!_trader_api->init(_cfg)) { // NOTE: my fix
         WTSLogger::error("[{}]交易接口启动失败: 交易接口初始化失败", id);
         return false;
     }
@@ -313,7 +311,6 @@ void TraderAdapter::handleTraderLog(WTSLogLevel ll, const char* message)
 }
 
 #pragma endregion "ITraderSpi接口"
-
 
 //////////////////////////////////////////////////////////////////////////
 //TraderAdapterMgr
