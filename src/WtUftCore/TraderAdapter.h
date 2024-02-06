@@ -41,25 +41,24 @@ public:
         AS_ALLREADY			//全部就绪
     } AdapterState;
 
-    typedef struct _PosItem
-    {
+    typedef struct _PosItem {
         //多仓数据
         double	l_newvol;
         double	l_newavail;
         double	l_prevol;
         double	l_preavail;
-
+     
         //空仓数据
         double	s_newvol;
         double	s_newavail;
         double	s_prevol;
         double	s_preavail;
-
+     
         _PosItem()
         {
             memset(this, 0, sizeof(_PosItem));
         }
-
+     
         double total_pos(bool isLong = true) const
         {
             if (isLong)
@@ -67,7 +66,7 @@ public:
             else
                 return s_newvol + s_prevol;
         }
-
+     
         double avail_pos(bool isLong = true) const
         {
             if (isLong)
@@ -75,19 +74,17 @@ public:
             else
                 return s_newavail + s_preavail;
         }
-
     } PosItem;
 
-    typedef struct _RiskParams
-    {
+    typedef struct _RiskParams {
         uint32_t	_order_times_boundary;
         uint32_t	_order_stat_timespan;
         uint32_t	_order_total_limits;
-
+     
         uint32_t	_cancel_times_boundary;
         uint32_t	_cancel_stat_timespan;
         uint32_t	_cancel_total_limits;
-
+     
         _RiskParams()
         {
             memset(this, 0, sizeof(_RiskParams));
