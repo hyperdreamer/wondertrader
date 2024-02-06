@@ -36,21 +36,21 @@ typedef std::condition_variable_any	StdCondVariable;
 typedef std::unique_lock<StdUniqueMutex>	StdUniqueLock;
 
 template<typename T>
-class StdLocker
-{
+class StdLocker {
 public:
-	StdLocker(T& mtx)
-	{
-		mtx.lock();
-		_mtx = &mtx;
-	}
+    StdLocker(T& mtx)
+    {
+        mtx.lock();
+        _mtx = &mtx;
+    }
 
-	~StdLocker(){
-		_mtx->unlock();
-	}
+    ~StdLocker()
+    {
+        _mtx->unlock();
+    }
 
 private:
-	T* _mtx;
+    T* _mtx;
 };
 
 //////////////////////////////////////////////////////////////////////////
