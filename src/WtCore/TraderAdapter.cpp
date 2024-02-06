@@ -109,86 +109,79 @@ bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr
 
     //这里解析流量风控参数
     WTSVariant* cfgRisk = params->get("riskmon");
-    if (cfgRisk)
-    {
-        if (cfgRisk->getBoolean("active"))
-        {
+    if (cfgRisk) {
+        if (cfgRisk->getBoolean("active")) {
             _risk_mon_enabled = true;
-
+         
             WTSVariant* cfgPolicy = cfgRisk->get("policy");
             auto keys = cfgPolicy->memberNames();
-            for (auto it = keys.begin(); it != keys.end(); it++)
-            {
+            for (auto it = keys.begin(); it != keys.end(); ++it) {
                 const char* product = (*it).c_str();
                 WTSVariant*	vProdItem = cfgPolicy->get(product);
                 RiskParams& rParam = _risk_params_map[product];
+             
                 rParam._cancel_total_limits = vProdItem->getUInt32("cancel_total_limits");
                 rParam._cancel_times_boundary = vProdItem->getUInt32("cancel_times_boundary");
                 rParam._cancel_stat_timespan = vProdItem->getUInt32("cancel_stat_timespan");
-
+             
                 rParam._order_total_limits = vProdItem->getUInt32("order_total_limits");
                 rParam._order_times_boundary = vProdItem->getUInt32("order_times_boundary");
                 rParam._order_stat_timespan = vProdItem->getUInt32("order_stat_timespan");
-
-                WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, "[{}] Risk control rule {} of trading channel loaded", _id.c_str(), product);
+             
+                WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, 
+                                   "[{}] Risk control rule {} of trading channel loaded", _id.c_str(), product);
             }
-
+         
             auto it = _risk_params_map.find("default");
             if (it == _risk_params_map.end())
-            {
-                WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, "[{}] Some instruments may not be monitored due to no default risk control rule of trading channel", _id.c_str());
-            }
+                WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, 
+                                   "[{}] Some instruments may not be monitored ",
+                                   "due to no default risk control rule of trading channel", _id.c_str());
         }
         else
-        {
-            WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, "[{}] Risk control rule of trading channel not activated", _id.c_str());
-        }
+            WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, 
+                               "[{}] Risk control rule of trading channel not activated", _id.c_str());
     }
     else
-    {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, "[{}] No risk control rule setup of trading channel", _id.c_str());
-    }
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, 
+                           "[{}] No risk control rule setup of trading channel", _id.c_str());
 
-    if (params->getString("module").empty())
-        return false;
+    if (params->getString("module").empty()) return false;
 
     std::string module = DLLHelper::wrap_module(params->getCString("module"), "lib");;
-
     //先看工作目录下是否有交易模块
     std::string dllpath = WtHelper::getModulePath(module.c_str(), "traders", true);
     //如果没有,则再看模块目录,即dll同目录下
-    if (!StdFile::exists(dllpath.c_str()))
-        dllpath = WtHelper::getModulePath(module.c_str(), "traders", false);
+    if (!StdFile::exists(dllpath.c_str())) dllpath = WtHelper::getModulePath(module.c_str(), "traders", false);
+
     DllHandle hInst = DLLHelper::load_library(dllpath.c_str());
-    if (hInst == NULL)
-    {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] Loading trading module {} failed", _id.c_str(), dllpath.c_str());
+    if (hInst == NULL) {
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
+                           "[{}] Loading trading module {} failed", _id.c_str(), dllpath.c_str());
         return false;
     }
     else
-    {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, "[{}] Trader module {} loaded", _id.c_str(), dllpath.c_str());
-    }
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, 
+                           "[{}] Trader module {} loaded", _id.c_str(), dllpath.c_str());
 
-    FuncCreateTrader pFunCreateTrader = (FuncCreateTrader)DLLHelper::get_symbol(hInst, "createTrader");
-    if (NULL == pFunCreateTrader)
-    {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_FATAL, "[{}] Entrance function createTrader not found", _id.c_str());
+    FuncCreateTrader pFunCreateTrader = (FuncCreateTrader) DLLHelper::get_symbol(hInst, "createTrader");
+    if (NULL == pFunCreateTrader) {
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_FATAL, 
+                           "[{}] Entrance function createTrader not found", _id.c_str());
         return false;
     }
 
+    _remover = (FuncDeleteTrader) DLLHelper::get_symbol(hInst, "deleteTrader");
+
     _trader_api = pFunCreateTrader();
-    if (NULL == _trader_api)
-    {
+    if (NULL == _trader_api) {
         WTSLogger::log_dyn("trader", _id.c_str(), LL_FATAL, "[{}] Creating trading api failed", _id.c_str());
         return false;
     }
 
-    _remover = (FuncDeleteTrader)DLLHelper::get_symbol(hInst, "deleteTrader");
-
-    if (!_trader_api->init(params))
-    {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] Entrance function deleteTrader not found", id);
+    if (!_trader_api->init(params)) {
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
+                           "[{}] Trader initializing failed: api initializing failed...", _id.c_str());
         return false;
     }
 
