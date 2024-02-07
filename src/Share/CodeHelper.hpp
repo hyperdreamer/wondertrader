@@ -550,7 +550,7 @@ public:
      * Example 7: if stdCode == CZCE.ZC.HOT, then codeInfo._exchg = CZCE,
      * codeInfo._product = ZC, codeinfo._code = ZC, codeInfo._ruletag = ???
      */
-    static CodeInfo extractStdCode(const char* stdCode, IHotMgr *hotMgr)
+    static CodeInfo extractStdCode(const char* stdCode, IHotMgr* hotMgr)
     {
         //期权的代码规则和其他都不一样，所以单独判断
         if(isStdChnFutOptCode(stdCode)) return extractStdChnFutOptCode(stdCode);
