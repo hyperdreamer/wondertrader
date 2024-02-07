@@ -212,13 +212,14 @@ bool TraderAdapter::initExt(const char* id, ITraderApi* api, IBaseDataMgr* bdMgr
     return true;
 }
 
+// TODO
 void TraderAdapter::initSaveData()
 {
     /*std::string folder = WtHelper::getOutputDir();
       folder += _name;
       folder += "//";*/
     std::stringstream ss;
-    ss << WtHelper::getBaseDir() << "traders/" << _id << "//";
+    ss << WtHelper::getBaseDir() << "traders/" << _id << "//";  // TODO: why double "//"?
     std::string folder = ss.str();
     BoostFile::create_directories(folder.c_str());
 
@@ -228,13 +229,9 @@ void TraderAdapter::initSaveData()
         bool isNewFile = !BoostFile::exists(filename.c_str());
         _trades_log->create_or_open_file(filename.c_str());
         if (isNewFile)
-        {
             _trades_log->write_file("localid,date,time,code,action,volume,price,tradeid,orderid\n");
-        }
         else
-        {
             _trades_log->seek_to_end();
-        }
     }
 
     filename = folder + "orders.csv";
@@ -243,13 +240,9 @@ void TraderAdapter::initSaveData()
         bool isNewFile = !BoostFile::exists(filename.c_str());
         _orders_log->create_or_open_file(filename.c_str());
         if (isNewFile)
-        {
             _orders_log->write_file("localid,date,inserttime,code,action,volume,traded,price,orderid,canceled,remark\n");
-        }
         else
-        {
             _orders_log->seek_to_end();
-        }
     }
 
     _rt_data_file = folder + "rtdata.json";
@@ -257,25 +250,30 @@ void TraderAdapter::initSaveData()
 
 void TraderAdapter::logTrade(uint32_t localid, const char* stdCode, WTSTradeInfo* trdInfo)
 {
-    if (_trades_log == NULL || trdInfo == NULL)
-        return;
+    if (_trades_log == NULL || trdInfo == NULL) return;
 
     _trades_log->write_file(fmt::format("{},{},{},{},{},{},{},{},{}\n",
                                         localid, trdInfo->getTradeDate(), trdInfo->getTradeTime(), stdCode,
                                         formatAction(trdInfo->getDirection(), trdInfo->getOffsetType()),
-                                        trdInfo->getVolume(), trdInfo->getPrice(), trdInfo->getTradeID(), trdInfo->getRefOrder()));
+                                        trdInfo->getVolume(), trdInfo->getPrice(), trdInfo->getTradeID(), 
+                                        trdInfo->getRefOrder()
+                                       )
+                           );
 }
 
 void TraderAdapter::logOrder(uint32_t localid, const char* stdCode, WTSOrderInfo* ordInfo)
 {
-    if (_orders_log == NULL || ordInfo == NULL)
-        return;
+    if (_orders_log == NULL || ordInfo == NULL) return;
 
     _orders_log->write_file(fmt::format("{},{},{},{},{},{},{},{},{},{},{}\n",
                                         localid, ordInfo->getOrderDate(), ordInfo->getOrderTime(), stdCode,
                                         formatAction(ordInfo->getDirection(), ordInfo->getOffsetType()),
                                         ordInfo->getVolume(), ordInfo->getVolTraded(), ordInfo->getPrice(), 
-                                        ordInfo->getOrderID(), ordInfo->getOrderState()==WOS_Canceled?"TRUE":"FALSE", ordInfo->getStateMsg()));
+                                        ordInfo->getOrderID(), 
+                                        (ordInfo->getOrderState() == WOS_Canceled ? "TRUE" : "FALSE"), 
+                                        ordInfo->getStateMsg()
+                                       )
+                           );
 }
 
 void TraderAdapter::saveData(WTSArray* ayFunds /* = NULL */)
