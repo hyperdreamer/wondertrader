@@ -234,171 +234,168 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //订单信息,查看订单状态变化等
-class WTSOrderInfo : public WTSPoolObject<WTSOrderInfo>
-{
+class WTSOrderInfo : public WTSPoolObject<WTSOrderInfo> {
 public:
-	WTSOrderInfo()
-		:m_orderState(WOS_Submitting)
-		,m_orderType(WORT_Normal)
-		,m_uInsertDate(0)
-		,m_uInsertTime(0)
-		,m_dVolTraded(0)
-		,m_dVolLeft(0)
-		,m_bIsError(false)
-	{
+    WTSOrderInfo()
+        : m_orderState(WOS_Submitting)
+        , m_orderType(WORT_Normal)
+        , m_uInsertDate(0)
+        , m_uInsertTime(0)
+        , m_dVolTraded(0)
+        , m_dVolLeft(0)
+        , m_bIsError(false)
+    {
+    }
 
-	}
-
-	virtual ~WTSOrderInfo(){}
+    virtual ~WTSOrderInfo() {}
 
 public:
-	static inline WTSOrderInfo* create(WTSEntrust* entrust = NULL)
-	{
-		WTSOrderInfo *pRet = WTSOrderInfo::allocate();
-
-		if(entrust != NULL)
-		{
-			wt_strcpy(pRet->m_strCode, entrust->getCode());
-			wt_strcpy(pRet->m_strExchg,entrust->getExchg());
-			pRet->m_iPrice = entrust->getPrice();
-			pRet->m_dVolume = entrust->getVolume();
-
-			pRet->m_direction = entrust->getDirection();
-			pRet->m_offsetType = entrust->getOffsetType();
-			pRet->m_orderFlag = entrust->getOrderFlag();
-			pRet->m_priceType = entrust->getPriceType();
-			wt_strcpy(pRet->m_strEntrustID, entrust->getEntrustID());
-			wt_strcpy(pRet->m_strUserTag, entrust->getUserTag());
-
-			pRet->m_dVolLeft = entrust->getVolume();
-			pRet->m_businessType = entrust->getBusinessType();
-		}
-
-		return pRet;
-	}
-
-public:
-	//这部分是和WTSEntrust同步的
-	inline void setExchange(const char* exchg, std::size_t len = 0) {
-		if (len == 0)
-			wt_strcpy(m_strExchg, exchg);
-		else
-			strncpy(m_strExchg, exchg, len);
-	}
-	inline void setCode(const char* code, std::size_t len = 0) {
-		if (len == 0)
-			wt_strcpy(m_strCode, code);
-		else
-			strncpy(m_strCode, code, len);
-	}
-
-	inline void setDirection(WTSDirectionType dType) { m_direction = dType; }
-	inline void setPriceType(WTSPriceType pType) { m_priceType = pType; }
-	inline void setOrderFlag(WTSOrderFlag oFlag) { m_orderFlag = oFlag; }
-	inline void setOffsetType(WTSOffsetType oType) { m_offsetType = oType; }
-
-	inline WTSDirectionType	getDirection() const { return m_direction; }
-	inline WTSPriceType		getPriceType() const { return m_priceType; }
-	inline WTSOrderFlag		getOrderFlag() const { return m_orderFlag; }
-	inline WTSOffsetType	getOffsetType() const { return m_offsetType; }
-
-	inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
-	inline WTSBusinessType	getBusinessType() const { return m_businessType; }
-
-	inline void setVolume(double volume) { m_dVolume = volume; }
-	inline void setPrice(double price) { m_iPrice = price; }
-
-	inline double getVolume() const { return m_dVolume; }
-	inline double getPrice() const { return m_iPrice; }
-
-	inline const char* getCode() const { return m_strCode; }
-	inline const char* getExchg() const { return m_strExchg; }
-
-	inline void setEntrustID(const char* eid) { wt_strcpy(m_strEntrustID, eid); }
-	inline const char* getEntrustID() const { return m_strEntrustID; }
-	inline char* getEntrustID() { return m_strEntrustID; }
-
-	inline void setUserTag(const char* tag) { wt_strcpy(m_strUserTag, tag); }
-	inline const char* getUserTag() const { return m_strUserTag; }
-	inline char* getUserTag() { return m_strUserTag; }
-
-	inline void setNetDirection(bool isBuy) { m_bIsNet = true; m_bIsBuy = isBuy; }
-	inline bool isNet() const { return m_bIsNet; }
-	inline bool isBuy() const { return m_bIsBuy; }
-
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+    static inline WTSOrderInfo* create(WTSEntrust* entrust = NULL)
+    {
+        WTSOrderInfo *pRet = WTSOrderInfo::allocate();
+     
+        if (entrust != NULL) {
+            wt_strcpy(pRet->m_strCode, entrust->getCode());
+            wt_strcpy(pRet->m_strExchg,entrust->getExchg());
+            pRet->m_iPrice = entrust->getPrice();
+            pRet->m_dVolume = entrust->getVolume();
+         
+            pRet->m_direction = entrust->getDirection();
+            pRet->m_offsetType = entrust->getOffsetType();
+            pRet->m_orderFlag = entrust->getOrderFlag();
+            pRet->m_priceType = entrust->getPriceType();
+            wt_strcpy(pRet->m_strEntrustID, entrust->getEntrustID());
+            wt_strcpy(pRet->m_strUserTag, entrust->getUserTag());
+         
+            pRet->m_dVolLeft = entrust->getVolume();
+            pRet->m_businessType = entrust->getBusinessType();
+        }
+     
+        return pRet;
+    }
 
 public:
-	inline void	setOrderDate(uint32_t uDate){m_uInsertDate = uDate;}
-	inline void	setOrderTime(uint64_t uTime){m_uInsertTime = uTime;}
-	inline void	setVolTraded(double vol){ m_dVolTraded = vol; }
-	inline void	setVolLeft(double vol){ m_dVolLeft = vol; }
-	
-	inline void	setOrderID(const char* oid) { wt_strcpy(m_strOrderID, oid); }
-	inline void	setOrderState(WTSOrderState os){m_orderState = os;}
-	inline void	setOrderType(WTSOrderType ot){m_orderType = ot;}
+    //这部分是和WTSEntrust同步的
+    inline void setExchange(const char* exchg, std::size_t len = 0) {
+        if (len == 0)
+            wt_strcpy(m_strExchg, exchg);
+        else
+            strncpy(m_strExchg, exchg, len);
+    }
+    inline void setCode(const char* code, std::size_t len = 0) {
+        if (len == 0)
+            wt_strcpy(m_strCode, code);
+        else
+            strncpy(m_strCode, code, len);
+    }
 
-	inline uint32_t getOrderDate() const{return m_uInsertDate;}
-	inline uint64_t getOrderTime() const{return m_uInsertTime;}
-	inline double getVolTraded() const{ return m_dVolTraded; }
-	inline double getVolLeft() const{ return m_dVolLeft; }
-    
-	inline WTSOrderState		getOrderState() const { return m_orderState; }
-	inline WTSOrderType			getOrderType() const { return m_orderType; }
-	inline const char*			getOrderID() const { return m_strOrderID; }
-	inline char*			getOrderID() { return m_strOrderID; }
+    inline void setDirection(WTSDirectionType dType) { m_direction = dType; }
+    inline void setPriceType(WTSPriceType pType) { m_priceType = pType; }
+    inline void setOrderFlag(WTSOrderFlag oFlag) { m_orderFlag = oFlag; }
+    inline void setOffsetType(WTSOffsetType oType) { m_offsetType = oType; }
 
-	inline void	setStateMsg(const char* msg){m_strStateMsg = msg;}
-	inline const char* getStateMsg() const{return m_strStateMsg.c_str();}
+    inline WTSDirectionType	getDirection() const { return m_direction; }
+    inline WTSPriceType		getPriceType() const { return m_priceType; }
+    inline WTSOrderFlag		getOrderFlag() const { return m_orderFlag; }
+    inline WTSOffsetType	getOffsetType() const { return m_offsetType; }
 
-	inline bool	isAlive() const
-	{
-		switch(m_orderState)
-		{
-		case WOS_AllTraded:
-		case WOS_Canceled:
-			return false;
-		default:
-			return true;
-		}
-	}
+    inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
+    inline WTSBusinessType	getBusinessType() const { return m_businessType; }
 
-	inline void	setError(bool bError = true){ m_bIsError = bError; }
-	inline bool	isError() const{ return m_bIsError; }
+    inline void setVolume(double volume) { m_dVolume = volume; }
+    inline void setPrice(double price) { m_iPrice = price; }
+
+    inline double getVolume() const { return m_dVolume; }
+    inline double getPrice() const { return m_iPrice; }
+
+    inline const char* getCode() const { return m_strCode; }
+    inline const char* getExchg() const { return m_strExchg; }
+
+    inline void setEntrustID(const char* eid) { wt_strcpy(m_strEntrustID, eid); }
+    inline const char* getEntrustID() const { return m_strEntrustID; }
+    inline char* getEntrustID() { return m_strEntrustID; }
+
+    inline void setUserTag(const char* tag) { wt_strcpy(m_strUserTag, tag); }
+    inline const char* getUserTag() const { return m_strUserTag; }
+    inline char* getUserTag() { return m_strUserTag; }
+
+    inline void setNetDirection(bool isBuy) { m_bIsNet = true; m_bIsBuy = isBuy; }
+    inline bool isNet() const { return m_bIsNet; }
+    inline bool isBuy() const { return m_bIsBuy; }
+
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+
+public:
+    inline void	setOrderDate(uint32_t uDate){m_uInsertDate = uDate;}
+    inline void	setOrderTime(uint64_t uTime){m_uInsertTime = uTime;}
+    inline void	setVolTraded(double vol){ m_dVolTraded = vol; }
+    inline void	setVolLeft(double vol){ m_dVolLeft = vol; }
+
+    inline void	setOrderID(const char* oid) { wt_strcpy(m_strOrderID, oid); }
+    inline void	setOrderState(WTSOrderState os){m_orderState = os;}
+    inline void	setOrderType(WTSOrderType ot){m_orderType = ot;}
+
+    inline uint32_t getOrderDate() const{return m_uInsertDate;}
+    inline uint64_t getOrderTime() const{return m_uInsertTime;}
+    inline double getVolTraded() const{ return m_dVolTraded; }
+    inline double getVolLeft() const{ return m_dVolLeft; }
+
+    inline WTSOrderState		getOrderState() const { return m_orderState; }
+    inline WTSOrderType			getOrderType() const { return m_orderType; }
+    inline const char*			getOrderID() const { return m_strOrderID; }
+    inline char*			getOrderID() { return m_strOrderID; }
+
+    inline void	setStateMsg(const char* msg){m_strStateMsg = msg;}
+    inline const char* getStateMsg() const{return m_strStateMsg.c_str();}
+
+    inline bool	isAlive() const
+    {
+        switch(m_orderState)
+        {
+        case WOS_AllTraded:
+        case WOS_Canceled:
+            return false;
+        default:
+            return true;
+        }
+    }
+
+    inline void	setError(bool bError = true){ m_bIsError = bError; }
+    inline bool	isError() const{ return m_bIsError; }
 
 private:
-	//这部分成员和WTSEntrust一致
-	char			m_strExchg[MAX_EXCHANGE_LENGTH];
-	char			m_strCode[MAX_INSTRUMENT_LENGTH];
-	double			m_dVolume;
-	double			m_iPrice;
+    //这部分成员和WTSEntrust一致
+    char			m_strExchg[MAX_EXCHANGE_LENGTH];
+    char			m_strCode[MAX_INSTRUMENT_LENGTH];
+    double			m_dVolume;
+    double			m_iPrice;
 
-	bool			m_bIsNet;
-	bool			m_bIsBuy;
+    bool			m_bIsNet;
+    bool			m_bIsBuy;
 
-	WTSDirectionType	m_direction;
-	WTSPriceType		m_priceType;
-	WTSOrderFlag		m_orderFlag;
-	WTSOffsetType		m_offsetType;
+    WTSDirectionType	m_direction;
+    WTSPriceType		m_priceType;
+    WTSOrderFlag		m_orderFlag;
+    WTSOffsetType		m_offsetType;
 
-	char				m_strEntrustID[64] = { 0 };
-	char				m_strUserTag[64] = { 0 };
+    char				m_strEntrustID[64] = { 0 };
+    char				m_strUserTag[64] = { 0 };
 
-	WTSBusinessType		m_businessType;
-	WTSContractInfo*	m_pContract;
+    WTSBusinessType		m_businessType;
+    WTSContractInfo*	m_pContract;
 
-	//这部分是Order专有的成员
-	uint32_t	m_uInsertDate;
-	uint64_t	m_uInsertTime;
-	double		m_dVolTraded;
-	double		m_dVolLeft;
-	bool		m_bIsError;
+    //这部分是Order专有的成员
+    uint32_t	m_uInsertDate;
+    uint64_t	m_uInsertTime;
+    double		m_dVolTraded;
+    double		m_dVolLeft;
+    bool		m_bIsError;
 
-	WTSOrderState	m_orderState;
-	WTSOrderType	m_orderType;
-	char			m_strOrderID[64] = { 0 };
-	std::string		m_strStateMsg;
+    WTSOrderState	m_orderState;
+    WTSOrderType	m_orderType;
+    char			m_strOrderID[64] = { 0 };
+    std::string		m_strStateMsg;
 };
 
 //////////////////////////////////////////////////////////////////////////

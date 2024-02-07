@@ -433,20 +433,17 @@ void TraderAdapter::enumPosition(FuncEnumChnlPosCallBack cb)
 
 OrderMap* TraderAdapter::getOrders(const char* stdCode)
 {
-    if (_orders == NULL)
-        return NULL;
+    if (_orders == NULL) return NULL;
 
     bool isAll = strlen(stdCode) == 0;
 
     StdUniqueLock lock(_mtx_orders);
-    OrderMap* ret = OrderMap::create();
-    for (auto it = _orders->begin(); it != _orders->end(); it++)
-    {
+    OrderMap* ret = OrderMap::create(); // NOTE: rember to release after calling this function
+    for (auto it = _orders->begin(); it != _orders->end(); ++it) {
         uint32_t localid = it->first;
-        WTSOrderInfo* ordInfo = (WTSOrderInfo*)it->second;
-
-        if (isAll || strcmp(ordInfo->getCode(), stdCode) == 0)
-            ret->add(localid, ordInfo);
+        WTSOrderInfo* ordInfo = (WTSOrderInfo*) it->second;
+     
+        if (isAll || strcmp(ordInfo->getCode(), stdCode) == 0) ret->add(localid, ordInfo);
     }
     return ret;
 }

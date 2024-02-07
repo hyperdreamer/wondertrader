@@ -131,34 +131,33 @@ typedef enum tagLogLevel {
 /*
  *	价格类型
  */
-typedef enum tagPriceType
-{
-	WPT_ANYPRICE	= 0,			//市价单
-	WPT_LIMITPRICE,					//限价单
-	WPT_BESTPRICE,					//最优价
-	WPT_LASTPRICE,					//最新价
+typedef enum tagPriceType {
+    WPT_ANYPRICE	= 0,			//市价单
+    WPT_LIMITPRICE,					//限价单
+    WPT_BESTPRICE,					//最优价
+    WPT_LASTPRICE,					//最新价
 
-	//////////////////////////////////////////////////////////////////////////
-	//以下对标CTP的价格类型
-	WPT_CTP_LASTPLUSONETICKS = 20,	//最新价+1ticks
-	WPT_CTP_LASTPLUSTWOTICKS,		//最新价+2ticks
-	WPT_CTP_LASTPLUSTHREETICKS,		//最新价+3ticks
-	WPT_CTP_ASK1,					//卖一价
-	WPT_CTP_ASK1PLUSONETICKS,		//卖一价+1ticks
-	WPT_CTP_ASK1PLUSTWOTICKS,		//卖一价+2ticks
-	WPT_CTP_ASK1PLUSTHREETICKS,		//卖一价+3ticks
-	WPT_CTP_BID1,					//买一价
-	WPT_CTP_BID1PLUSONETICKS,		//卖一价+1ticks
-	WPT_CTP_BID1PLUSTWOTICKS,		//卖一价+2ticks
-	WPT_CTP_BID1PLUSTHREETICKS,		//卖一价+3ticks
-	WPT_CTP_FIVELEVELPRICE,			//五档价，中金所市价
+    //////////////////////////////////////////////////////////////////////////
+    //以下对标CTP的价格类型
+    WPT_CTP_LASTPLUSONETICKS = 20,	//最新价+1ticks
+    WPT_CTP_LASTPLUSTWOTICKS,		//最新价+2ticks
+    WPT_CTP_LASTPLUSTHREETICKS,		//最新价+3ticks
+    WPT_CTP_ASK1,					//卖一价
+    WPT_CTP_ASK1PLUSONETICKS,		//卖一价+1ticks
+    WPT_CTP_ASK1PLUSTWOTICKS,		//卖一价+2ticks
+    WPT_CTP_ASK1PLUSTHREETICKS,		//卖一价+3ticks
+    WPT_CTP_BID1,					//买一价
+    WPT_CTP_BID1PLUSONETICKS,		//卖一价+1ticks
+    WPT_CTP_BID1PLUSTWOTICKS,		//卖一价+2ticks
+    WPT_CTP_BID1PLUSTHREETICKS,		//卖一价+3ticks
+    WPT_CTP_FIVELEVELPRICE,			//五档价，中金所市价
 
-	//////////////////////////////////////////////////////////////////////////
-	//以下对标DC的价格类型
-	WPT_DC_POSTONLY	= 100,			//只做maker单
-	WPT_DC_FOK,						//全部成交或立即取消
-	WPT_DC_IOC,						//立即成交并取消剩余
-	WPT_DC_OPTLIMITIOC				//市价委托立即成交并取消剩余
+    //////////////////////////////////////////////////////////////////////////
+    //以下对标DC的价格类型
+    WPT_DC_POSTONLY	= 100,			//只做maker单
+    WPT_DC_FOK,						//全部成交或立即取消
+    WPT_DC_IOC,						//立即成交并取消剩余
+    WPT_DC_OPTLIMITIOC				//市价委托立即成交并取消剩余
 } WTSPriceType;
 
 /*
@@ -196,11 +195,10 @@ typedef enum tagOffsetType
 /*
  *	多空方向
  */
-typedef enum tagDirectionType
-{
-	WDT_LONG			= '0',	//做多
-	WDT_SHORT,					//做空
-	WDT_NET						//净
+typedef enum tagDirectionType {
+    WDT_LONG			= '0',	//做多
+    WDT_SHORT,					//做空
+    WDT_NET						//净
 } WTSDirectionType;
 
 /*
