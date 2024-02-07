@@ -97,7 +97,7 @@ bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr
     _bd_mgr = bdMgr;
     _id = id;
 
-    _order_pattern = fmt::format("otp.{}", id);
+    _order_pattern = fmt::format("otp.{}", _id.c_str());
 
     if (_cfg != NULL) return false;
     _cfg = params;
@@ -190,26 +190,22 @@ bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr
 
 bool TraderAdapter::initExt(const char* id, ITraderApi* api, IBaseDataMgr* bdMgr, ActionPolicyMgr* policyMgr)
 {
-    if (api == NULL)
-        return false;
+    if (api == NULL) return false;
 
     _policy_mgr = policyMgr;
     _bd_mgr = bdMgr;
     _id = id;
 
-    _order_pattern = fmt::format("otp.{}", id);
+    _order_pattern = fmt::format("otp.{}", _id.c_str());
 
-    if (_cfg != NULL)
-        return false;
+    if (_cfg != NULL) return false;
 
     _save_data = true;
-    if (_save_data)
-        initSaveData();
+    if (_save_data) initSaveData();
 
     _trader_api = api;
-    if (!_trader_api->init(NULL))
-    {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] Trader initializing failed", id);
+    if (!_trader_api->init(NULL)) {
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] Trader initializing failed", _id.c_str());
         return false;
     }
 
