@@ -366,10 +366,10 @@ const TraderAdapter::RiskParams* TraderAdapter::getRiskParams(const char* stdCod
     CodeHelper::CodeInfo cInfo = CodeHelper::extractStdCode(stdCode, NULL);
     std::string pid = cInfo.stdCommID();
     auto it = _risk_params_map.find(pid);
-    if (it != _risk_params_map.end()) return &it->second;
+    if (it != _risk_params_map.end()) return &(it->second);
 
     it = _risk_params_map.find("default");
-    return &it->second;
+    return &(it->second);
 }
 
 bool TraderAdapter::run()
