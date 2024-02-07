@@ -338,21 +338,20 @@ void TraderAdapter::saveData(WTSArray* ayFunds /* = NULL */)
                 fItem.AddMember("margin", fundInfo->getMargin(), allocator);
                 fItem.AddMember("fee", fundInfo->getCommission(), allocator);
                 fItem.AddMember("available", fundInfo->getAvailable(), allocator);
-
+             
                 fItem.AddMember("deposit", fundInfo->getDeposit(), allocator);
                 fItem.AddMember("withdraw", fundInfo->getWithdraw(), allocator);
-
+             
                 jFunds.AddMember(rj::Value(fundInfo->getCurrency(), allocator), fItem, allocator);
             }
         }
-
+     
         root.AddMember("funds", jFunds, allocator);
     }
 
     {
         BoostFile bf;
-        if (bf.create_new_file(_rt_data_file.c_str()))
-        {
+        if (bf.create_new_file(_rt_data_file.c_str())) {
             rj::StringBuffer sb;
             rj::PrettyWriter<rj::StringBuffer> writer(sb);
             root.Accept(writer);
@@ -367,8 +366,7 @@ const TraderAdapter::RiskParams* TraderAdapter::getRiskParams(const char* stdCod
     CodeHelper::CodeInfo cInfo = CodeHelper::extractStdCode(stdCode, NULL);
     std::string pid = cInfo.stdCommID();
     auto it = _risk_params_map.find(pid);
-    if (it != _risk_params_map.end())
-        return &it->second;
+    if (it != _risk_params_map.end()) return &it->second;
 
     it = _risk_params_map.find("default");
     return &it->second;
