@@ -374,62 +374,58 @@ const TraderAdapter::RiskParams* TraderAdapter::getRiskParams(const char* stdCod
 
 bool TraderAdapter::run()
 {
-    if (_trader_api == NULL)
-        return false;
+    if (_trader_api == NULL) return false;
 
-    if (_stat_map == NULL)
-        _stat_map = TradeStatMap::create();
+    if (_stat_map == NULL) _stat_map = TradeStatMap::create();
 
     _trader_api->registerSpi(this);
-
     _trader_api->connect();
     _state = AS_LOGINING;
     return true;
 }
 
+// TODO:
 void TraderAdapter::release()
 {
-    if (_trader_api)
-    {
+    if (_trader_api) {
         _trader_api->registerSpi(NULL);
-        _trader_api->release();
+        _trader_api->release(); // TODO: Add _trader_api = NULL???
     }
 }
 
 double TraderAdapter::getPosition(const char* stdCode, bool bValidOnly, int32_t flag /* = 3 */)
 {
     auto it = _positions.find(stdCode);
-    if (it == _positions.end())
-        return 0;
+    if (it == _positions.end()) return 0;
 
     double ret = 0;
     const PosItem& pItem = it->second;
-    if(flag & 1)
-    {
+    if (flag & 1) {
         if(bValidOnly)
             ret += (pItem.l_newavail + pItem.l_preavail);
         else
             ret += (pItem.l_newvol + pItem.l_prevol);
     }
 
-    if (flag & 2)
-    {
+    if (flag & 2) {
         if (bValidOnly)
             ret -= (pItem.s_newavail + pItem.s_preavail);
         else
             ret -= pItem.s_newvol + pItem.s_prevol;
     }
+
     return ret;
 }
 
 void TraderAdapter::enumPosition(FuncEnumChnlPosCallBack cb)
 {
-    for(auto& v : _positions)
-    {
+    for(auto& v : _positions) {
         const char* stdCode = v.first.c_str();
         const PosItem& pItem = v.second;
+     
         if(decimal::gt(pItem.l_prevol + pItem.l_newvol, 0))
             cb(stdCode, true, pItem.l_prevol, pItem.l_preavail, pItem.l_newvol, pItem.l_newavail);
+     
         if (decimal::gt(pItem.s_prevol + pItem.s_newvol, 0))
             cb(stdCode, false, pItem.s_prevol, pItem.s_preavail, pItem.s_newvol, pItem.s_newavail);
     }
