@@ -289,50 +289,47 @@ void TraderAdapter::saveData(WTSArray* ayFunds /* = NULL */)
         double	l_newavail;
         double	l_prevol;
         double	l_preavail;
-
+     
         //空仓数据
         double	s_newvol;
         double	s_newavail;
         double	s_prevol;
         double	s_preavail;
         */
-
-        for (auto it = _positions.begin(); it != _positions.end(); it++)
-        {
+     
+        for (auto it = _positions.begin(); it != _positions.end(); ++it) {
             const char* stdCode = it->first.c_str();
             const PosItem& pInfo = it->second;
-
+         
             rj::Value pItem(rj::kObjectType);
             pItem.AddMember("code", rj::Value(stdCode, allocator), allocator);
-
+         
             rj::Value longItem(rj::kObjectType);
             longItem.AddMember("newvol", pInfo.l_newvol, allocator);
             longItem.AddMember("newavail", pInfo.l_newavail, allocator);
             longItem.AddMember("prevol", pInfo.l_prevol, allocator);
             longItem.AddMember("preavail", pInfo.l_preavail, allocator);
             pItem.AddMember("long", longItem, allocator);
-
+         
             rj::Value shortItem(rj::kObjectType);
             shortItem.AddMember("newvol", pInfo.s_newvol, allocator);
             shortItem.AddMember("newavail", pInfo.s_newavail, allocator);
             shortItem.AddMember("prevol", pInfo.s_prevol, allocator);
             shortItem.AddMember("preavail", pInfo.s_preavail, allocator);
             pItem.AddMember("short", shortItem, allocator);
-
+         
             jPos.PushBack(pItem, allocator);
         }
-
+     
         root.AddMember("positions", jPos, allocator);
     }
 
     {//资金保存
         rj::Value jFunds(rj::kObjectType);
-
-        if(ayFunds && ayFunds->size() > 0)
-        {
-            for(auto it = ayFunds->begin(); it != ayFunds->end(); it++)
-            {
-                WTSAccountInfo* fundInfo = (WTSAccountInfo*)(*it);
+     
+        if(ayFunds && ayFunds->size() > 0) {
+            for(auto it = ayFunds->begin(); it != ayFunds->end(); ++it) {
+                WTSAccountInfo* fundInfo = (WTSAccountInfo*) (*it);
                 rj::Value fItem(rj::kObjectType);
                 fItem.AddMember("prebalance", fundInfo->getPreBalance(), allocator);
                 fItem.AddMember("balance", fundInfo->getBalance(), allocator);

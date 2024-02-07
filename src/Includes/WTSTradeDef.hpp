@@ -593,71 +593,70 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //’Àªß–≈œ¢
-class WTSAccountInfo : public WTSPoolObject<WTSAccountInfo>
-{
+class WTSAccountInfo : public WTSPoolObject<WTSAccountInfo> {
 public:
-	WTSAccountInfo()
-		: m_strCurrency("CNY")
-		, m_dBalance(0)
-		, m_dPreBalance(0)
-		, m_dCommission(0)
-		, m_dFrozenMargin(0)
-		, m_dFrozenCommission(0)
-		, m_dCloseProfit(0)
-		, m_dDynProfit(0)
-		, m_dDeposit(0)
-		, m_dWithdraw(0)
-		, m_dAvailable(0)
-	{
-	}
-	virtual ~WTSAccountInfo(){}
+    WTSAccountInfo()
+        : m_strCurrency("CNY")
+        , m_dBalance(0)
+        , m_dPreBalance(0)
+        , m_dCommission(0)
+        , m_dFrozenMargin(0)
+        , m_dFrozenCommission(0)
+        , m_dCloseProfit(0)
+        , m_dDynProfit(0)
+        , m_dDeposit(0)
+        , m_dWithdraw(0)
+        , m_dAvailable(0)
+    {
+    }
+
+    virtual ~WTSAccountInfo() {}
 
 public:
-	static inline WTSAccountInfo* create(){return WTSAccountInfo::allocate();}
+    static inline WTSAccountInfo* create() { return WTSAccountInfo::allocate(); }
 
-	inline void	setCurrency(const char* currency){ m_strCurrency = currency; }
+    inline void	setCurrency(const char* currency) { m_strCurrency = currency; }
 
-	inline void	setBalance(double balance){m_dBalance = balance;}
-	inline void	setPreBalance(double prebalance){m_dPreBalance = prebalance;}
-	inline void	setMargin(double margin){m_uMargin = margin;}
-	inline void	setFrozenMargin(double frozenmargin){m_dFrozenMargin = frozenmargin;}
-	inline void	setCloseProfit(double closeprofit){m_dCloseProfit = closeprofit;}
-	inline void	setDynProfit(double dynprofit){m_dDynProfit = dynprofit;}
-	inline void	setDeposit(double deposit){m_dDeposit = deposit;}
-	inline void	setWithdraw(double withdraw){m_dWithdraw = withdraw;}
-	inline void	setCommission(double commission){m_dCommission = commission;}
-	inline void	setFrozenCommission(double frozencommission){m_dFrozenCommission = frozencommission;}
-	inline void	setAvailable(double available){m_dAvailable = available;}
+    inline void	setBalance(double balance) { m_dBalance = balance; }
+    inline void	setPreBalance(double prebalance) { m_dPreBalance = prebalance; }
+    inline void	setMargin(double margin) { m_uMargin = margin; }
+    inline void	setFrozenMargin(double frozenmargin) { m_dFrozenMargin = frozenmargin; }
+    inline void	setCloseProfit(double closeprofit) { m_dCloseProfit = closeprofit; }
+    inline void	setDynProfit(double dynprofit) { m_dDynProfit = dynprofit; }
+    inline void	setDeposit(double deposit) { m_dDeposit = deposit; }
+    inline void	setWithdraw(double withdraw) { m_dWithdraw = withdraw; }
+    inline void	setCommission(double commission) { m_dCommission = commission; }
+    inline void	setFrozenCommission(double frozencommission) { m_dFrozenCommission = frozencommission; }
+    inline void	setAvailable(double available) { m_dAvailable = available; }
 
-	inline double	getBalance() const{return m_dBalance;}
-	inline double	getPreBalance() const{return m_dPreBalance;}
-	inline double	getMargin() const{return m_uMargin;}
-	inline double	getFrozenMargin() const{return m_dFrozenMargin;}
-	inline double	getCloseProfit() const{return m_dCloseProfit;}
-	inline double	getDynProfit() const{return m_dDynProfit;}
-	inline double	getDeposit() const{return m_dDeposit;}
-	inline double	getWithdraw() const{return m_dWithdraw;}
-	inline double	getCommission() const{return m_dCommission;}
-	inline double	getFrozenCommission() const{return m_dFrozenCommission;}
-	inline double	getAvailable() const{return m_dAvailable;}
+    inline double getBalance() const { return m_dBalance; }
+    inline double getPreBalance() const { return m_dPreBalance; }
+    inline double getMargin() const { return m_uMargin; }
+    inline double getFrozenMargin() const { return m_dFrozenMargin; }
+    inline double getCloseProfit() const { return m_dCloseProfit; }
+    inline double getDynProfit() const { return m_dDynProfit; }
+    inline double getDeposit() const { return m_dDeposit; }
+    inline double getWithdraw() const { return m_dWithdraw; }
+    inline double getCommission() const { return m_dCommission; }
+    inline double getFrozenCommission() const { return m_dFrozenCommission; }
+    inline double getAvailable() const { return m_dAvailable; }
 
-	inline const char* getCurrency() const{ return m_strCurrency.c_str(); }
+    inline const char* getCurrency() const{ return m_strCurrency.c_str(); }
 
 protected:
-	std::string m_strCurrency;
+    std::string m_strCurrency;
 
-	double		m_dBalance;
-	double		m_dPreBalance;
-	double		m_uMargin;
-	double		m_dCommission;
-	double		m_dFrozenMargin;
-	double		m_dFrozenCommission;
-	double		m_dCloseProfit;
-	double		m_dDynProfit;
-	double		m_dDeposit;
-	double		m_dWithdraw;
-	double		m_dAvailable;
+    double		m_dBalance;
+    double		m_dPreBalance;
+    double		m_uMargin;
+    double		m_dCommission;
+    double		m_dFrozenMargin;
+    double		m_dFrozenCommission;
+    double		m_dCloseProfit;
+    double		m_dDynProfit;
+    double		m_dDeposit;
+    double		m_dWithdraw;
+    double		m_dAvailable;
 };
-
 
 NS_WTP_END
