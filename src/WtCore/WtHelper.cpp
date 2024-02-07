@@ -94,7 +94,6 @@ const char* WtHelper::getOutputDir()
 const char* WtHelper::getBaseDir()
 {
 	static std::string folder = StrUtil::standardisePath(_gen_dir);
-	if (!StdFile::exists(folder.c_str()))
-		boost::filesystem::create_directories(folder);
+	if (!StdFile::exists(folder.c_str())) boost::filesystem::create_directories(folder);
 	return folder.c_str();
 }
