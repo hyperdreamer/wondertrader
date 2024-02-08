@@ -474,6 +474,7 @@ public:
     inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 protected:
+    // 这部分成员和WTSEntrust一致
     char	m_strExchg[MAX_EXCHANGE_LENGTH];	//市场
     char	m_strCode[MAX_INSTRUMENT_LENGTH];	//代码
 
@@ -487,16 +488,17 @@ protected:
     WTSOrderType		m_orderType;
     WTSTradeType		m_tradeType;
 
+    char	m_strUserTag[64] = { 0 };			//用户标签
+
     WTSBusinessType		m_businessType;
     WTSContractInfo*	m_pContract;
 
+    // 这部分 WTSTradeInfo 独有
     char	m_strTradeID[64] = { 0 };			//成交单号
     char	m_strRefOrder[64] = { 0 };			//本地委托序列号
-    char	m_strUserTag[64] = { 0 };			//用户标签
 
     uint32_t	m_uTradeDate;
     uint64_t	m_uTradeTime;
-
     double		m_uAmount;
 };
 
