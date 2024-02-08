@@ -216,10 +216,9 @@ typedef enum tagBusinessType {
 /*
  *	订单操作类型
  */
-typedef enum tagActionFlag
-{
-	WAF_CANCEL			= '0',	//撤销
-	WAF_MODIFY			= '3',	//修改
+typedef enum tagActionFlag {
+    WAF_CANCEL			= '0',	//撤销
+    WAF_MODIFY			= '3',	//修改
 } WTSActionFlag;
 
 /*
