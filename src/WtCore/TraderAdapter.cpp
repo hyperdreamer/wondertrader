@@ -540,8 +540,7 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
                 return false;
             }
          
-            //这里必须要清理一下, 没有特别好的办法
-            //不然随着时间推移, vector长度会越来越长
+            //这里必须要清理一下, 没有特别好的办法, 不然随着时间推移, vector长度会越来越长
             if (tit != cache.begin()) cache.erase(cache.begin(), tit);
         }
     }
