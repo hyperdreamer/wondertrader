@@ -11,92 +11,90 @@
 #include "WTSObject.hpp"
 
 NS_WTP_BEGIN
-typedef struct _TradeStatInfo
-{
-	char		_code[MAX_INSTRUMENT_LENGTH];
-	//开平统计
-	double	l_openvol;	//当日开多仓量
-	double	l_closevol;	//当日平多仓量
-	double	l_closetvol;//当日平今多仓量
-	double	s_openvol;	//当日开空仓量
-	double	s_closevol;	//当日平空仓量
-	double	s_closetvol;//当日平今空仓量
+typedef struct _TradeStatInfo {
+    char		_code[MAX_INSTRUMENT_LENGTH];
+    //开平统计
+    double	l_openvol;	//当日开多仓量
+    double	l_closevol;	//当日平多仓量
+    double	l_closetvol;//当日平今多仓量
+    double	s_openvol;	//当日开空仓量
+    double	s_closevol;	//当日平空仓量
+    double	s_closetvol;//当日平今空仓量
 
-	//挂单统计
-	uint32_t	b_orders;	//委买笔数
-	double		b_ordqty;	//委买数量
-	uint32_t	s_orders;	//委卖笔数
-	double		s_ordqty;	//委卖数量
+    //挂单统计
+    uint32_t	b_orders;	//委买笔数
+    double		b_ordqty;	//委买数量
+    uint32_t	s_orders;	//委卖笔数
+    double		s_ordqty;	//委卖数量
 
-	//撤单统计
-	uint32_t	b_cancels;	//撤买笔数
-	double		b_canclqty;	//撤买数量
-	uint32_t	s_cancels;	//撤卖笔数
-	double		s_canclqty;	//撤卖数量
+    //撤单统计
+    uint32_t	b_cancels;	//撤买笔数
+    double		b_canclqty;	//撤买数量
+    uint32_t	s_cancels;	//撤卖笔数
+    double		s_canclqty;	//撤卖数量
 
-	//自动撤单统计
-	uint32_t	b_auto_cancels;		//撤买笔数
-	double		b_auto_canclqty;	//撤买数量
-	uint32_t	s_auto_cancels;		//撤卖笔数
-	double		s_auto_canclqty;	//撤卖数量
+    //自动撤单统计
+    uint32_t	b_auto_cancels;		//撤买笔数
+    double		b_auto_canclqty;	//撤买数量
+    uint32_t	s_auto_cancels;		//撤卖笔数
+    double		s_auto_canclqty;	//撤卖数量
 
-	//错单统计
-	uint32_t	b_wrongs;	//错单笔数
-	double		b_wrongqty;	//错单数量
-	uint32_t	s_wrongs;	//错单笔数
-	double		s_wrongqty;	//错单数量
+    //错单统计
+    uint32_t	b_wrongs;	//错单笔数
+    double		b_wrongqty;	//错单数量
+    uint32_t	s_wrongs;	//错单笔数
+    double		s_wrongqty;	//错单数量
 
-	uint32_t	_infos;		//信息量
+    uint32_t	_infos;		//信息量
 
-	_TradeStatInfo()
-	{
-		memset(this, 0, sizeof(_TradeStatInfo));
-	}
+    _TradeStatInfo()
+    {
+        memset(this, 0, sizeof(_TradeStatInfo));
+    }
 } TradeStatInfo;
 
-class WTSTradeStateInfo : public WTSObject
-{
+class WTSTradeStateInfo : public WTSObject {
 protected:
-	WTSTradeStateInfo(){}
+    WTSTradeStateInfo(){}
 
 public:
-	static WTSTradeStateInfo* create(const char* code)
-	{
-		WTSTradeStateInfo* pRet = new WTSTradeStateInfo();
-		wt_strcpy(pRet->_trd_stat_info._code, code);
+    static WTSTradeStateInfo* create(const char* code)
+    {
+        WTSTradeStateInfo* pRet = new WTSTradeStateInfo();
+        wt_strcpy(pRet->_trd_stat_info._code, code);
+     
+        return pRet;
+    }
 
-		return pRet;
-	}
+    inline TradeStatInfo&	statInfo(){ return _trd_stat_info; }
+    inline const TradeStatInfo& statInfo() const{ return _trd_stat_info; }
 
-	inline TradeStatInfo&	statInfo(){ return _trd_stat_info; }
-	inline const TradeStatInfo& statInfo() const{ return _trd_stat_info; }
+    inline const char* code() const{ return _trd_stat_info._code; }
 
-	inline const char* code() const{ return _trd_stat_info._code; }
+    inline double open_volume_long() const{ return _trd_stat_info.l_openvol; }
+    inline double close_volume_long() const{ return _trd_stat_info.l_closevol; }
+    inline double closet_volume_long() const{ return _trd_stat_info.l_closetvol; }
+    inline double open_volume_short() const{ return _trd_stat_info.s_openvol; }
+    inline double close_volume_short() const{ return _trd_stat_info.s_closevol; }
+    inline double closet_volume_short() const{ return _trd_stat_info.s_closetvol; }
 
-	inline double open_volume_long() const{ return _trd_stat_info.l_openvol; }
-	inline double close_volume_long() const{ return _trd_stat_info.l_closevol; }
-	inline double closet_volume_long() const{ return _trd_stat_info.l_closetvol; }
-	inline double open_volume_short() const{ return _trd_stat_info.s_openvol; }
-	inline double close_volume_short() const{ return _trd_stat_info.s_closevol; }
-	inline double closet_volume_short() const{ return _trd_stat_info.s_closetvol; }
+    inline uint32_t orders_buy() const{ return _trd_stat_info.b_orders; }
+    inline double ordqty_buy() const{ return _trd_stat_info.b_ordqty; }
+    inline uint32_t orders_sell() const{ return _trd_stat_info.s_orders; }
+    inline double ordqty_sell() const{ return _trd_stat_info.s_ordqty; }
 
-	inline uint32_t orders_buy() const{ return _trd_stat_info.b_orders; }
-	inline double ordqty_buy() const{ return _trd_stat_info.b_ordqty; }
-	inline uint32_t orders_sell() const{ return _trd_stat_info.s_orders; }
-	inline double ordqty_sell() const{ return _trd_stat_info.s_ordqty; }
+    inline uint32_t cancels_buy() const{ return _trd_stat_info.b_cancels; }
+    inline double cancelqty_buy() const{ return _trd_stat_info.b_canclqty; }
+    inline uint32_t cancels_sell() const{ return _trd_stat_info.s_cancels; }
+    inline double cancelqty_sell() const{ return _trd_stat_info.s_canclqty; }
 
-	inline uint32_t cancels_buy() const{ return _trd_stat_info.b_cancels; }
-	inline double cancelqty_buy() const{ return _trd_stat_info.b_canclqty; }
-	inline uint32_t cancels_sell() const{ return _trd_stat_info.s_cancels; }
-	inline double cancelqty_sell() const{ return _trd_stat_info.s_canclqty; }
+    inline uint32_t total_cancels() const{ return _trd_stat_info.b_cancels + _trd_stat_info.s_cancels; }
+    inline uint32_t total_orders() const { return _trd_stat_info.b_orders + _trd_stat_info.s_orders; }
 
-	inline uint32_t total_cancels() const{ return _trd_stat_info.b_cancels + _trd_stat_info.s_cancels; }
-	inline uint32_t total_orders() const { return _trd_stat_info.b_orders + _trd_stat_info.s_orders; }
-
-	inline uint32_t infos() const { return _trd_stat_info._infos; }
+    inline uint32_t infos() const { return _trd_stat_info._infos; }
 
 private:
-	TradeStatInfo	_trd_stat_info;
+    TradeStatInfo	_trd_stat_info;
 };
 
 //组合资金数据
