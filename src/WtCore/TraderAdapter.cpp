@@ -431,6 +431,9 @@ void TraderAdapter::enumPosition(FuncEnumChnlPosCallBack cb)
     }
 }
 
+/*
+ * if stdCode == NULL, returns all orders
+ */
 OrderMap* TraderAdapter::getOrders(const char* stdCode)
 {
     if (_orders == NULL) return NULL;
