@@ -182,13 +182,12 @@ typedef enum tagOrderFlag {
 /*
  *	开平方向
  */
-typedef enum tagOffsetType
-{
-	WOT_OPEN			= '0',	//开仓
-	WOT_CLOSE,					//平仓,上期为平昨
-	WOT_FORCECLOSE,				//强平
-	WOT_CLOSETODAY,				//平今
-	WOT_CLOSEYESTERDAY,			//平昨
+typedef enum tagOffsetType {
+    WOT_OPEN			= '0',	//开仓
+    WOT_CLOSE,					//平仓,上期为平昨
+    WOT_FORCECLOSE,				//强平
+    WOT_CLOSETODAY,				//平今
+    WOT_CLOSEYESTERDAY,			//平昨
 } WTSOffsetType;
 
 /*
@@ -203,8 +202,7 @@ typedef enum tagDirectionType {
 /*
  *	业务类型
  */
-typedef enum tagBusinessType
-{
+typedef enum tagBusinessType {
 	BT_CASH		= '0',	//普通买卖,
 	BT_ETF		= '1',	//ETF申赎
 	BT_EXECUTE	= '2',	//期权行权
@@ -227,28 +225,26 @@ typedef enum tagActionFlag
 /*
  *	订单状态
  */
-typedef enum tagOrderState
-{
-	WOS_AllTraded				= '0',	//全部成交
-	WOS_PartTraded_Queuing,				//部分成交,仍在队列中
-	WOS_PartTraded_NotQueuing,			//部分成交,未在队列
-	WOS_NotTraded_Queuing,				//未成交
-	WOS_NotTraded_NotQueuing,			//未成交,未在队列
-	WOS_Canceled,						//已撤销
-	WOS_Submitting				= 'a',	//正在提交
-	WOS_Cancelling,						//在撤
-	WOS_Nottouched,						//未触发
+typedef enum tagOrderState {
+    WOS_AllTraded				= '0',	//全部成交
+    WOS_PartTraded_Queuing,				//部分成交,仍在队列中
+    WOS_PartTraded_NotQueuing,			//部分成交,未在队列
+    WOS_NotTraded_Queuing,				//未成交
+    WOS_NotTraded_NotQueuing,			//未成交,未在队列
+    WOS_Canceled,						//已撤销
+    WOS_Submitting				= 'a',	//正在提交
+    WOS_Cancelling,						//在撤
+    WOS_Nottouched,						//未触发
 } WTSOrderState;
 
 /*
  *	订单类型
  */
-typedef enum tagOrderType
-{
-	WORT_Normal			= 0,		//正常订单
-	WORT_Exception,					//异常订单
-	WORT_System,					//系统订单
-	WORT_Hedge						//对冲订单
+typedef enum tagOrderType {
+    WORT_Normal			= 0,		//正常订单
+    WORT_Exception,					//异常订单
+    WORT_System,					//系统订单
+    WORT_Hedge						//对冲订单
 } WTSOrderType;
 
 /*
