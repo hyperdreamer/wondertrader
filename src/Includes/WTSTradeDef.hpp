@@ -41,28 +41,28 @@ public:
     virtual ~WTSEntrust(){}
 
 public:
-    static inline WTSEntrust* create(const char* code, double vol, double price, const char* exchg = "", WTSBusinessType bType = BT_CASH)
+    static inline WTSEntrust* create(const char* code, double vol, double price, const char* exchg = "", 
+                                     WTSBusinessType bType = BT_CASH)
     {
         WTSEntrust* pRet = WTSEntrust::allocate();
-        if(pRet)
-        {
+        if (pRet) {
             //wt_strcpy(pRet->m_strExchg, exchg);
             //wt_strcpy(pRet->m_strCode, code);
-
+         
             auto len = strlen(exchg);
             memcpy(pRet->m_strExchg, exchg, len);
             pRet->m_strExchg[len] = 0;
-
+         
             len = strlen(code);
             memcpy(pRet->m_strCode, code, len);
             pRet->m_strCode[len] = 0;
-
+         
             pRet->m_dVolume = vol;
             pRet->m_iPrice = price;
             pRet->m_businessType = bType;
             return pRet;
         }
-
+     
         return NULL;
     }
 
@@ -71,6 +71,7 @@ public:
     {
         wt_strcpy(m_strExchg, exchg, len);
     }
+
     inline void setCode(const char* code, std::size_t len = 0)
     {
         wt_strcpy(m_strCode, code, len);
