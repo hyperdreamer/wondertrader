@@ -173,11 +173,10 @@ typedef enum tagTimeCondition
 /*
  *	订单标志
  */
-typedef enum tagOrderFlag
-{
-	WOF_NOR = '0',		//普通订单
-	WOF_FAK,			//fak
-	WOF_FOK,			//fok
+typedef enum tagOrderFlag {
+    WOF_NOR = '0',		//普通订单
+    WOF_FAK,			//fak
+    WOF_FOK,			//fok
 } WTSOrderFlag;
 
 /*
