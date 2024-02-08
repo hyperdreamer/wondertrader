@@ -22,118 +22,117 @@ class WTSContractInfo;
 
 //////////////////////////////////////////////////////////////////////////
 //委托数据结构,用户客户端向服务端发起
-class WTSEntrust : public WTSPoolObject<WTSEntrust>
-{
+class WTSEntrust : public WTSPoolObject<WTSEntrust> {
 public:
-	WTSEntrust()
-		: m_iPrice(0)
-		, m_dVolume(0)
-		, m_businessType(BT_CASH)
-		, m_direction(WDT_LONG)
-		, m_priceType(WPT_ANYPRICE)
-		, m_orderFlag(WOF_NOR)
-		, m_offsetType(WOT_OPEN)
-		, m_bIsNet(false)
-		, m_bIsBuy(true)
-		, m_pContract(NULL)
-	{
-	}
-
-	virtual ~WTSEntrust(){}
-
-public:
-	static inline WTSEntrust* create(const char* code, double vol, double price, const char* exchg = "", WTSBusinessType bType = BT_CASH)
-	{
-		WTSEntrust* pRet = WTSEntrust::allocate();
-		if(pRet)
-		{
-			//wt_strcpy(pRet->m_strExchg, exchg);
-			//wt_strcpy(pRet->m_strCode, code);
-
-			auto len = strlen(exchg);
-			memcpy(pRet->m_strExchg, exchg, len);
-			pRet->m_strExchg[len] = 0;
-
-			len = strlen(code);
-			memcpy(pRet->m_strCode, code, len);
-			pRet->m_strCode[len] = 0;
-
-			pRet->m_dVolume = vol;
-			pRet->m_iPrice = price;
-			pRet->m_businessType = bType;
-			return pRet;
-		}
-
-		return NULL;
-	}
-
-public:
-	inline void setExchange(const char* exchg, std::size_t len = 0)
-	{
-		wt_strcpy(m_strExchg, exchg, len);
-    }
-	inline void setCode(const char* code, std::size_t len = 0)
-	{
-		wt_strcpy(m_strCode, code, len);
+    WTSEntrust()
+    : m_iPrice(0)
+    , m_dVolume(0)
+    , m_businessType(BT_CASH)
+    , m_direction(WDT_LONG)
+    , m_priceType(WPT_ANYPRICE)
+    , m_orderFlag(WOF_NOR)
+    , m_offsetType(WOT_OPEN)
+    , m_bIsNet(false)
+    , m_bIsBuy(true)
+    , m_pContract(NULL)
+    {
     }
 
-	inline void setDirection(WTSDirectionType dType){m_direction = dType;}
-	inline void setPriceType(WTSPriceType pType){m_priceType = pType;}
-	inline void setOrderFlag(WTSOrderFlag oFlag){m_orderFlag = oFlag;}
-	inline void setOffsetType(WTSOffsetType oType){m_offsetType = oType;}
+    virtual ~WTSEntrust(){}
 
-	inline WTSDirectionType	getDirection() const{return m_direction;}
-	inline WTSPriceType		getPriceType() const{return m_priceType;}
-	inline WTSOrderFlag		getOrderFlag() const{return m_orderFlag;}
-	inline WTSOffsetType	getOffsetType() const{return m_offsetType;}
+public:
+    static inline WTSEntrust* create(const char* code, double vol, double price, const char* exchg = "", WTSBusinessType bType = BT_CASH)
+    {
+        WTSEntrust* pRet = WTSEntrust::allocate();
+        if(pRet)
+        {
+            //wt_strcpy(pRet->m_strExchg, exchg);
+            //wt_strcpy(pRet->m_strCode, code);
 
-	inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
-	inline WTSBusinessType	getBusinessType() const { return m_businessType; }
+            auto len = strlen(exchg);
+            memcpy(pRet->m_strExchg, exchg, len);
+            pRet->m_strExchg[len] = 0;
 
-	inline void setVolume(double volume){ m_dVolume = volume; }
-	inline void setPrice(double price){ m_iPrice = price; }
+            len = strlen(code);
+            memcpy(pRet->m_strCode, code, len);
+            pRet->m_strCode[len] = 0;
 
-	inline double getVolume() const{ return m_dVolume; }
-	inline double getPrice() const{ return m_iPrice; }
+            pRet->m_dVolume = vol;
+            pRet->m_iPrice = price;
+            pRet->m_businessType = bType;
+            return pRet;
+        }
 
-	inline const char* getCode() const { return m_strCode; }
-	inline const char* getExchg() const { return m_strExchg; }
+        return NULL;
+    }
 
-	inline void setEntrustID(const char* eid) { wt_strcpy(m_strEntrustID, eid); }
-	inline const char* getEntrustID() const { return m_strEntrustID; }
-	inline char* getEntrustID() { return m_strEntrustID; }
+public:
+    inline void setExchange(const char* exchg, std::size_t len = 0)
+    {
+        wt_strcpy(m_strExchg, exchg, len);
+    }
+    inline void setCode(const char* code, std::size_t len = 0)
+    {
+        wt_strcpy(m_strCode, code, len);
+    }
 
-	inline void setUserTag(const char* tag) { wt_strcpy(m_strUserTag, tag); }
-	inline const char* getUserTag() const { return m_strUserTag; }
-	inline char* getUserTag() { return m_strUserTag; }
+    inline void setDirection(WTSDirectionType dType){m_direction = dType;}
+    inline void setPriceType(WTSPriceType pType){m_priceType = pType;}
+    inline void setOrderFlag(WTSOrderFlag oFlag){m_orderFlag = oFlag;}
+    inline void setOffsetType(WTSOffsetType oType){m_offsetType = oType;}
 
-	inline void setNetDirection(bool isBuy) { m_bIsNet = true; m_bIsBuy = isBuy; }
-	inline bool isNet() const { return m_bIsNet; }
-	inline bool isBuy() const { return m_bIsBuy; }
+    inline WTSDirectionType	getDirection() const{return m_direction;}
+    inline WTSPriceType		getPriceType() const{return m_priceType;}
+    inline WTSOrderFlag		getOrderFlag() const{return m_orderFlag;}
+    inline WTSOffsetType	getOffsetType() const{return m_offsetType;}
 
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+    inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
+    inline WTSBusinessType	getBusinessType() const { return m_businessType; }
+
+    inline void setVolume(double volume){ m_dVolume = volume; }
+    inline void setPrice(double price){ m_iPrice = price; }
+
+    inline double getVolume() const{ return m_dVolume; }
+    inline double getPrice() const{ return m_iPrice; }
+
+    inline const char* getCode() const { return m_strCode; }
+    inline const char* getExchg() const { return m_strExchg; }
+
+    inline void setEntrustID(const char* eid) { wt_strcpy(m_strEntrustID, eid); }
+    inline const char* getEntrustID() const { return m_strEntrustID; }
+    inline char* getEntrustID() { return m_strEntrustID; }
+
+    inline void setUserTag(const char* tag) { wt_strcpy(m_strUserTag, tag); }
+    inline const char* getUserTag() const { return m_strUserTag; }
+    inline char* getUserTag() { return m_strUserTag; }
+
+    inline void setNetDirection(bool isBuy) { m_bIsNet = true; m_bIsBuy = isBuy; }
+    inline bool isNet() const { return m_bIsNet; }
+    inline bool isBuy() const { return m_bIsBuy; }
+
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 protected:
-	char			m_strExchg[MAX_EXCHANGE_LENGTH];
-	char			m_strCode[MAX_INSTRUMENT_LENGTH];
-	double			m_dVolume;
-	double			m_iPrice;
+    char			m_strExchg[MAX_EXCHANGE_LENGTH];
+    char			m_strCode[MAX_INSTRUMENT_LENGTH];
+    double			m_dVolume;
+    double			m_iPrice;
 
-	bool			m_bIsNet;
-	bool			m_bIsBuy;
+    bool			m_bIsNet;
+    bool			m_bIsBuy;
 
-	WTSDirectionType	m_direction;
-	WTSPriceType		m_priceType;
-	WTSOrderFlag		m_orderFlag;
-	WTSOffsetType		m_offsetType;
+    WTSDirectionType	m_direction;
+    WTSPriceType		m_priceType;
+    WTSOrderFlag		m_orderFlag;
+    WTSOffsetType		m_offsetType;
 
-	char				m_strEntrustID[64] = { 0 };
-	char				m_strUserTag[64] = { 0 };
+    char				m_strEntrustID[64] = { 0 };
+    char				m_strUserTag[64] = { 0 };
 
-	WTSBusinessType		m_businessType;
+    WTSBusinessType		m_businessType;
 
-	WTSContractInfo*	m_pContract;
+    WTSContractInfo*	m_pContract;
 };
 
 
@@ -593,17 +592,17 @@ protected:
 class WTSAccountInfo : public WTSPoolObject<WTSAccountInfo> {
 public:
     WTSAccountInfo()
-        : m_strCurrency("CNY")
-        , m_dBalance(0)
-        , m_dPreBalance(0)
-        , m_dCommission(0)
-        , m_dFrozenMargin(0)
-        , m_dFrozenCommission(0)
-        , m_dCloseProfit(0)
-        , m_dDynProfit(0)
-        , m_dDeposit(0)
-        , m_dWithdraw(0)
-        , m_dAvailable(0)
+    : m_strCurrency("CNY")
+    , m_dBalance(0)
+    , m_dPreBalance(0)
+    , m_dCommission(0)
+    , m_dFrozenMargin(0)
+    , m_dFrozenCommission(0)
+    , m_dCloseProfit(0)
+    , m_dDynProfit(0)
+    , m_dDeposit(0)
+    , m_dWithdraw(0)
+    , m_dAvailable(0)
     {
     }
 
