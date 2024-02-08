@@ -42,7 +42,7 @@ static uint32_t makeLocalOrderID()
     static std::atomic<uint32_t> _auto_order_id{ 0 };
     if (_auto_order_id == 0) {
         uint32_t curYear = TimeUtils::getCurDate() / 10000 * 10000 + 101;
-        _auto_order_id = (uint32_t)((TimeUtils::getLocalTimeNow() - TimeUtils::makeTime(curYear, 0)) / 1000 * 50);
+        _auto_order_id = (uint32_t) ((TimeUtils::getLocalTimeNow() - TimeUtils::makeTime(curYear, 0)) / 1000 * 50);
     }
 
     return _auto_order_id.fetch_add(1);
