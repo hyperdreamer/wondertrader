@@ -136,7 +136,6 @@ protected:
     WTSContractInfo*	m_pContract;
 };
 
-
 //////////////////////////////////////////////////////////////////////////
 //委托操作: 撤单、改单
 class WTSEntrustAction : public WTSPoolObject<WTSEntrustAction>
@@ -237,13 +236,13 @@ protected:
 class WTSOrderInfo : public WTSPoolObject<WTSOrderInfo> {
 public:
     WTSOrderInfo()
-        : m_orderState(WOS_Submitting)
-        , m_orderType(WORT_Normal)
-        , m_uInsertDate(0)
-        , m_uInsertTime(0)
-        , m_dVolTraded(0)
-        , m_dVolLeft(0)
-        , m_bIsError(false)
+    : m_orderState(WOS_Submitting)
+    , m_orderType(WORT_Normal)
+    , m_uInsertDate(0)
+    , m_uInsertTime(0)
+    , m_dVolTraded(0)
+    , m_dVolLeft(0)
+    , m_bIsError(false)
     {
     }
 
