@@ -524,30 +524,25 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
     //撤单频率检查
     auto it = _cancel_time_cache.find(stdCode);
     if (it != _cancel_time_cache.end()) {
-        TimeCacheList& cache = (TimeCacheList&)it->second;
+        TimeCacheList& cache = (TimeCacheList&) it->second;
         uint32_t cnt = cache.size();
-        if (cnt >= riskPara->_cancel_times_boundary)
-        {
+        if (cnt >= riskPara->_cancel_times_boundary) {
             uint64_t eTime = cache[cnt - 1];
             uint64_t sTime = eTime - riskPara->_cancel_stat_timespan * 1000;
             auto tit = std::lower_bound(cache.begin(), cache.end(), sTime);
             auto sIdx = tit - cache.begin();
             auto times = cnt - sIdx - 1;
-            if (times > riskPara->_cancel_times_boundary)
-            {
+            if (times > riskPara->_cancel_times_boundary) {
                 WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
                     "[{}] {} cancel {} times within {} seconds, beyond boundary {} times, adding to excluding list",
                     _id.c_str(), stdCode, times, riskPara->_cancel_stat_timespan, riskPara->_cancel_times_boundary);
                 _exclude_codes.insert(stdCode);
                 return false;
             }
-
+         
             //这里必须要清理一下, 没有特别好的办法
             //不然随着时间推移, vector长度会越来越长
-            if(tit != cache.begin())
-            {
-                cache.erase(cache.begin(), tit);
-            }
+            if (tit != cache.begin()) cache.erase(cache.begin(), tit);
         }
     }
 
