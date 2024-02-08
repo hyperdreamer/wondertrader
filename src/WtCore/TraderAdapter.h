@@ -116,7 +116,7 @@ public:
 
 private:
     uint32_t doEntrust(WTSEntrust* entrust);
-    bool	doCancel(WTSOrderInfo* ordInfo);
+    bool doCancel(WTSOrderInfo* ordInfo);
 
     inline void	printPosition(const char* stdCode, const PosItem& pItem);
 
@@ -130,7 +130,7 @@ private:
     inline void	logTrade(uint32_t localid, const char* stdCode, WTSTradeInfo* trdInfo);
     inline void	logOrder(uint32_t localid, const char* stdCode, WTSOrderInfo* ordInfo);
 
-    void	saveData(WTSArray* ayFunds = NULL);
+    void saveData(WTSArray* ayFunds = NULL);
 
     inline void updateUndone(const char* stdCode, double qty, bool bOuput = true);
 
