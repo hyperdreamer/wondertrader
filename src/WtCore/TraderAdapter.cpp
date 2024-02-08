@@ -537,8 +537,7 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
             {
                 WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
                     "[{}] {} cancel {} times within {} seconds, beyond boundary {} times, adding to excluding list",
-                                   _id.c_str(), stdCode, times, riskPara->_cancel_stat_timespan, 
-                                   riskPara->_cancel_times_boundary);
+                    _id.c_str(), stdCode, times, riskPara->_cancel_stat_timespan, riskPara->_cancel_times_boundary);
                 _exclude_codes.insert(stdCode);
                 return false;
             }
