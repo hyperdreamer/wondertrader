@@ -140,9 +140,7 @@ public:
     double getUndoneQty(const char* stdCode)
     {
         auto it = _undone_qty.find(stdCode);
-        if (it != _undone_qty.end())
-            return it->second;
-
+        if (it != _undone_qty.end()) return it->second;
         return 0;
     }
 
