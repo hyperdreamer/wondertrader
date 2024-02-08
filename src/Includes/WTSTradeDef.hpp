@@ -398,104 +398,105 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class WTSTradeInfo : public WTSPoolObject<WTSTradeInfo>
-{
+class WTSTradeInfo : public WTSPoolObject<WTSTradeInfo> {
 public:
-	WTSTradeInfo()
-		: m_orderType(WORT_Normal)
-		, m_tradeType(WTT_Common)
-		, m_uAmount(0)
-		, m_dPrice(0)
-		, m_businessType(BT_CASH)
-		, m_pContract(NULL)
-	{}
-	virtual ~WTSTradeInfo(){}
+    WTSTradeInfo()
+    : m_orderType(WORT_Normal)
+    , m_tradeType(WTT_Common)
+    , m_uAmount(0)
+    , m_dPrice(0)
+    , m_businessType(BT_CASH)
+    , m_pContract(NULL)
+    {
+    }
+
+    virtual ~WTSTradeInfo() {}
 
 public:
-	static inline WTSTradeInfo* create(const char* code, const char* exchg = "", WTSBusinessType bType = BT_CASH)
-	{
-		WTSTradeInfo *pRet = WTSTradeInfo::allocate();
-		wt_strcpy(pRet->m_strExchg, exchg);
-		wt_strcpy(pRet->m_strCode, code);
-		pRet->m_businessType = bType;
+    static inline WTSTradeInfo* create(const char* code, const char* exchg = "", WTSBusinessType bType = BT_CASH)
+    {
+        WTSTradeInfo *pRet = WTSTradeInfo::allocate();
+        wt_strcpy(pRet->m_strExchg, exchg);
+        wt_strcpy(pRet->m_strCode, code);
+        pRet->m_businessType = bType;
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	inline void setTradeID(const char* tradeid) { wt_strcpy(m_strTradeID, tradeid); }
-	inline void setRefOrder(const char* oid) { wt_strcpy(m_strRefOrder, oid); }
-	
-	inline void setDirection(WTSDirectionType dType){m_direction = dType;}
-	inline void setOffsetType(WTSOffsetType oType){m_offsetType = oType;}
-	inline void setOrderType(WTSOrderType ot){m_orderType = ot;}
-	inline void setTradeType(WTSTradeType tt){m_tradeType = tt;}
+    inline void setTradeID(const char* tradeid) { wt_strcpy(m_strTradeID, tradeid); }
+    inline void setRefOrder(const char* oid) { wt_strcpy(m_strRefOrder, oid); }
 
-	inline void setVolume(double volume){m_dVolume = volume;}
-	inline void setPrice(double price){ m_dPrice = price; }
+    inline void setDirection(WTSDirectionType dType){m_direction = dType;}
+    inline void setOffsetType(WTSOffsetType oType){m_offsetType = oType;}
+    inline void setOrderType(WTSOrderType ot){m_orderType = ot;}
+    inline void setTradeType(WTSTradeType tt){m_tradeType = tt;}
 
-	inline void setTradeDate(uint32_t uDate){m_uTradeDate = uDate;}
-	inline void setTradeTime(uint64_t uTime){m_uTradeTime = uTime;}
+    inline void setVolume(double volume){m_dVolume = volume;}
+    inline void setPrice(double price){ m_dPrice = price; }
 
-	inline void setAmount(double amount){ m_uAmount = amount; }
+    inline void setTradeDate(uint32_t uDate){m_uTradeDate = uDate;}
+    inline void setTradeTime(uint64_t uTime){m_uTradeTime = uTime;}
 
-	inline WTSDirectionType	getDirection() const{return m_direction;}
-	inline WTSOffsetType	getOffsetType() const{return m_offsetType;}
-	inline WTSOrderType		getOrderType() const{return m_orderType;}
-	inline WTSTradeType		getTradeType() const{return m_tradeType;}
+    inline void setAmount(double amount){ m_uAmount = amount; }
 
-	inline double getVolume() const{ return m_dVolume; }
-	inline double getPrice() const{ return m_dPrice; }
+    inline WTSDirectionType	getDirection() const{return m_direction;}
+    inline WTSOffsetType	getOffsetType() const{return m_offsetType;}
+    inline WTSOrderType		getOrderType() const{return m_orderType;}
+    inline WTSTradeType		getTradeType() const{return m_tradeType;}
 
-	inline const char*	getCode() const { return m_strCode; }
-	inline const char*	getExchg() const { return m_strExchg; }
-	inline const char*	getTradeID() const { return m_strTradeID; }
-	inline const char*	getRefOrder() const { return m_strRefOrder; }
+    inline double getVolume() const{ return m_dVolume; }
+    inline double getPrice() const{ return m_dPrice; }
 
-	inline char*	getTradeID() { return m_strTradeID; }
-	inline char*	getRefOrder() { return m_strRefOrder; }
+    inline const char*	getCode() const { return m_strCode; }
+    inline const char*	getExchg() const { return m_strExchg; }
+    inline const char*	getTradeID() const { return m_strTradeID; }
+    inline const char*	getRefOrder() const { return m_strRefOrder; }
 
-	inline uint32_t getTradeDate() const{return m_uTradeDate;}
-	inline uint64_t getTradeTime() const{return m_uTradeTime;}
+    inline char*	getTradeID() { return m_strTradeID; }
+    inline char*	getRefOrder() { return m_strRefOrder; }
 
-	inline double getAmount() const{ return m_uAmount; }
+    inline uint32_t getTradeDate() const{return m_uTradeDate;}
+    inline uint64_t getTradeTime() const{return m_uTradeTime;}
 
-	inline void setUserTag(const char* tag) { wt_strcpy(m_strUserTag, tag); }
-	inline const char* getUserTag() const { return m_strUserTag; }
+    inline double getAmount() const{ return m_uAmount; }
 
-	inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
-	inline WTSBusinessType	getBusinessType() const { return m_businessType; }
+    inline void setUserTag(const char* tag) { wt_strcpy(m_strUserTag, tag); }
+    inline const char* getUserTag() const { return m_strUserTag; }
 
-	inline void setNetDirection(bool isBuy) { m_bIsNet = true; m_bIsBuy = isBuy; }
-	inline bool isNet() const { return m_bIsNet; }
-	inline bool isBuy() const { return m_bIsBuy; }
+    inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
+    inline WTSBusinessType	getBusinessType() const { return m_businessType; }
 
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+    inline void setNetDirection(bool isBuy) { m_bIsNet = true; m_bIsBuy = isBuy; }
+    inline bool isNet() const { return m_bIsNet; }
+    inline bool isBuy() const { return m_bIsBuy; }
+
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 protected:
-	char	m_strExchg[MAX_EXCHANGE_LENGTH];	//市场
-	char	m_strCode[MAX_INSTRUMENT_LENGTH];	//代码
-	char	m_strTradeID[64] = { 0 };			//成交单号
-	char	m_strRefOrder[64] = { 0 };			//本地委托序列号
-	char	m_strUserTag[64] = { 0 };			//用户标签
+    char	m_strExchg[MAX_EXCHANGE_LENGTH];	//市场
+    char	m_strCode[MAX_INSTRUMENT_LENGTH];	//代码
+    char	m_strTradeID[64] = { 0 };			//成交单号
+    char	m_strRefOrder[64] = { 0 };			//本地委托序列号
+    char	m_strUserTag[64] = { 0 };			//用户标签
 
-	uint32_t	m_uTradeDate;
-	uint64_t	m_uTradeTime;
-	double		m_dVolume;
-	double		m_dPrice;
+    uint32_t	m_uTradeDate;
+    uint64_t	m_uTradeTime;
+    double		m_dVolume;
+    double		m_dPrice;
 
-	bool		m_bIsNet;
-	bool		m_bIsBuy;
+    bool		m_bIsNet;
+    bool		m_bIsBuy;
 
-	WTSDirectionType	m_direction;
-	WTSOffsetType		m_offsetType;
-	WTSOrderType		m_orderType;
-	WTSTradeType		m_tradeType;
+    WTSDirectionType	m_direction;
+    WTSOffsetType		m_offsetType;
+    WTSOrderType		m_orderType;
+    WTSTradeType		m_tradeType;
 
-	double		m_uAmount;
+    double		m_uAmount;
 
-	WTSBusinessType		m_businessType;
-	WTSContractInfo*	m_pContract;
+    WTSBusinessType		m_businessType;
+    WTSContractInfo*	m_pContract;
 };
 
 //////////////////////////////////////////////////////////////////////////
