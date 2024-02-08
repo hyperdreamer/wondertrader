@@ -138,97 +138,95 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //委托操作: 撤单、改单
-class WTSEntrustAction : public WTSPoolObject<WTSEntrustAction>
-{
+class WTSEntrustAction : public WTSPoolObject<WTSEntrustAction> {
 public:
-	WTSEntrustAction()
-		: m_iPrice(0)
-		, m_dVolume(0)
-		, m_actionFlag(WAF_CANCEL)
-		, m_businessType(BT_CASH)
-	{
+    WTSEntrustAction()
+    : m_iPrice(0)
+    , m_dVolume(0)
+    , m_actionFlag(WAF_CANCEL)
+    , m_businessType(BT_CASH)
+    {
+    }
 
-	}
-
-	virtual ~WTSEntrustAction(){}
+    virtual ~WTSEntrustAction() {}
 
 public:
-	static inline WTSEntrustAction* create(const char* code, const char* exchg = "", double vol = 0, double price = 0, WTSBusinessType bType = BT_CASH)
-	{
-		WTSEntrustAction* pRet = WTSEntrustAction::allocate();
-		if(pRet)
-		{
-			wt_strcpy(pRet->m_strExchg, exchg);
-			wt_strcpy(pRet->m_strCode, code);
-			pRet->m_dVolume = vol;
-			pRet->m_iPrice = price;
-			pRet->m_businessType = bType;
-			return pRet;
-		}
+    static inline WTSEntrustAction* create(const char* code, const char* exchg = "", double vol = 0, double price = 0, 
+                                           WTSBusinessType bType = BT_CASH)
+    {
+        WTSEntrustAction* pRet = WTSEntrustAction::allocate();
+        if (pRet) {
+            wt_strcpy(pRet->m_strExchg, exchg);
+            wt_strcpy(pRet->m_strCode, code);
+            pRet->m_dVolume = vol;
+            pRet->m_iPrice = price;
+            pRet->m_businessType = bType;
+            return pRet;
+        }
+     
+        return NULL;
+    }
 
-		return NULL;
-	}
-
-	static inline WTSEntrustAction* createCancelAction(const char* eid, const char* oid)
-	{
-		WTSEntrustAction* pRet = new WTSEntrustAction;
-		if(pRet)
-		{
-			wt_strcpy(pRet->m_strEnturstID, eid);
-			wt_strcpy(pRet->m_strOrderID, oid);
-			return pRet;
-		}
-
-		return NULL;
-	}
+    static inline WTSEntrustAction* createCancelAction(const char* eid, const char* oid)
+    {
+        WTSEntrustAction* pRet = new WTSEntrustAction;
+        if (pRet) {
+            wt_strcpy(pRet->m_strEnturstID, eid);
+            wt_strcpy(pRet->m_strOrderID, oid);
+            return pRet;
+        }
+     
+        return NULL;
+    }
 
 public:
-	inline void setVolume(double volume){ m_dVolume = volume; }
-	inline void setPrice(double price){ m_iPrice = price; }
+    inline void setVolume(double volume){ m_dVolume = volume; }
+    inline void setPrice(double price){ m_iPrice = price; }
 
-	inline double getVolume() const{ return m_dVolume; }
-	inline double getPrice() const{ return m_iPrice; }
+    inline double getVolume() const{ return m_dVolume; }
+    inline double getPrice() const{ return m_iPrice; }
 
-	inline const char* getExchg() const { return m_strExchg; }
-	inline const char* getCode() const{return m_strCode;}
+    inline const char* getExchg() const { return m_strExchg; }
+    inline const char* getCode() const{return m_strCode;}
 
-	inline void setExchange(const char* exchg, std::size_t len = 0) {
-		if (len == 0)
-			wt_strcpy(m_strExchg, exchg);
-		else
-			strncpy(m_strExchg, exchg, len);
-	}
-	inline void setCode(const char* code, std::size_t len = 0) {
-		if (len == 0)
-			wt_strcpy(m_strCode, code);
-		else
-			strncpy(m_strCode, code, len);
-	}
+    inline void setExchange(const char* exchg, std::size_t len = 0) {
+        if (len == 0)
+            wt_strcpy(m_strExchg, exchg);
+        else
+            strncpy(m_strExchg, exchg, len);
+    }
 
-	inline void setActionFlag(WTSActionFlag af){m_actionFlag = af;}
-	inline WTSActionFlag getActionFlag() const{return m_actionFlag;}
+    inline void setCode(const char* code, std::size_t len = 0) {
+        if (len == 0)
+            wt_strcpy(m_strCode, code);
+        else
+            strncpy(m_strCode, code, len);
+    }
 
-	inline void setEntrustID(const char* eid) { wt_strcpy(m_strEnturstID, eid); }
-	inline const char* getEntrustID() const{return m_strEnturstID;}
+    inline void setActionFlag(WTSActionFlag af){m_actionFlag = af;}
+    inline WTSActionFlag getActionFlag() const{return m_actionFlag;}
 
-	inline void setOrderID(const char* oid) { wt_strcpy(m_strOrderID, oid); }
-	inline const char* getOrderID() const{return m_strOrderID;}
+    inline void setEntrustID(const char* eid) { wt_strcpy(m_strEnturstID, eid); }
+    inline const char* getEntrustID() const{return m_strEnturstID;}
 
-	inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
-	inline WTSBusinessType	getBusinessType() const { return m_businessType; }
+    inline void setOrderID(const char* oid) { wt_strcpy(m_strOrderID, oid); }
+    inline const char* getOrderID() const{return m_strOrderID;}
+
+    inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
+    inline WTSBusinessType	getBusinessType() const { return m_businessType; }
 
 protected:
-	char			m_strExchg[MAX_EXCHANGE_LENGTH];
-	char			m_strCode[MAX_INSTRUMENT_LENGTH];
-	double			m_dVolume;
-	double			m_iPrice;
+    char			m_strExchg[MAX_EXCHANGE_LENGTH];
+    char			m_strCode[MAX_INSTRUMENT_LENGTH];
+    double			m_dVolume;
+    double			m_iPrice;
 
-	char			m_strEnturstID[64] = { 0 };
-	WTSActionFlag	m_actionFlag;
+    char			m_strEnturstID[64] = { 0 };
+    WTSActionFlag	m_actionFlag;
 
-	char			m_strOrderID[64] = { 0 };
+    char			m_strOrderID[64] = { 0 };
 
-	WTSBusinessType		m_businessType;
+    WTSBusinessType		m_businessType;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -419,7 +417,7 @@ public:
         wt_strcpy(pRet->m_strExchg, exchg);
         wt_strcpy(pRet->m_strCode, code);
         pRet->m_businessType = bType;
-
+     
         return pRet;
     }
 
