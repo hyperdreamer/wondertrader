@@ -135,8 +135,8 @@ bool TraderAdapter::init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr
             auto it = _risk_params_map.find("default");
             if (it == _risk_params_map.end())
                 WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, 
-                                   "[{}] Some instruments may not be monitored ",
-                                   "due to no default risk control rule of trading channel", _id.c_str());
+                "[{}] Some instruments may not be monitored due to no default risk control rule of trading channel", 
+                _id.c_str());
         }
         else
             WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, 
@@ -511,7 +511,8 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
     if (riskPara == NULL) return true;
 
     WTSTradeStateInfo* statInfo = (WTSTradeStateInfo*) _stat_map->get(stdCode);
-    if (statInfo && riskPara->_cancel_total_limits != 0 && statInfo->total_cancels() >= riskPara->_cancel_total_limits )
+    if (statInfo && riskPara->_cancel_total_limits != 0 && 
+        statInfo->total_cancels() >= riskPara->_cancel_total_limits) 
     {
         WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
                            "[{}] {} cancel {} times totaly, beyond boundary {} times, adding to excluding list",
@@ -522,8 +523,7 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
 
     //³·µ¥ÆµÂÊ¼ì²é
     auto it = _cancel_time_cache.find(stdCode);
-    if (it != _cancel_time_cache.end())
-    {
+    if (it != _cancel_time_cache.end()) {
         TimeCacheList& cache = (TimeCacheList&)it->second;
         uint32_t cnt = cache.size();
         if (cnt >= riskPara->_cancel_times_boundary)
@@ -535,8 +535,10 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
             auto times = cnt - sIdx - 1;
             if (times > riskPara->_cancel_times_boundary)
             {
-                WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] {} cancel {} times within {} seconds, beyond boundary {} times, adding to excluding list",
-                                   _id.c_str(), stdCode, times, riskPara->_cancel_stat_timespan, riskPara->_cancel_times_boundary);
+                WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
+                    "[{}] {} cancel {} times within {} seconds, beyond boundary {} times, adding to excluding list",
+                                   _id.c_str(), stdCode, times, riskPara->_cancel_stat_timespan, 
+                                   riskPara->_cancel_times_boundary);
                 _exclude_codes.insert(stdCode);
                 return false;
             }
