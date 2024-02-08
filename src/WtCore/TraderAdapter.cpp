@@ -468,16 +468,13 @@ uint32_t TraderAdapter::doEntrust(WTSEntrust* entrust)
     fmtutil::format_to(usertag + _order_pattern.size() + 1, "{}", localid);
 
     int32_t ret = _trader_api->orderInsert(entrust);
-    if(ret < 0)
-    {
+    if (ret < 0) {
         WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] Order placing failed: {}", _id.c_str(), ret);
         return UINT_MAX;
     }
-    else
-    {
-        int64_t now = TimeUtils::getLocalTimeNow();
-        _order_time_cache[entrust->getCode()].emplace_back(now);
-    }
+
+    int64_t now = TimeUtils::getLocalTimeNow();
+    _order_time_cache[entrust->getCode()].emplace_back(now);
     return localid;
 }
 
@@ -488,7 +485,8 @@ void TraderAdapter::updateUndone(const char* stdCode, double qty, bool bOuput /*
     undone += qty;
 
     if (bOuput)
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, "[{}] {} qty of undone order updated, {} -> {}", _id.c_str(), stdCode, oldQty, undone);
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, 
+                           "[{}] {} qty of undone order updated, {} -> {}", _id.c_str(), stdCode, oldQty, undone);
 }
 
 WTSContractInfo* TraderAdapter::getContract(const char* stdCode)
@@ -505,20 +503,18 @@ WTSCommodityInfo* TraderAdapter::getCommodify(const char* stdCode)
 
 bool TraderAdapter::checkCancelLimits(const char* stdCode)
 {
-    if (!_risk_mon_enabled)
-        return true;
+    if (!_risk_mon_enabled) return true;
 
-    if (_exclude_codes.find(stdCode) != _exclude_codes.end())
-        return false;
+    if (_exclude_codes.find(stdCode) != _exclude_codes.end()) return false;
 
     const RiskParams* riskPara = getRiskParams(stdCode);
-    if (riskPara == NULL)
-        return true;
+    if (riskPara == NULL) return true;
 
-    WTSTradeStateInfo* statInfo = (WTSTradeStateInfo*)_stat_map->get(stdCode);
+    WTSTradeStateInfo* statInfo = (WTSTradeStateInfo*) _stat_map->get(stdCode);
     if (statInfo && riskPara->_cancel_total_limits != 0 && statInfo->total_cancels() >= riskPara->_cancel_total_limits )
     {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] {} cancel {} times totaly, beyond boundary {} times, adding to excluding list",
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
+                           "[{}] {} cancel {} times totaly, beyond boundary {} times, adding to excluding list",
                            _id.c_str(), stdCode, statInfo->total_cancels(), riskPara->_cancel_total_limits);
         _exclude_codes.insert(stdCode);
         return false;
