@@ -501,6 +501,7 @@ WTSCommodityInfo* TraderAdapter::getCommodify(const char* stdCode)
     return _bd_mgr->getCommodity(cInfo._exchg, cInfo._product);
 }
 
+// TODO:
 bool TraderAdapter::checkCancelLimits(const char* stdCode)
 {
     if (!_risk_mon_enabled) return true;
@@ -531,7 +532,7 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
             uint64_t sTime = eTime - riskPara->_cancel_stat_timespan * 1000;
             auto tit = std::lower_bound(cache.begin(), cache.end(), sTime);
             auto sIdx = tit - cache.begin();
-            auto times = cnt - sIdx - 1;
+            auto times = cnt - sIdx - 1;    // TODO: why -1?
             if (times > riskPara->_cancel_times_boundary) {
                 WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
                     "[{}] {} cancel {} times within {} seconds, beyond boundary {} times, adding to excluding list",
@@ -550,31 +551,28 @@ bool TraderAdapter::checkCancelLimits(const char* stdCode)
 
 bool TraderAdapter::isTradeEnabled(const char* stdCode) const
 {
-    if (!_risk_mon_enabled)
-        return true;
-
-    if (_exclude_codes.find(stdCode) != _exclude_codes.end())
-        return false;
+    if (!_risk_mon_enabled) return true;
+    if (_exclude_codes.find(stdCode) != _exclude_codes.end()) return false;
 
     return true;
 }
 
+// TODO:
 bool TraderAdapter::checkOrderLimits(const char* stdCode)
 {
-    if (!_risk_mon_enabled)
-        return true;
+    if (!_risk_mon_enabled) return true;
 
-    if (_exclude_codes.find(stdCode) != _exclude_codes.end())
-        return false;
+    if (_exclude_codes.find(stdCode) != _exclude_codes.end()) return false;
 
     const RiskParams* riskPara = getRiskParams(stdCode);
-    if (riskPara == NULL)
-        return true;
+    if (riskPara == NULL) return true;
 
-    WTSTradeStateInfo* statInfo = (WTSTradeStateInfo*)_stat_map->get(stdCode);
-    if (statInfo && riskPara->_order_total_limits != 0 && statInfo->total_orders() >= riskPara->_order_total_limits)
+    WTSTradeStateInfo* statInfo = (WTSTradeStateInfo*) _stat_map->get(stdCode);
+    if (statInfo && riskPara->_order_total_limits != 0 
+        && statInfo->total_orders() >= riskPara->_order_total_limits)
     {
-        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] {} entrust {} times totally, beyond boundary {} times, adding to excluding list",
+        WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
+                           "[{}] {} entrust {} times totally, beyond boundary {} times, adding to excluding list",
                            _id.c_str(), stdCode, statInfo->total_orders(), riskPara->_order_total_limits);
         _exclude_codes.insert(stdCode);
         return false;
@@ -582,58 +580,51 @@ bool TraderAdapter::checkOrderLimits(const char* stdCode)
 
     //撤单频率检查
     auto it = _order_time_cache.find(stdCode);
-    if (it != _order_time_cache.end())
-    {
-        TimeCacheList& cache = (TimeCacheList&)it->second;
+    if (it != _order_time_cache.end()) {
+        TimeCacheList& cache = (TimeCacheList&) it->second;
         uint32_t cnt = cache.size();
-        if (cnt >= riskPara->_order_times_boundary)
-        {
+        if (cnt >= riskPara->_order_times_boundary) {
             uint64_t eTime = cache[cnt - 1];
             uint64_t sTime = eTime - riskPara->_order_stat_timespan * 1000;
             auto tit = std::lower_bound(cache.begin(), cache.end(), sTime);
             auto sIdx = tit - cache.begin();
-            auto times = cnt - sIdx - 1;
-            if (times > riskPara->_order_times_boundary)
-            {
-                WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, "[{}] {} entrust {} times within {} seconds, beyond boundary {} times, adding to excluding list",
-                                   _id.c_str(), stdCode, times, riskPara->_order_stat_timespan, riskPara->_order_times_boundary);
+            auto times = cnt - sIdx - 1;    // TODO: why -1?
+            if (times > riskPara->_order_times_boundary) {
+                WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR, 
+                    "[{}] {} entrust {} times within {} seconds, beyond boundary {} times, adding to excluding list",
+                    _id.c_str(), stdCode, times, riskPara->_order_stat_timespan, riskPara->_order_times_boundary);
                 _exclude_codes.insert(stdCode);
                 return false;
             }
-
-            //这里必须要清理一下, 没有特别好的办法
-            //不然随着时间推移, vector长度会越来越长
-            if (tit != cache.begin())
-            {
-                cache.erase(cache.begin(), tit);
-            }
+         
+            //这里必须要清理一下, 没有特别好的办法,不然随着时间推移, vector长度会越来越长
+            if (tit != cache.begin()) cache.erase(cache.begin(), tit);
         }
     }
 
     return true;
 }
 
-OrderIDs TraderAdapter::buy(const char* stdCode, double price, double qty, int flag, bool bForceClose, WTSContractInfo* cInfo /* = NULL */)
+OrderIDs TraderAdapter::buy(const char* stdCode, double price, double qty, int flag, bool bForceClose, 
+                            WTSContractInfo* cInfo /* = NULL */)
 {
     OrderIDs ret;
-    if (qty == 0)
-        return ret;
+    if (qty == 0) return ret;
 
-    if (isSelfMatched(stdCode))
-    {
+    if (isSelfMatched(stdCode)) {
         WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR,
                            "[{0}] Instructions on {1} are forbidden: {1} is in self matches", _id.c_str(), stdCode);
         return ret;
     }
 
-    if(cInfo == NULL) cInfo = getContract(stdCode);
+    if (cInfo == NULL) cInfo = getContract(stdCode); // by _bd_mgr
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
     WTSSessionInfo* sInfo = commInfo->getSessionInfo();
 
-    if (!sInfo->isInTradingTime(WtHelper::getTime(), true))
-    {
+    if (!sInfo->isInTradingTime(WtHelper::getTime(), true)) {
         WTSLogger::log_dyn("trader", _id.c_str(), LL_ERROR,
-                           "[{}] Buying {} of quantity {}, {:04d} not in trading time", _id.c_str(), stdCode, qty, WtHelper::getTime());
+                           "[{}] Buying {} of quantity {}, {:04d} not in trading time", 
+                           _id.c_str(), stdCode, qty, WtHelper::getTime());
         return ret;
     }
 

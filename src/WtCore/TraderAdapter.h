@@ -148,11 +148,16 @@ public:
 
     uint32_t openLong(const char* stdCode, double price, double qty, int flag, WTSContractInfo* cInfo = NULL);
     uint32_t openShort(const char* stdCode, double price, double qty, int flag, WTSContractInfo* cInfo = NULL);
-    uint32_t closeLong(const char* stdCode, double price, double qty, bool isToday, int flag, WTSContractInfo* cInfo = NULL);
-    uint32_t closeShort(const char* stdCode, double price, double qty, bool isToday, int flag, WTSContractInfo* cInfo = NULL);
+    uint32_t closeLong(const char* stdCode, double price, double qty, bool isToday, int flag, 
+                       WTSContractInfo* cInfo = NULL);
+    uint32_t closeShort(const char* stdCode, double price, double qty, bool isToday, int flag, 
+                        WTSContractInfo* cInfo = NULL);
 
-    OrderIDs buy(const char* stdCode, double price, double qty, int flag, bool bForceClose, WTSContractInfo* cInfo = NULL);
-    OrderIDs sell(const char* stdCode, double price, double qty, int flag, bool bForceClose, WTSContractInfo* cInfo = NULL);
+    OrderIDs buy(const char* stdCode, double price, double qty, int flag, bool bForceClose, 
+                 WTSContractInfo* cInfo = NULL);
+    OrderIDs sell(const char* stdCode, double price, double qty, int flag, bool bForceClose, 
+                  WTSContractInfo* cInfo = NULL);
+
     bool	cancel(uint32_t localid);
     OrderIDs cancel(const char* stdCode, bool isBuy, double qty = 0);
 
@@ -166,9 +171,8 @@ public:
     inline	bool isSelfMatched(const char* stdCode)
     {
         //如果忽略自成交，则直接返回false
-        if (_ignore_sefmatch)
-            return false;
-
+        if (_ignore_sefmatch) return false;
+     
         auto it = _self_matches.find(stdCode);
         return it != _self_matches.end();
     }
