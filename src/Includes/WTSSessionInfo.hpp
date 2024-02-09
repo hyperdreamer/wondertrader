@@ -148,7 +148,7 @@ public: //需要导出到脚本的函数
      *
      *  @return: trading minutes from session beginning to uTime
      *
-     * TODO: support for multiple acution sections 
+     * TODO: support for multiple auction sections 
      */
     uint32_t timeToMinutes(uint32_t uTime, bool autoAdjust = false)
     {
