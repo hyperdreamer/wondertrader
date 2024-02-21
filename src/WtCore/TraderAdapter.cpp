@@ -628,180 +628,149 @@ OrderIDs TraderAdapter::buy(const char* stdCode, double price, double qty, int f
         return ret;
     }
 
-
     WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, "[{}] Buying {} of quantity {}", _id.c_str(), stdCode, qty);
 
     updateUndone(stdCode, qty, true);
 
     const PosItem& pItem = _positions[stdCode];
-    WTSTradeStateInfo* statInfo = (WTSTradeStateInfo*)_stat_map->get(stdCode);
-    if (statInfo == NULL)
-    {
+    WTSTradeStateInfo* statInfo = (WTSTradeStateInfo*) _stat_map->get(stdCode);
+    if (statInfo == NULL) {
         statInfo = WTSTradeStateInfo::create(stdCode);
-        _stat_map->add(stdCode, statInfo, false);
+        _stat_map->add(stdCode, statInfo, false); // false: not retain
     }
-    TradeStatInfo& statItem = statInfo->statInfo();
 
+    TradeStatInfo& statItem = statInfo->statInfo(); // NOTE: the function called returns a reference
     const ActionRuleGroup& ruleGP = _policy_mgr->getActionRules(commInfo->getFullPid());
-
     double left = qty;
+    double unitQty = (price == 0.0) ? cInfo->getMaxMktVol() : cInfo->getMaxLmtVol(); // TODO: what does it mean?
+    if (decimal::eq(unitQty, 0)) unitQty = DBL_MAX; // unitQty is the maximum volume of one order
 
-    double unitQty = (price == 0.0) ? cInfo->getMaxMktVol() : cInfo->getMaxLmtVol();
-    if (decimal::eq(unitQty, 0))
-        unitQty = DBL_MAX;
-
-    for (auto it = ruleGP.begin(); it != ruleGP.end(); it++)
-    {
+    for (auto it = ruleGP.begin(); it != ruleGP.end(); ++it) {
         const ActionRule& curRule = (*it);
-        if(curRule._atype == AT_Open && !bForceClose)
-        {
+        if (curRule._atype == AT_Open && !bForceClose) {
             //先检查是否已经到了限额
             //买入开仓, 即开多仓
             double maxQty = left;
-
-            if (curRule._limit_l != 0)
-            {
-                if (statItem.l_openvol >= curRule._limit_l)
-                {
-                    WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, "[{}] {} long position opened today is up to limit {}", _id.c_str(), stdCode, curRule._limit_l);
+         
+            if (curRule._limit_l != 0) {
+                if (statItem.l_openvol >= curRule._limit_l) {
+                    WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, 
+                                       "[{}] {} long position opened today is up to limit {}",
+                                       _id.c_str(), stdCode, curRule._limit_l);
                     continue;
                 }
-                else
-                {
-                    maxQty = min(maxQty, curRule._limit_l - statItem.l_openvol);
-                }
+                maxQty = min(maxQty, curRule._limit_l - statItem.l_openvol);
             }
-
-            if (curRule._limit != 0)
-            {
-                if (statItem.l_openvol + statItem.s_openvol >= curRule._limit)
-                {
-                    WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, "[{}] {} position opened today is up to limit {}", _id.c_str(), stdCode, curRule._limit);
+         
+            if (curRule._limit != 0) {
+                if (statItem.l_openvol + statItem.s_openvol >= curRule._limit) {
+                    WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN, 
+                                       "[{}] {} position opened today is up to limit {}", 
+                                       _id.c_str(), stdCode, curRule._limit);
                     continue;
                 }
-                else
-                {
-                    maxQty = min(maxQty, curRule._limit - statItem.l_openvol - statItem.s_openvol);
-                }
+                maxQty = min(maxQty, curRule._limit - statItem.l_openvol - statItem.s_openvol);
             }
-
-            //这里还要考虑单笔最大委托数量
+         
             double leftQty = maxQty;
-            for (;;)
-            {
+         
+            for (;;) { //这里还要考虑单笔最大委托数量
                 double curQty = min(leftQty, unitQty);
                 uint32_t localid = openLong(stdCode, price, curQty, flag, cInfo);
                 ret.emplace_back(localid);
-
+             
                 leftQty -= curQty;
-
-                if (decimal::eq(leftQty, 0))
-                    break;
-            }			
-
+                if (decimal::eq(leftQty, 0)) break;
+            }
+         
             left -= maxQty;
-
+         
             WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, 
-                               "[{}] Signal of buying {} of quantity {} triggered: Opening long of quantity {}", _id.c_str(), stdCode, qty, maxQty);
+                               "[{}] Signal of buying {} of quantity {} triggered: Opening long of quantity {}", 
+                               _id.c_str(), stdCode, qty, maxQty);
         }
-        else if(curRule._atype == AT_CloseToday)
-        {
+        else if(curRule._atype == AT_CloseToday) {
             double maxQty = 0;
             //如果要区分平昨平今的品种, 则只读取可平今仓即可
             //如果不区分平昨平今的品种, 则读取全部可平, 因为读取可拼今仓也没意义
             if (commInfo->getCoverMode() == CM_CoverToday)
                 maxQty = min(left, pItem.s_newavail);	//先看看可平今仓
             else
-                maxQty = min(left, pItem.avail_pos(false));
-
-
+                maxQty = min(left, pItem.avail_pos(false)); // false: to get available short positions
+         
             //如果要检查净今仓，但是昨仓不为0，则跳过该条规则
-            if (!bForceClose && curRule._pure && !decimal::eq(pItem.s_prevol, 0.0))
-            {
+            if (!bForceClose && curRule._pure && !decimal::eq(pItem.s_prevol, 0.0)) {
                 WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN,
-                                   "[{}] Closing new short position of {} skipped because of non-zero pre short position", _id.c_str(), stdCode);
+                    "[{}] Closing new short position of {} skipped because of non-zero pre short position", 
+                    _id.c_str(), stdCode);
                 continue;
             }
-
-            //这里还要考虑单笔最大委托数量
-            //if (maxQty > 0)
-            if (decimal::gt(maxQty, 0))
-            {
+         
+            if (decimal::gt(maxQty, 0)) {
                 double leftQty = maxQty;
-                for (;;)
-                {
+             
+                for (;;) { //这里还要考虑单笔最大委托数量
                     double curQty = min(leftQty, unitQty);
-                    uint32_t localid = closeShort(stdCode, price, curQty, (commInfo->getCoverMode() == CM_CoverToday), flag, cInfo);//如果不支持平今, 则直接下平仓标记即可
+                    //如果不支持平今, 则直接下平仓标记即可
+                    uint32_t localid = closeShort(stdCode, price, curQty, 
+                                                  (commInfo->getCoverMode() == CM_CoverToday), flag, cInfo);
                     ret.emplace_back(localid);
-
+                 
                     leftQty -= curQty;
-
-                    //if (leftQty == 0)
-                    if (decimal::eq(leftQty, 0))
-                        break;
+                 
+                    if (decimal::eq(leftQty, 0)) break;
                 }
+             
                 left -= maxQty;
-
+             
                 if (commInfo->getCoverMode() == CM_CoverToday)
-                {
                     WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, 
-                                       "[{}] Signal of buying {} of quantity {} triggered: Closing new short of quantity {}", _id.c_str(), stdCode, qty, maxQty);
-                }
+                         "[{}] Signal of buying {} of quantity {} triggered: Closing new short of quantity {}", 
+                         _id.c_str(), stdCode, qty, maxQty);
                 else
-                {
                     WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, 
-                                       "[{}] Signal of buying {} of quantity {} triggered: Closing short of quantity {}", _id.c_str(), stdCode, qty, maxQty);
-                }
+                        "[{}] Signal of buying {} of quantity {} triggered: Closing short of quantity {}", 
+                        _id.c_str(), stdCode, qty, maxQty);
             }
-
         }
-        else if (curRule._atype == AT_CloseYestoday)
-        {
-            //平昨比较简单, 因为不需要区分标记
+        else if (curRule._atype == AT_CloseYestoday) { //平昨比较简单, 因为不需要区分标记
             double maxQty = min(left, pItem.s_preavail);
-
+         
             //如果要检查净昨仓，但是今仓不为0，则跳过该条规则
-            if (!bForceClose && curRule._pure && !decimal::eq(pItem.s_newvol, 0.0))
-            {
+            if (!bForceClose && curRule._pure && !decimal::eq(pItem.s_newvol, 0.0)) {
                 WTSLogger::log_dyn("trader", _id.c_str(), LL_WARN,
-                                   "[{}] Closing pre short position of {} skipped because of non-zero new short position", _id.c_str(), stdCode);
+                    "[{}] Closing pre short position of {} skipped because of non-zero new short position", 
+                    _id.c_str(), stdCode);
                 continue;
             }
-
-            //这里还要考虑单笔最大委托数量
-            //if (maxQty > 0)
-            if (decimal::gt(maxQty, 0))
-            {
+         
+            if (decimal::gt(maxQty, 0)) {
                 double leftQty = maxQty;
-                for (;;)
-                {
+             
+                for (;;) { //这里还要考虑单笔最大委托数量
                     double curQty = min(leftQty, unitQty);
-                    uint32_t localid = closeShort(stdCode, price, curQty, false, flag, cInfo);//如果不支持平今, 则直接下平仓标记即可
+                    //如果不支持平今, 则直接下平仓标记即可
+                    uint32_t localid = closeShort(stdCode, price, curQty, false, flag, cInfo);
                     ret.emplace_back(localid);
-
+                 
                     leftQty -= curQty;
-
-                    //if (leftQty == 0)
-                    if (decimal::eq(leftQty, 0))
-                        break;
+                 
+                    if (decimal::eq(leftQty, 0)) break;
                 }
-
+             
                 left -= maxQty;
-
+             
                 if (commInfo->getCoverMode() == CM_CoverToday)
-                {
                     WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO, 
-                                       "[{}] Signal of buying {} of quantity {} triggered: Closing old short of quantity {}", _id.c_str(), stdCode, qty, maxQty);
-                }
+                        "[{}] Signal of buying {} of quantity {} triggered: Closing old short of quantity {}", 
+                        _id.c_str(), stdCode, qty, maxQty);
                 else
-                {
                     WTSLogger::log_dyn("trader", _id.c_str(), LL_INFO,
-                                       "[{}] Signal of buying {} of quantity {} triggered: Closing short of quantity {}", _id.c_str(), stdCode, qty, maxQty);
-                }
+                        "[{}] Signal of buying {} of quantity {} triggered: Closing short of quantity {}", 
+                        _id.c_str(), stdCode, qty, maxQty);
             }
         }
-        else if (curRule._atype == AT_Close)
-        {
+        else if (curRule._atype == AT_Close) {
             //如果只是平仓, 则分情况处理
             //如果区分平昨平今, 则要先平昨再平今
             //如果不区分平昨平今, 则统一平仓
