@@ -159,7 +159,7 @@ public: //需要导出到脚本的函数
         uint32_t offset = 0;
         bool bFound = false;
      
-        for(auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
+        for (auto it = m_tradingTimes.begin(); it != m_tradingTimes.end(); ++it) {
             TradingSection& section = *it;
             if (section.first <= offTime && offTime <= section.second) {
                 int32_t hour = offTime / 100 - section.first / 100;
