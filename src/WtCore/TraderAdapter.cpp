@@ -1116,6 +1116,7 @@ bool TraderAdapter::doCancel(WTSOrderInfo* ordInfo)
 
     WTSContractInfo* cInfo = ordInfo->getContractInfo();
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
+
     std::string stdCode;
     if (commInfo->getCategoty() == CC_FutOption || commInfo->getCategoty() == CC_SpotOption)
         stdCode = CodeHelper::rawFutOptCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
@@ -1123,34 +1124,33 @@ bool TraderAdapter::doCancel(WTSOrderInfo* ordInfo)
         stdCode = CodeHelper::rawMonthCodeToStdCode(cInfo->getCode(), cInfo->getExchg());
     else
         stdCode = CodeHelper::rawFlatCodeToStdCode(cInfo->getCode(), cInfo->getExchg(), cInfo->getProduct());
+
     //³·µ¥ÆµÂÊ¼ì²é
-    if (!checkCancelLimits(stdCode.c_str()))
-        return false;
+    if (!checkCancelLimits(stdCode.c_str())) return false;
 
     WTSEntrustAction* action = WTSEntrustAction::create(ordInfo->getCode(), cInfo->getExchg());
     action->setEntrustID(ordInfo->getEntrustID());
     action->setOrderID(ordInfo->getOrderID());
+
     int ret = _trader_api->orderAction(action);
     bool isSent = (ret >= 0);
     action->release();
+
     return isSent;
 }
 
 bool TraderAdapter::cancel(uint32_t localid)
 {
-    if (_orders == NULL || _orders->size() == 0)
-        return false;
+    if (_orders == NULL || _orders->size() == 0) return false;
 
     WTSOrderInfo* ordInfo = NULL;
-    {
+    { // for lock
         StdUniqueLock lock(_mtx_orders);
-        ordInfo = (WTSOrderInfo*)_orders->grab(localid);
-        if (ordInfo == NULL)
-            return false;
+        ordInfo = (WTSOrderInfo*) _orders->grab(localid);
+        if (ordInfo == NULL) return false;
     }
 
     bool bRet = doCancel(ordInfo);
-
     _cancel_time_cache[ordInfo->getCode()].emplace_back(TimeUtils::getLocalTimeNow());
 
     ordInfo->release();
@@ -1158,6 +1158,7 @@ bool TraderAdapter::cancel(uint32_t localid)
     return bRet;
 }
 
+// TODO:
 OrderIDs TraderAdapter::cancel(const char* stdCode, bool isBuy, double qty /* = 0 */)
 {
     CodeHelper::CodeInfo cInfo = CodeHelper::extractStdCode(stdCode, NULL);
@@ -1166,30 +1167,26 @@ OrderIDs TraderAdapter::cancel(const char* stdCode, bool isBuy, double qty /* = 
 
     double actQty = 0;
     bool isAll = strlen(stdCode) == 0;
-    if (_orders != NULL && _orders->size() > 0)
-    {
-        for (auto it = _orders->begin(); it != _orders->end(); it++)
-        {
+    if (_orders != NULL && _orders->size() > 0) {
+        for (auto it = _orders->begin(); it != _orders->end(); ++it) {
             WTSOrderInfo* orderInfo = (WTSOrderInfo*)it->second;
-            if(!orderInfo->isAlive())
-                continue;
-
-            bool bBuy = (orderInfo->getDirection() == WDT_LONG && orderInfo->getOffsetType() == WOT_OPEN) || (orderInfo->getDirection() == WDT_SHORT && orderInfo->getOffsetType() != WOT_OPEN);
-            if(bBuy != isBuy)
-                continue;
-
-            if (isAll || strcmp(orderInfo->getCode(), cInfo._code) == 0)
-            {
-                if(doCancel(orderInfo))
-                {
+            if (!orderInfo->isAlive()) continue;
+         
+            bool bBuy = (orderInfo->getDirection() == WDT_LONG && orderInfo->getOffsetType() == WOT_OPEN) || 
+                (orderInfo->getDirection() == WDT_SHORT && orderInfo->getOffsetType() != WOT_OPEN);
+         
+            if(bBuy != isBuy) continue;
+         
+            if (isAll || strcmp(orderInfo->getCode(), cInfo._code) == 0) {
+                if (doCancel(orderInfo)) {
                     actQty += orderInfo->getVolLeft();
                     ret.emplace_back(it->first);
-                    //_cancel_time_cache[orderInfo->getCode()].emplace_back(TimeUtils::getLocalTimeNow());
                 }
+                // TODO: why no cancel time check? 
+                //_cancel_time_cache[orderInfo->getCode()].emplace_back(TimeUtils::getLocalTimeNow());
             }
-
-            if (!decimal::eq(qty, 0) && decimal::ge(actQty, qty))
-                break;
+         
+            if (!decimal::eq(qty, 0) && decimal::ge(actQty, qty)) break;
         }
     }
 
