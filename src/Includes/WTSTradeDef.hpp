@@ -348,8 +348,7 @@ public:
 
     inline bool	isAlive() const
     {
-        switch(m_orderState)
-        {
+        switch(m_orderState) {
         case WOS_AllTraded:
         case WOS_Canceled:
             return false;

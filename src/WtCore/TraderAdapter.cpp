@@ -1112,8 +1112,7 @@ OrderIDs TraderAdapter::sell(const char* stdCode, double price, double qty, int 
 
 bool TraderAdapter::doCancel(WTSOrderInfo* ordInfo)
 {
-    if (ordInfo == NULL || !ordInfo->isAlive())
-        return false;
+    if (ordInfo == NULL || !ordInfo->isAlive()) return false;
 
     WTSContractInfo* cInfo = ordInfo->getContractInfo();
     WTSCommodityInfo* commInfo = cInfo->getCommInfo();
