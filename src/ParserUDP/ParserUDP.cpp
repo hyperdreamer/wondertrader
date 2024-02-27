@@ -97,7 +97,7 @@ bool ParserUDP::init(WTSVariant* config)
 
     ip::address addr = ip::address::from_string(_host);
     _server_ep = ip::udp::endpoint(addr, _sport);
-    _broad_ep = ip::udp::endpoint(ip::address_v4::any(), _bport);
+    _broad_ep = ip::udp::endpoint(ip::address_v4::any(), _bport);   // for listening 0.0.0.0:bport
 
     return true;
 }
@@ -244,7 +244,6 @@ bool ParserUDP::isConnected()
 {
     return _b_socket != NULL;
 }
-
 
 void ParserUDP::subscribe(const CodeSet &vecSymbols)
 {
