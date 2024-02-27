@@ -138,6 +138,7 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //委托操作: 撤单、改单
+// default action: WAF_CANCEL
 class WTSEntrustAction : public WTSPoolObject<WTSEntrustAction> {
 public:
     WTSEntrustAction()
