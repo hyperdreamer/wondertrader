@@ -97,7 +97,7 @@ bool ParserUDP::init(WTSVariant* config)
 
     ip::address addr = ip::address::from_string(_host);
     _server_ep = ip::udp::endpoint(addr, _sport);
-    _broad_ep = ip::udp::endpoint(ip::address_v4::any(), _bport);   // for listening 0.0.0.0:bport
+    _broad_ep = ip::udp::endpoint(ip::address_v4::any(), _bport);
 
     return true;
 }
