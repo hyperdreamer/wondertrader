@@ -774,8 +774,7 @@ OrderIDs TraderAdapter::buy(const char* stdCode, double price, double qty, int f
             //如果只是平仓, 则分情况处理
             //如果区分平昨平今, 则要先平昨再平今
             //如果不区分平昨平今, 则统一平仓
-            if (commInfo->getCoverMode() != CM_CoverToday)
-            {
+            if (commInfo->getCoverMode() != CM_CoverToday) {
                 double maxQty = min(pItem.avail_pos(false), left);
 
                 //if (maxQty > 0)
