@@ -462,6 +462,7 @@ uint32_t TraderAdapter::doEntrust(WTSEntrust* entrust)
     entrust->setExchange(cInfo->getExchg());
 
     uint32_t localid = makeLocalOrderID();
+
     char* usertag = entrust->getUserTag();
     wt_strcpy(usertag, _order_pattern.c_str(), _order_pattern.size());
     usertag[_order_pattern.size()] =  '.';
@@ -1182,7 +1183,7 @@ OrderIDs TraderAdapter::cancel(const char* stdCode, bool isBuy, double qty /* = 
                     actQty += orderInfo->getVolLeft();
                     ret.emplace_back(it->first);
                 }
-                // TODO: why no cancel time check? 
+                // TODO: why no cancel time check? To cancel forcefully?
                 //_cancel_time_cache[orderInfo->getCode()].emplace_back(TimeUtils::getLocalTimeNow());
             }
          
@@ -1193,16 +1194,22 @@ OrderIDs TraderAdapter::cancel(const char* stdCode, bool isBuy, double qty /* = 
     return ret;
 }
 
+/*
+ * @price: if price == 0.0, market price, otherwise limit price
+ * @flag: 0, ordinary order; 1: FAK, 2: FOK
+ */
 uint32_t TraderAdapter::openLong(const char* stdCode, double price, double qty, int flag, WTSContractInfo* cInfo /* = NULL */)
 {
     WTSEntrust* entrust = WTSEntrust::create(stdCode, qty, price);
+
     entrust->setContractInfo(cInfo == NULL ? getContract(stdCode) : cInfo);
+
     if(decimal::eq(price, 0.0))
         entrust->setPriceType(WPT_ANYPRICE);
     else
         entrust->setPriceType(WPT_LIMITPRICE);
-    entrust->setOrderFlag((WTSOrderFlag)(WOF_NOR + flag));
 
+    entrust->setOrderFlag((WTSOrderFlag) (WOF_NOR + flag));
     entrust->setDirection(WDT_LONG);
     entrust->setOffsetType(WOT_OPEN);
 
