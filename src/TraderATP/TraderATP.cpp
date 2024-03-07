@@ -42,22 +42,20 @@ inline void write_log(ITraderSpi* sink, WTSLogLevel ll, const char* format, cons
 	sink->handleTraderLog(ll, buffer);
 }
 
-extern "C"
-{
-	EXPORT_FLAG ITraderApi* createTrader()
-	{
-		TraderATP *instance = new TraderATP();
-		return instance;
-	}
+extern "C" {
+    EXPORT_FLAG ITraderApi* createTrader()
+    {
+        TraderATP *instance = new TraderATP();
+        return instance;
+    }
 
-	EXPORT_FLAG void deleteTrader(ITraderApi* &trader)
-	{
-		if (NULL != trader)
-		{
-			delete trader;
-			trader = NULL;
-		}
-	}
+    EXPORT_FLAG void deleteTrader(ITraderApi* &trader)
+    {
+        if (NULL != trader) {
+            delete trader;
+            trader = NULL;
+        }
+    }
 }
 
 inline uint32_t makeRefID()
@@ -67,7 +65,6 @@ inline uint32_t makeRefID()
 		auto_refid = (uint32_t)((TimeUtils::getLocalTimeNow() - TimeUtils::makeTime(20220101, 0)) / 1000 * 100);
 	return auto_refid.fetch_add(1);
 }
-
 
 TraderATP::TraderATP()
 	: _api(NULL)
@@ -84,9 +81,7 @@ TraderATP::TraderATP()
 	, ayTrades(NULL)
 	, _return_nums(0)
 {
-
 }
-
 
 TraderATP::~TraderATP()
 {
