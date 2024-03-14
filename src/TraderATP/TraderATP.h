@@ -31,7 +31,7 @@ public:
     TraderATP();
     virtual ~TraderATP();
 
-    typedef enum {
+    typedef enum _TraderState {
         TS_NOTLOGIN,		//Î´µÇÂ¼
         TS_LOGINING,		//ÕýÔÚµÇÂ¼
         TS_LOGINED,			//ÒÑµÇÂ¼
