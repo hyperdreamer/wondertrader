@@ -41,6 +41,7 @@ public:
 
 public:
     //////////////////////////////////////////////////////////////////////////
+    // Parts of ATPTradeHandler's API
     // µÇÈë»Øµ÷
     virtual void OnLogin(const std::string& reason) override;
 
