@@ -207,31 +207,25 @@ void TraderCTP::disconnect()
 
 bool TraderCTP::makeEntrustID(char* buffer, int length)
 {
-	if (buffer == NULL || length == 0)
-		return false;
+    if (buffer == NULL || length == 0) return false;
 
-	try
-	{
-		memset(buffer, 0, length);
-		uint32_t orderref = m_orderRef.fetch_add(1) + 1;
-		fmt::format_to(buffer, "{:06d}#{:010d}#{:06d}", m_frontID, (uint32_t)m_sessionID, orderref);
-		return true;
-	}
-	catch (...)
-	{
+    try {
+        memset(buffer, 0, length);
+        uint32_t orderref = m_orderRef.fetch_add(1) + 1;
+        fmt::format_to(buffer, "{:06d}#{:010d}#{:06d}", m_frontID, (uint32_t) m_sessionID, orderref);
+        return true;
+    }
+    catch (...) {
+        // do nothing
+    }
 
-	}
-
-	return false;
+    return false;
 }
 
 void TraderCTP::registerSpi(ITraderSpi *listener)
 {
-	m_sink = listener;
-	if (m_sink)
-	{
-		m_bdMgr = listener->getBaseDataMgr();
-	}
+    m_sink = listener;
+    if (m_sink) m_bdMgr = listener->getBaseDataMgr();
 }
 
 uint32_t TraderCTP::genRequestID()
