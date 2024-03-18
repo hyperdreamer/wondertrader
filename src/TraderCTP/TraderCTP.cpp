@@ -27,46 +27,39 @@
 template<typename... Args>
 inline void write_log(ITraderSpi* sink, WTSLogLevel ll, const char* format, const Args&... args)
 {
-	if (sink == NULL)
-		return;
+    if (sink == NULL) return;
 
-	const char* buffer = fmtutil::format(format, args...);
+    const char* buffer = fmtutil::format(format, args...);
 
-	sink->handleTraderLog(ll, buffer);
+    sink->handleTraderLog(ll, buffer);
 }
 
 uint32_t strToTime(const char* strTime)
 {
-	std::string str;
-	const char *pos = strTime;
-	while (strlen(pos) > 0)
-	{
-		if (pos[0] != ':')
-		{
-			str.append(pos, 1);
-		}
-		pos++;
-	}
+    std::string str;
+    const char *pos = strTime;
+    while (strlen(pos) > 0) {
+        if (pos[0] != ':') str.append(pos, 1);
+        pos++;
+    }
 
-	return strtoul(str.c_str(), NULL, 10);
+    return strtoul(str.c_str(), NULL, 10);
 }
 
-extern "C"
-{
-	EXPORT_FLAG ITraderApi* createTrader()
-	{
-		TraderCTP *instance = new TraderCTP();
-		return instance;
-	}
+extern "C" {
+    EXPORT_FLAG ITraderApi* createTrader()
+    {
+        TraderCTP *instance = new TraderCTP();
+        return instance;
+    }
 
-	EXPORT_FLAG void deleteTrader(ITraderApi* &trader)
-	{
-		if (NULL != trader)
-		{
-			delete trader;
-			trader = NULL;
-		}
-	}
+    EXPORT_FLAG void deleteTrader(ITraderApi* &trader)
+    {
+        if (NULL != trader) {
+            delete trader;
+            trader = NULL;
+        }
+    }
 }
 
 TraderCTP::TraderCTP()
@@ -92,128 +85,98 @@ TraderCTP::~TraderCTP()
 
 bool TraderCTP::init(WTSVariant* params)
 {
-	auto fontItem = params->get("front");
-	if (fontItem)
-	{
-		if (fontItem->type() == WTSVariant::VT_String)
-		{
-			m_strFront.push_back(fontItem->asCString());
-		}
-		else if (fontItem->type() == WTSVariant::VT_Array)
-		{
-			for (uint32_t i = 0; i < fontItem->size(); i++)
-			{
-				m_strFront.push_back(fontItem->get(i)->asCString());
-			}
-		}
-	}
-	m_strBroker = params->get("broker")->asCString();
-	m_strUser = params->get("user")->asCString();
-	m_strPass = params->get("pass")->asCString();
+    auto fontItem = params->get("front");
+    if (fontItem) {
+        if (fontItem->type() == WTSVariant::VT_String)
+            m_strFront.push_back(fontItem->asCString());
+        else if (fontItem->type() == WTSVariant::VT_Array)
+            for (uint32_t i = 0; i < fontItem->size(); ++i) m_strFront.push_back(fontItem->get(i)->asCString());
+    }
 
-	m_strAppID = params->getCString("appid");
-	m_strAuthCode = params->getCString("authcode");
-	m_strFlowDir = params->getCString("flowdir");
+    m_strBroker = params->get("broker")->asCString();
+    m_strUser = params->get("user")->asCString();
+    m_strPass = params->get("pass")->asCString();
 
-	if (m_strFlowDir.empty())
-		m_strFlowDir = "CTPTDFlow";
+    m_strAppID = params->getCString("appid");
+    m_strAuthCode = params->getCString("authcode");
 
-	m_strFlowDir = StrUtil::standardisePath(m_strFlowDir);
+    m_strFlowDir = params->getCString("flowdir");
+    if (m_strFlowDir.empty()) m_strFlowDir = "CTPTDFlow";
+    m_strFlowDir = StrUtil::standardisePath(m_strFlowDir);
 
-	std::string module = params->getCString("ctpmodule");
-	if (module.empty())
-		module = "thosttraderapi_se";
+    std::string module = params->getCString("ctpmodule");
+    if (module.empty()) module = "thosttraderapi_se";
 
-	m_strModule = getBinDir() + DLLHelper::wrap_module(module.c_str(), "");
-
-	m_hInstCTP = DLLHelper::load_library(m_strModule.c_str());
+    m_strModule = getBinDir() + DLLHelper::wrap_module(module.c_str(), "");
+    m_hInstCTP = DLLHelper::load_library(m_strModule.c_str());
 #ifdef _WIN32
 #	ifdef _WIN64
-	const char* creatorName = "?CreateFtdcTraderApi@CThostFtdcTraderApi@@SAPEAV1@PEBD@Z";
+    const char* creatorName = "?CreateFtdcTraderApi@CThostFtdcTraderApi@@SAPEAV1@PEBD@Z";
 #	else
-	const char* creatorName = "?CreateFtdcTraderApi@CThostFtdcTraderApi@@SAPAV1@PBD@Z";
+    const char* creatorName = "?CreateFtdcTraderApi@CThostFtdcTraderApi@@SAPAV1@PBD@Z";
 #	endif
 #else
-	const char* creatorName = "_ZN19CThostFtdcTraderApi19CreateFtdcTraderApiEPKc";
+    const char* creatorName = "_ZN19CThostFtdcTraderApi19CreateFtdcTraderApiEPKc";
 #endif
-	m_funcCreator = (CTPCreator)DLLHelper::get_symbol(m_hInstCTP, creatorName);
+    m_funcCreator = (CTPCreator) DLLHelper::get_symbol(m_hInstCTP, creatorName);
 
-	m_bQuickStart = params->getBoolean("quick");
-
-	return true;
+    m_bQuickStart = params->getBoolean("quick");
+    return true;
 }
 
 void TraderCTP::release()
 {
-	m_bStopped = true;
+    m_bStopped = true;
 
-	if (m_pUserAPI)
-	{
-		//m_pUserAPI->RegisterSpi(NULL);
-		m_pUserAPI->Release();
-		m_pUserAPI = NULL;
-	}
+    if (m_pUserAPI) {
+        //m_pUserAPI->RegisterSpi(NULL);
+        m_pUserAPI->Release();
+        m_pUserAPI = NULL;
+    }
 
-	if (m_ayOrders)
-		m_ayOrders->clear();
-
-	if (m_ayPosDetail)
-		m_ayPosDetail->clear();
-
-	if (m_mapPosition)
-		m_mapPosition->clear();
-
-	if (m_ayTrades)
-		m_ayTrades->clear();
+    if (m_ayOrders) m_ayOrders->clear();
+    if (m_ayPosDetail) m_ayPosDetail->clear();
+    if (m_mapPosition) m_mapPosition->clear();
+    if (m_ayTrades) m_ayTrades->clear();
 }
 
 void TraderCTP::connect()
 {
-	std::stringstream ss;
-	ss << m_strFlowDir << "flows/" << m_strBroker << "/" << m_strUser << "/";
-	boost::filesystem::create_directories(ss.str().c_str());
-	m_pUserAPI = m_funcCreator(ss.str().c_str());
-	m_pUserAPI->RegisterSpi(this);
-	if (m_bQuickStart)
-	{
-		m_pUserAPI->SubscribePublicTopic(THOST_TERT_QUICK);			// 注册公有流
-		m_pUserAPI->SubscribePrivateTopic(THOST_TERT_QUICK);		// 注册私有流
-	}
-	else
-	{
-		m_pUserAPI->SubscribePublicTopic(THOST_TERT_RESUME);		// 注册公有流
-		m_pUserAPI->SubscribePrivateTopic(THOST_TERT_RESUME);		// 注册私有流
-	}
+    std::stringstream ss;
+    ss << m_strFlowDir << "flows/" << m_strBroker << "/" << m_strUser << "/";
+    boost::filesystem::create_directories(ss.str().c_str());
+    m_pUserAPI = m_funcCreator(ss.str().c_str());
+    m_pUserAPI->RegisterSpi(this);
 
-	for (std::string front : m_strFront)
-	{
-		m_pUserAPI->RegisterFront((char*)front.c_str());
-		m_sink->handleTraderLog(LL_INFO, fmtutil::format("registerFront: {}", front));
-	}
+    if (m_bQuickStart) {
+        m_pUserAPI->SubscribePublicTopic(THOST_TERT_QUICK);			// 注册公有流
+        m_pUserAPI->SubscribePrivateTopic(THOST_TERT_QUICK);		// 注册私有流
+    }
+    else {
+        m_pUserAPI->SubscribePublicTopic(THOST_TERT_RESUME);		// 注册公有流
+        m_pUserAPI->SubscribePrivateTopic(THOST_TERT_RESUME);		// 注册私有流
+    }
 
-	if (m_pUserAPI)
-	{
-		m_pUserAPI->Init();
-	}
+    for (std::string front : m_strFront) {
+        m_pUserAPI->RegisterFront((char*) front.c_str());
+        m_sink->handleTraderLog(LL_INFO, fmtutil::format("registerFront: {}", front));
+    }
 
-	if (m_thrdWorker == NULL)
-	{
-		m_thrdWorker.reset(new StdThread([this](){
-			while (!m_bStopped)
-			{
-				if(m_queQuery.empty() || m_bInQuery)
-				{
+    if (m_pUserAPI) m_pUserAPI->Init();
+
+	if (m_thrdWorker == NULL) {
+		m_thrdWorker.reset(new StdThread([this]() {
+			while (!m_bStopped) {
+				if(m_queQuery.empty() || m_bInQuery) {
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 					continue;
 				}
 
 				uint64_t curTime = TimeUtils::getLocalTimeNow();
-				if (curTime - m_lastQryTime < 1000)
-				{
+				if (curTime - m_lastQryTime < 1000) {
 					std::this_thread::sleep_for(std::chrono::milliseconds(50));
 					continue;
 				}
-
 
 				m_bInQuery = true;
 				CommonExecuter& handler = m_queQuery.front();
@@ -236,11 +199,10 @@ void TraderCTP::disconnect()
 		release();
 	});
 
-	if (m_thrdWorker)
-	{
-		m_thrdWorker->join();
-		m_thrdWorker = NULL;
-	}
+    if (m_thrdWorker) {
+        m_thrdWorker->join();
+        m_thrdWorker = NULL;
+    }
 }
 
 bool TraderCTP::makeEntrustID(char* buffer, int length)
