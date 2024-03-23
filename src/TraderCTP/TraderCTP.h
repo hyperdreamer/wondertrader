@@ -91,30 +91,47 @@ public:
 
     virtual void OnHeartBeatWarning(int nTimeLapse) override;
 
-    virtual void OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, 
+                                   CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
+                                CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, 
+                                 CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+                                            CThostFtdcRspInfoField *pRspInfo, 
+                                            int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+                                               CThostFtdcRspInfoField *pRspInfo, 
+                                               int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, 
+                                        CThostFtdcRspInfoField *pRspInfo, 
+                                        int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
+                                  CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, 
+                                  CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, 
+                                          CThostFtdcRspInfoField *pRspInfo, 
+                                          int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *pSettlementInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *pSettlementInfo, 
+                                        CThostFtdcRspInfoField *pRspInfo, 
+                                        int nRequestID, bool bIsLast) override;
 
     ///请求查询成交响应
-    virtual void OnRspQryTrade(CThostFtdcTradeField *pTrade, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspQryTrade(CThostFtdcTradeField *pTrade, 
+                               CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
-    virtual void OnRspQryOrder(CThostFtdcOrderField *pOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
+    virtual void OnRspQryOrder(CThostFtdcOrderField *pOrder, 
+                               CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
     virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) override;
 
@@ -122,7 +139,8 @@ public:
 
     virtual void OnRtnTrade(CThostFtdcTradeField *pTrade) override;
 
-    virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo) override;
+    virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
+                                     CThostFtdcRspInfoField *pRspInfo) override;
 
     virtual void OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField *pInstrumentStatus) override;
 
@@ -151,7 +169,8 @@ private:
     WTSTradeInfo*	makeTradeRecord(CThostFtdcTradeField *tradeField);
 
     void			generateEntrustID(char* buffer, uint32_t frontid, uint32_t sessionid, uint32_t orderRef);
-    bool			extractEntrustID(const char* entrustid, uint32_t &frontid, uint32_t &sessionid, uint32_t &orderRef);
+    bool			extractEntrustID(const char* entrustid, uint32_t& frontid, uint32_t& sessionid, 
+                                     uint32_t& orderRef);
 
     uint32_t		genRequestID();
 
