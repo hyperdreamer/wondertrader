@@ -52,7 +52,7 @@ private:
     wt_hashmap<std::string, uint32_t> _indice;
 
 private:
-    bool	resize(uint32_t newCap, CacheLogger logger = nullptr)
+    bool resize(uint32_t newCap, CacheLogger logger = nullptr)
     {
         if (_cache._file == NULL) return false;
      
@@ -107,7 +107,7 @@ public:
             uint64_t uSize = sizeof(CacheBlock) + sizeof(CacheItem) * SIZE_STEP;
             BoostFile bf;
             bf.create_new_file(filename);
-            bf.truncate_file((uint32_t)uSize);
+            bf.truncate_file((uint32_t) uSize);
             bf.close_file();
          
             isNew = true;
@@ -129,7 +129,7 @@ public:
          
             if (logger) logger("Cache file reset due to a different date");
         }
-
+     
         if (isNew) {
             _cache._block->_capacity = SIZE_STEP;
             _cache._block->_size = 0;
@@ -178,7 +178,7 @@ public:
         return _cache._block->_items[it->second]._val;
     }
 
-    void	put(const char* key, const char*val, std::size_t len = 0, CacheLogger logger = nullptr)
+    void put(const char* key, const char*val, std::size_t len = 0, CacheLogger logger = nullptr)
     {
         auto it = _indice.find(key);
         if (it != _indice.end())
