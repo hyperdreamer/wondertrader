@@ -179,96 +179,95 @@ public:
 };
 
 //下单接口管理接口
-class ITraderApi
-{
+class ITraderApi {
 public:
-	virtual ~ITraderApi() {}
+    virtual ~ITraderApi() {}
 
-	virtual IStkTraderApi* getStkTrader() { return NULL; }
-	virtual IOptTraderApi* getOptTrader() { return NULL; }
+    virtual IStkTraderApi* getStkTrader() { return NULL; }
+    virtual IOptTraderApi* getOptTrader() { return NULL; }
 
 public:
-	/*
-	 *	初始化解析管理器
-	 */
-	virtual bool init(WTSVariant *params) { return false; }
+    /*
+     *	初始化解析管理器
+     */
+    virtual bool init(WTSVariant *params) { return false; }
 
-	/*
-	 *	释放解析管理器
-	 */
-	virtual void release(){}
+    /*
+     *	释放解析管理器
+     */
+    virtual void release(){}
 
-	/*
-	 *	注册回调接口
-	 */
-	virtual void registerSpi(ITraderSpi *listener) {}
+    /*
+     *	注册回调接口
+     */
+    virtual void registerSpi(ITraderSpi *listener) {}
 
-	//////////////////////////////////////////////////////////////////////////
-	//业务逻辑接口
+    //////////////////////////////////////////////////////////////////////////
+    //业务逻辑接口
 
-	/*
-	 *	连接服务器
-	 */
-	virtual void connect() {}
+    /*
+     *	连接服务器
+     */
+    virtual void connect() {}
 
-	/*
-	 *	断开连接
-	 */
-	virtual void disconnect() {}
+    /*
+     *	断开连接
+     */
+    virtual void disconnect() {}
 
-	virtual bool isConnected() { return false; }
+    virtual bool isConnected() { return false; }
 
-	/*
-	 *	生成委托单号
-	 */
-	virtual bool makeEntrustID(char* buffer, int length) { return false; }
+    /*
+     *	生成委托单号
+     */
+    virtual bool makeEntrustID(char* buffer, int length) { return false; }
 
-	/*
-	 *	登录接口
-	 */
-	virtual int login(const char* user, const char* pass, const char* productInfo) { return -1; }
+    /*
+     *	登录接口
+     */
+    virtual int login(const char* user, const char* pass, const char* productInfo) { return -1; }
 
-	/*
-	 *	注销接口
-	 */
-	virtual int logout() { return -1; }
+    /*
+     *	注销接口
+     */
+    virtual int logout() { return -1; }
 
-	/*
-	 *	下单接口
-	 *	entrust 下单的具体数据结构
-	 */
-	virtual int orderInsert(WTSEntrust* eutrust) { return -1; }
+    /*
+     *	下单接口
+     *	entrust 下单的具体数据结构
+     */
+    virtual int orderInsert(WTSEntrust* eutrust) { return -1; }
 
-	/*
-	 *	订单操作接口
-	 *	action	操作的具体数据结构
-	 */
-	virtual int orderAction(WTSEntrustAction* action) { return -1; }
+    /*
+     *	订单操作接口
+     *	action	操作的具体数据结构
+     */
+    virtual int orderAction(WTSEntrustAction* action) { return -1; }
 
-	/*
-	 *	查询账户信息
-	 */
-	virtual int queryAccount() { return -1; }
+    /*
+     *	查询账户信息
+     */
+    virtual int queryAccount() { return -1; }
 
-	/*
-	 *	查询持仓信息
-	 */
-	virtual int queryPositions() { return -1; }
+    /*
+     *	查询持仓信息
+     */
+    virtual int queryPositions() { return -1; }
 
-	/*
-	 *	查询所有订单
-	 */
-	virtual int queryOrders() { return -1; }
+    /*
+     *	查询所有订单
+     */
+    virtual int queryOrders() { return -1; }
 
-	/*
-	 *	查询成交明细
-	 */
-	virtual int	queryTrades() { return -1; }
+    /*
+     *	查询成交明细
+     */
+    virtual int	queryTrades() { return -1; }
 
-	/*
-	 *	查询结算单
-	 */
-	virtual int querySettlement(uint32_t uDate) { return 0; }
+    /*
+     *	查询结算单
+     */
+    virtual int querySettlement(uint32_t uDate) { return 0; }
 
 };
 
