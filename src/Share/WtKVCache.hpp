@@ -119,14 +119,13 @@ public:
             if (logger) logger("Mapping cache file failed");
             return false;
         }
-        _cache._block = (CacheBlock*)_cache._file->addr();
+        _cache._block = (CacheBlock*) _cache._file->addr();
      
         if (!isNew &&  _cache._block->_date != uDate) {
             _cache._block->_size = 0;
             _cache._block->_date = uDate;
          
-            memset(& _cache._block->_items, 0, sizeof(CacheItem)* _cache._block->_capacity);
-         
+            memset(& _cache._block->_items, 0, sizeof(CacheItem) * _cache._block->_capacity);
             if (logger) logger("Cache file reset due to a different date");
         }
      
@@ -134,21 +133,20 @@ public:
             _cache._block->_capacity = SIZE_STEP;
             _cache._block->_size = 0;
             _cache._block->_date = uDate;
-            strcpy( _cache._block->_blk_flag, CACHE_FLAG);
+            strcpy(_cache._block->_blk_flag, CACHE_FLAG);
         }
         else { //检查缓存文件是否有问题,要自动恢复
-            do {
-                uint64_t uSize = sizeof(CacheBlock) + sizeof(CacheItem) *  _cache._block->_capacity;
-                uint64_t realSz =  _cache._file->size();
-                if (realSz != uSize) {
-                    uint32_t realCap = (uint32_t)((realSz - sizeof(CacheBlock)) / sizeof(CacheItem));
-                    uint32_t markedCap =  _cache._block->_capacity;
-                    //文件大小不匹配,一般是因为capacity改了,但是实际没扩容
-                    //这是做一次扩容即可
-                    _cache._block->_capacity = realCap;
-                    _cache._block->_size = (realCap < markedCap) ? realCap : markedCap;
-                }
-            } while (false);
+            uint64_t uSize = sizeof(CacheBlock) + sizeof(CacheItem) * _cache._block->_capacity;
+            uint64_t realSz =  _cache._file->size();
+         
+            if (realSz != uSize) {
+                uint32_t realCap = (uint32_t) ((realSz - sizeof(CacheBlock)) / sizeof(CacheItem));
+                uint32_t markedCap =  _cache._block->_capacity;
+                //文件大小不匹配,一般是因为capacity改了,但是实际没扩容
+                //这是做一次扩容即可
+                _cache._block->_capacity = realCap;
+                _cache._block->_size = (realCap < markedCap) ? realCap : markedCap;
+            }
         }
      
         //这里把索引加到hashmap中
@@ -164,8 +162,7 @@ public:
         if (_cache._block == NULL) return;
      
         _indice.clear();
-     
-        memset(_cache._block->_items, 0, sizeof(CacheItem)*_cache._block->_capacity);
+        memset(_cache._block->_items, 0, sizeof(CacheItem) * _cache._block->_capacity);
         _cache._block->_size = 0;
      
         _lock.unlock();
