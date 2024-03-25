@@ -64,7 +64,7 @@ private:
         uint64_t uOldSize = sizeof(CacheBlock) + sizeof(CacheItem)*cBlock->_capacity;
         uint64_t uNewSize = sizeof(CacheBlock) + sizeof(CacheItem)*newCap;
         std::string data;
-        data.resize((std::size_t)(uNewSize - uOldSize), 0);
+        data.resize((std::size_t) (uNewSize - uOldSize), 0);
         try {
             BoostFile f;
             f.open_existing_file(filename.c_str());
@@ -92,8 +92,7 @@ private:
         }
      
         _cache._file.reset(pNewMf);
-     
-        _cache._block = (CacheBlock*)_cache._file->addr();
+        _cache._block = (CacheBlock*) _cache._file->addr();
         _cache._block->_capacity = newCap;
      
         return true;
@@ -168,7 +167,7 @@ public:
         _lock.unlock();
     }
 
-    inline const char*	get(const char* key) const
+    inline const char* get(const char* key) const
     {
         auto it = _indice.find(key);
         if (it == _indice.end()) return "";
@@ -182,12 +181,13 @@ public:
             wt_strcpy(_cache._block->_items[it->second]._val, val, len);
         else {
             _lock.lock();
-            if (_cache._block->_size == _cache._block->_capacity) resize(_cache._block->_capacity*2, logger);
          
+            if (_cache._block->_size == _cache._block->_capacity) resize(_cache._block->_capacity*2, logger);
             _indice[key] = _cache._block->_size;
             wt_strcpy(_cache._block->_items[_cache._block->_size]._key, key);
             wt_strcpy(_cache._block->_items[_cache._block->_size]._val, val, len);
             _cache._block->_size += 1;
+         
             _lock.unlock();
         }
     }
@@ -199,13 +199,13 @@ public:
 
     inline uint32_t size() const
     {
-        if (_cache._block == 0) return 0;
+        if (_cache._block == NULL) return 0;
         return _cache._block->_size;
     }
 
     inline uint32_t capacity() const
     {
-        if (_cache._block == 0) return 0;
+        if (_cache._block == NULL) return 0;
         return _cache._block->_capacity;
     }
 };
