@@ -1060,14 +1060,17 @@ int TraderCTP::wrapPriceType(WTSPriceType priceType, bool isCFFEX /* = false */)
 
 WTSPriceType TraderCTP::wrapPriceType(TThostFtdcOrderPriceTypeType priceType)
 {
-	if (THOST_FTDC_OPT_AnyPrice == priceType || THOST_FTDC_OPT_FiveLevelPrice == priceType)
-		return WPT_ANYPRICE;
-	else if (THOST_FTDC_OPT_LimitPrice == priceType)
-		return WPT_LIMITPRICE;
-	else if (THOST_FTDC_OPT_BestPrice == priceType)
-		return WPT_BESTPRICE;
-	else
-		return WPT_LASTPRICE;
+    switch (priceType) {
+    case THOST_FTDC_OPT_AnyPrice:
+    case THOST_FTDC_OPT_FiveLevelPrice:
+        return WPT_ANYPRICE;
+    case THOST_FTDC_OPT_LimitPrice:
+        return WPT_LIMITPRICE;
+    case THOST_FTDC_OPT_BestPrice:
+        return WPT_BESTPRICE;
+    default:
+        return WPT_LASTPRICE;
+    }
 }
 
 int TraderCTP::wrapTimeCondition(WTSTimeCondition timeCond)
