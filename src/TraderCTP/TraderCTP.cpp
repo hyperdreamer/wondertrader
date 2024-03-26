@@ -1048,14 +1048,16 @@ WTSOffsetType TraderCTP::wrapOffsetType(TThostFtdcOffsetFlagType offType)
 
 int TraderCTP::wrapPriceType(WTSPriceType priceType, bool isCFFEX /* = false */)
 {
-	if (WPT_ANYPRICE == priceType)
-		return isCFFEX ? THOST_FTDC_OPT_FiveLevelPrice : THOST_FTDC_OPT_AnyPrice;
-	else if (WPT_LIMITPRICE == priceType)
-		return THOST_FTDC_OPT_LimitPrice;
-	else if (WPT_BESTPRICE == priceType)
-		return THOST_FTDC_OPT_BestPrice;
-	else
-		return THOST_FTDC_OPT_LastPrice;
+    switch (priceType) {
+    case WPT_ANYPRICE:
+        return isCFFEX ? THOST_FTDC_OPT_FiveLevelPrice : THOST_FTDC_OPT_AnyPrice;
+    case WPT_LIMITPRICE:
+        return THOST_FTDC_OPT_LimitPrice;
+    case WPT_BESTPRICE:
+        return THOST_FTDC_OPT_BestPrice;
+    default:
+        return THOST_FTDC_OPT_LastPrice;
+    }
 }
 
 WTSPriceType TraderCTP::wrapPriceType(TThostFtdcOrderPriceTypeType priceType)
