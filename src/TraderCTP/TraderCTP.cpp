@@ -297,14 +297,13 @@ int TraderCTP::orderInsert(WTSEntrust* entrust)
         uint32_t fid, sid, orderref;
         extractEntrustID(entrust->getEntrustID(), fid, sid, orderref);
         fmt::format_to(req.OrderRef, "{}", orderref); //报单引用
-    }
-
-    if (strlen(entrust->getUserTag()) > 0)
+                                                      //
         m_eidCache.put(entrust->getEntrustID(), entrust->getUserTag(), 0, 
                        [this] (const char* message) 
                        {
                             write_log(m_sink, LL_WARN, message);
                        });
+    }
 
     ///报单价格条件: 限价
     req.OrderPriceType = wrapPriceType(entrust->getPriceType(), strcmp(entrust->getExchg(), "CFFEX") == 0);
