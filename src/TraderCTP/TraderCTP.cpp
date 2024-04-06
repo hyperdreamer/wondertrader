@@ -316,7 +316,7 @@ int TraderCTP::orderInsert(WTSEntrust* entrust)
     ///价格
     req.LimitPrice = entrust->getPrice();
     ///数量: 1
-    req.VolumeTotalOriginal = (int)entrust->getVolume();
+    req.VolumeTotalOriginal = (int) entrust->getVolume();
 
     if (entrust->getOrderFlag() == WOF_NOR) {
         req.TimeCondition = THOST_FTDC_TC_GFD;
