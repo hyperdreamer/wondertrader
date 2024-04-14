@@ -342,7 +342,8 @@ int TraderCTP::orderInsert(WTSEntrust* entrust)
     req.UserForceClose = 0;
 
     int iResult = m_pUserAPI->ReqOrderInsert(&req, genRequestID());
-    if (iResult != 0) write_log(m_sink, LL_ERROR, "[TraderCTP] Order inserting failed: {}", iResult);
+    if (iResult != 0) write_log(m_sink, LL_ERROR, 
+                                "[TraderCTP] Order inserting failed: {}", iResult);
 
     return 0;
 }
