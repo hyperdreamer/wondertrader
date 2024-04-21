@@ -256,7 +256,8 @@ int TraderCTP::doLogin()
     wt_strcpy(req.Password, m_strPass.c_str(), m_strPass.size());
     wt_strcpy(req.UserProductInfo, m_strProdInfo.c_str(), m_strProdInfo.size());
     int iResult = m_pUserAPI->ReqUserLogin(&req, genRequestID());
-    if (iResult != 0) write_log(m_sink, LL_ERROR, "[TraderCTP] Sending login request failed: {}", iResult);
+    if (iResult != 0) write_log(m_sink, LL_ERROR, 
+                                "[TraderCTP] Sending login request failed: {}", iResult);
 
     return 0;
 }
@@ -350,299 +351,272 @@ int TraderCTP::orderInsert(WTSEntrust* entrust)
 
 int TraderCTP::orderAction(WTSEntrustAction* action)
 {
-	if (m_wrapperState != WS_ALLREADY)
-		return -1;
+    if (m_wrapperState != WS_ALLREADY) return -1;
 
-	uint32_t frontid, sessionid, orderref;
-	if (!extractEntrustID(action->getEntrustID(), frontid, sessionid, orderref))
-		return -1;
+    uint32_t frontid, sessionid, orderref;
+    if (!extractEntrustID(action->getEntrustID(), frontid, sessionid, orderref)) return -1;
 
-	CThostFtdcInputOrderActionField req;
-	memset(&req, 0, sizeof(req));
-	wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-	wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+    CThostFtdcInputOrderActionField req;
+    memset(&req, 0, sizeof(req));
+    wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+    wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
 
-	///报单引用
-	fmt::format_to(req.OrderRef, "{}", orderref);
-	///请求编号
-	///前置编号
-	req.FrontID = frontid;
-	///会话编号
-	req.SessionID = sessionid;
-	///操作标志
-	req.ActionFlag = wrapActionFlag(action->getActionFlag());
-	///合约代码
-	wt_strcpy(req.InstrumentID, action->getCode());
+    ///报单引用
+    fmt::format_to(req.OrderRef, "{}", orderref);
+    ///请求编号
+    ///前置编号
+    req.FrontID = frontid;
+    ///会话编号
+    req.SessionID = sessionid;
+    ///操作标志
+    req.ActionFlag = wrapActionFlag(action->getActionFlag());
+    ///合约代码
+    wt_strcpy(req.InstrumentID, action->getCode());
 
-	req.LimitPrice = action->getPrice();
+    req.LimitPrice = action->getPrice();
 
-	req.VolumeChange = (int32_t)action->getVolume();
+    req.VolumeChange = (int32_t) action->getVolume();
 
-	wt_strcpy(req.OrderSysID, action->getOrderID());
-	wt_strcpy(req.ExchangeID, action->getExchg());
+    wt_strcpy(req.OrderSysID, action->getOrderID());
+    wt_strcpy(req.ExchangeID, action->getExchg());
 
-	int iResult = m_pUserAPI->ReqOrderAction(&req, genRequestID());
-	if (iResult != 0)
-	{
-		write_log(m_sink, LL_ERROR, "[TraderCTP] Sending cancel request failed: {}", iResult);
-	}
+    int iResult = m_pUserAPI->ReqOrderAction(&req, genRequestID());
+    if (iResult != 0) write_log(m_sink, LL_ERROR, "[TraderCTP] Sending cancel request failed: {}", iResult);
 
-	return 0;
+    return 0;
 }
 
 int TraderCTP::queryAccount()
 {
-	if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY)
-	{
-		return -1;
-	}
+    if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY) return -1;
 
-	{
-		StdUniqueLock lock(m_mtxQuery);
-		m_queQuery.push([this]() {
-			CThostFtdcQryTradingAccountField req;
-			memset(&req, 0, sizeof(req));
-			wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-			wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
-			m_pUserAPI->ReqQryTradingAccount(&req, genRequestID());
-		});
-	}
+    {
+        StdUniqueLock lock(m_mtxQuery);
+        m_queQuery.push([this]() {
+                        CThostFtdcQryTradingAccountField req;
+                        memset(&req, 0, sizeof(req));
+                        wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+                        wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+                        m_pUserAPI->ReqQryTradingAccount(&req, genRequestID());
+                        });
+    }
 
-	//triggerQuery();
-
-	return 0;
+    //triggerQuery();
+    return 0;
 }
 
 int TraderCTP::queryPositions()
 {
-	if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY)
-	{
-		return -1;
-	}
+    if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY) return -1;
 
-	{
-		StdUniqueLock lock(m_mtxQuery);
-		m_queQuery.push([this]() {
-			CThostFtdcQryInvestorPositionField req;
-			memset(&req, 0, sizeof(req));
-			wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-			wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
-			m_pUserAPI->ReqQryInvestorPosition(&req, genRequestID());
-		});
-	}
+    {
+        StdUniqueLock lock(m_mtxQuery);
+        m_queQuery.push([this]() {
+                        CThostFtdcQryInvestorPositionField req;
+                        memset(&req, 0, sizeof(req));
+                        wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+                        wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+                        m_pUserAPI->ReqQryInvestorPosition(&req, genRequestID());
+                        });
+    }
 
-	//triggerQuery();
-
-	return 0;
+    //triggerQuery();
+    return 0;
 }
 
 int TraderCTP::queryOrders()
 {
-	if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY)
-	{
-		return -1;
-	}
+    if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY) return -1;
 
-	{
-		StdUniqueLock lock(m_mtxQuery);
-		m_queQuery.push([this]() {
-			CThostFtdcQryOrderField req;
-			memset(&req, 0, sizeof(req));
-			wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-			wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
-
-			m_pUserAPI->ReqQryOrder(&req, genRequestID());
-		});
-
-		//triggerQuery();
-	}
-
-	return 0;
+    {
+        StdUniqueLock lock(m_mtxQuery);
+        m_queQuery.push([this]() {
+                        CThostFtdcQryOrderField req;
+                        memset(&req, 0, sizeof(req));
+                        wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+                        wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+                        m_pUserAPI->ReqQryOrder(&req, genRequestID());
+                        });
+    }
+    
+    //triggerQuery();
+    return 0;
 }
 
 int TraderCTP::queryTrades()
 {
-	if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY)
-	{
-		return -1;
-	}
+    if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY) return -1;
 
-	{
-		StdUniqueLock lock(m_mtxQuery);
-		m_queQuery.push([this]() {
-			CThostFtdcQryTradeField req;
-			memset(&req, 0, sizeof(req));
-			wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-			wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+    {
+        StdUniqueLock lock(m_mtxQuery);
+        m_queQuery.push([this]() {
+                        CThostFtdcQryTradeField req;
+                        memset(&req, 0, sizeof(req));
+                        wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+                        wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+                        m_pUserAPI->ReqQryTrade(&req, genRequestID());
+                        });
+    }
 
-			m_pUserAPI->ReqQryTrade(&req, genRequestID());
-		});
-	}
-
-	//triggerQuery();
-
-	return 0;
+    //triggerQuery();
+    return 0;
 }
 
 int TraderCTP::querySettlement(uint32_t uDate)
 {
-	if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY)
-	{
-		return -1;
-	}
+    if (m_pUserAPI == NULL || m_wrapperState != WS_ALLREADY) return -1;
 
-	m_strSettleInfo.clear();
-	StdUniqueLock lock(m_mtxQuery);
-	m_queQuery.push([this, uDate]() {
-		CThostFtdcQrySettlementInfoField req;
-		memset(&req, 0, sizeof(req));
-		wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-		wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
-		fmt::format_to(req.TradingDay, "{}", uDate);
+    m_strSettleInfo.clear();
 
-		m_pUserAPI->ReqQrySettlementInfo(&req, genRequestID());
-	});
+    {
+        StdUniqueLock lock(m_mtxQuery);
+        m_queQuery.push([this, uDate]() {
+                        CThostFtdcQrySettlementInfoField req;
+                        memset(&req, 0, sizeof(req));
+                        wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+                        wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+                        fmt::format_to(req.TradingDay, "{}", uDate);
+                        m_pUserAPI->ReqQrySettlementInfo(&req, genRequestID());
+                        });
+    }
 
-	//triggerQuery();
-
-	return 0;
+    //triggerQuery();
+    return 0;
 }
 
 void TraderCTP::OnFrontConnected()
 {
-	if (m_sink)
-		m_sink->handleEvent(WTE_Connect, 0);
+    if (m_sink) m_sink->handleEvent(WTE_Connect, 0);
 }
 
 void TraderCTP::OnFrontDisconnected(int nReason)
 {
 	m_wrapperState = WS_NOTLOGIN;
-	if (m_sink)
-		m_sink->handleEvent(WTE_Close, nReason);
+	if (m_sink) m_sink->handleEvent(WTE_Close, nReason);
 }
 
 void TraderCTP::OnHeartBeatWarning(int nTimeLapse)
 {
-	write_log(m_sink, LL_DEBUG, "[TraderCTP][{}-{}] Heartbeating...", m_strBroker.c_str(), m_strUser.c_str());
+    write_log(m_sink, LL_DEBUG, "[TraderCTP][{}-{}] Heartbeating...", 
+              m_strBroker.c_str(), m_strUser.c_str());
 }
 
-void TraderCTP::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void TraderCTP::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, 
+                                  CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (!IsErrorRspInfo(pRspInfo))
-	{
-		doLogin();
-	}
-	else
-	{
-		write_log(m_sink, LL_ERROR, "[TraderCTP][{}-{}] Authentiation failed: {}", m_strBroker.c_str(), m_strUser.c_str(), pRspInfo->ErrorMsg);
-		m_wrapperState = WS_LOGINFAILED;
-
-		if (m_sink)
-			m_sink->onLoginResult(false, pRspInfo->ErrorMsg, 0);
-	}
+    if (!IsErrorRspInfo(pRspInfo))
+        doLogin();
+    else {
+        write_log(m_sink, LL_ERROR, "[TraderCTP][{}-{}] Authentiation failed: {}", 
+                  m_strBroker.c_str(), m_strUser.c_str(), pRspInfo->ErrorMsg);
+        m_wrapperState = WS_LOGINFAILED;
+     
+        if (m_sink) m_sink->onLoginResult(false, pRspInfo->ErrorMsg, 0);
+    }
 
 }
 
-void TraderCTP::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void TraderCTP::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
+                               CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (!IsErrorRspInfo(pRspInfo))
-	{
-		m_wrapperState = WS_LOGINED;
-
-		// 保存会话参数
-		m_frontID = pRspUserLogin->FrontID;
-		m_sessionID = pRspUserLogin->SessionID;
-		m_orderRef = atoi(pRspUserLogin->MaxOrderRef);
-		///获取当前交易日
-		m_lDate = atoi(m_pUserAPI->GetTradingDay());
-
-		write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Login succeed, AppID: {}, Sessionid: {}, login time: {}...",
-			m_strBroker.c_str(), m_strUser.c_str(), m_strAppID.c_str(), m_sessionID, pRspUserLogin->LoginTime);
-
-		{
-			//初始化委托单缓存器
-			std::stringstream ss;
-			ss << m_strFlowDir << "local/" << m_strBroker << "/";
-			std::string path = StrUtil::standardisePath(ss.str());
-			if (!StdFile::exists(path.c_str()))
-				boost::filesystem::create_directories(path.c_str());
-			ss << m_strUser << "_eid.sc";
-			m_eidCache.init(ss.str().c_str(), m_lDate, [this](const char* message) {
-				write_log(m_sink, LL_WARN, message);
-			});
-		}
-
-		{
-			//初始化订单标记缓存器
-			std::stringstream ss;
-			ss << m_strFlowDir << "local/" << m_strBroker << "/";
-			std::string path = StrUtil::standardisePath(ss.str());
-			if (!StdFile::exists(path.c_str()))
-				boost::filesystem::create_directories(path.c_str());
-			ss << m_strUser << "_oid.sc";
-			m_oidCache.init(ss.str().c_str(), m_lDate, [this](const char* message) {
-				write_log(m_sink, LL_WARN, message);
-			});
-		}
-
-		write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Login succeed, trading date: {}...", m_strBroker.c_str(), m_strUser.c_str(), m_lDate);
-
-		write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Querying confirming state of settlement data...", m_strBroker.c_str(), m_strUser.c_str());
-		queryConfirm();
-	}
-	else
-	{
-		write_log(m_sink, LL_ERROR, "[TraderCTP][{}-{}] Login failed: {}", m_strBroker.c_str(), m_strUser.c_str(), pRspInfo->ErrorMsg);
-		m_wrapperState = WS_LOGINFAILED;
-
-		if (m_sink)
-			m_sink->onLoginResult(false, pRspInfo->ErrorMsg, 0);
-	}
+    if (!IsErrorRspInfo(pRspInfo)) {
+        m_wrapperState = WS_LOGINED;
+     
+        // 保存会话参数
+        m_frontID = pRspUserLogin->FrontID;
+        m_sessionID = pRspUserLogin->SessionID;
+        m_orderRef = atoi(pRspUserLogin->MaxOrderRef);
+        ///获取当前交易日
+        m_lDate = atoi(m_pUserAPI->GetTradingDay());
+     
+        write_log(m_sink, LL_INFO, 
+                  "[TraderCTP][{}-{}] Login succeed, AppID: {}, Sessionid: {}, login time: {}...",
+                  m_strBroker.c_str(), m_strUser.c_str(), m_strAppID.c_str(), 
+                  m_sessionID, pRspUserLogin->LoginTime);
+     
+        {
+            //初始化委托单缓存器
+            std::stringstream ss;
+            ss << m_strFlowDir << "local/" << m_strBroker << "/";
+            std::string path = StrUtil::standardisePath(ss.str());
+            if (!StdFile::exists(path.c_str())) 
+                boost::filesystem::create_directories(path.c_str());
+            ss << m_strUser << "_eid.sc";
+            m_eidCache.init(ss.str().c_str(), m_lDate, 
+                            [this](const char* message) {
+                                write_log(m_sink, LL_WARN, message);
+                            });
+        }
+     
+        {
+            //初始化订单标记缓存器
+            std::stringstream ss;
+            ss << m_strFlowDir << "local/" << m_strBroker << "/";
+            std::string path = StrUtil::standardisePath(ss.str());
+            if (!StdFile::exists(path.c_str())) 
+                boost::filesystem::create_directories(path.c_str());
+            ss << m_strUser << "_oid.sc";
+            m_oidCache.init(ss.str().c_str(), m_lDate, 
+                            [this](const char* message) {
+                                write_log(m_sink, LL_WARN, message);
+                            });
+        }
+     
+        write_log(m_sink, LL_INFO, 
+                  "[TraderCTP][{}-{}] Login succeed, trading date: {}...", 
+                  m_strBroker.c_str(), m_strUser.c_str(), m_lDate);
+     
+        write_log(m_sink, LL_INFO, 
+                  "[TraderCTP][{}-{}] Querying confirming state of settlement data...", 
+                  m_strBroker.c_str(), m_strUser.c_str());
+     
+        queryConfirm();
+    }
+    else {
+        write_log(m_sink, LL_ERROR, 
+                  "[TraderCTP][{}-{}] Login failed: {}", 
+                  m_strBroker.c_str(), m_strUser.c_str(), pRspInfo->ErrorMsg);
+        m_wrapperState = WS_LOGINFAILED;
+     
+        if (m_sink) m_sink->onLoginResult(false, pRspInfo->ErrorMsg, 0);
+    }
 }
 
 void TraderCTP::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	m_wrapperState = WS_NOTLOGIN;
-	if (m_sink)
-		m_sink->handleEvent(WTE_Logout, 0);
+	if (m_sink) m_sink->handleEvent(WTE_Logout, 0);
 }
 
 void TraderCTP::OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (bIsLast)
-	{
-		m_bInQuery = false;
-		//triggerQuery();
-	}
+    if (bIsLast) {
+        m_bInQuery = false;
+        //triggerQuery();
+    }
 
-	if (!IsErrorRspInfo(pRspInfo))
-	{
-		if (pSettlementInfoConfirm != NULL)
-		{
-			uint32_t uConfirmDate = strtoul(pSettlementInfoConfirm->ConfirmDate, NULL, 10);
-			if (uConfirmDate >= m_lDate)
-			{
-				m_wrapperState = WS_CONFIRMED;
-
-				write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Trading channel initialized...", m_strBroker.c_str(), m_strUser.c_str());
-				m_wrapperState = WS_ALLREADY;
-				if (m_sink)
-					m_sink->onLoginResult(true, "", m_lDate);
-			}
-			else
-			{
-				m_wrapperState = WS_CONFIRM_QRYED;
-
-				write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Confirming settlement data...", m_strBroker.c_str(), m_strUser.c_str());
-				confirm();
-			}
-		}
-		else
-		{
-			m_wrapperState = WS_CONFIRM_QRYED;
-			confirm();
-		}
-	}
+    if (!IsErrorRspInfo(pRspInfo)) {
+        if (pSettlementInfoConfirm != NULL) {
+            uint32_t uConfirmDate = strtoul(pSettlementInfoConfirm->ConfirmDate, NULL, 10);
+            if (uConfirmDate >= m_lDate) {
+                m_wrapperState = WS_CONFIRMED;
+                write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Trading channel initialized...", 
+                          m_strBroker.c_str(), m_strUser.c_str());
+                m_wrapperState = WS_ALLREADY;
+                if (m_sink) m_sink->onLoginResult(true, "", m_lDate);
+            }
+            else {
+                m_wrapperState = WS_CONFIRM_QRYED;
+                write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Confirming settlement data...", 
+                          m_strBroker.c_str(), m_strUser.c_str());
+                confirm();
+            }
+        }
+        else {
+            m_wrapperState = WS_CONFIRM_QRYED;
+            confirm();
+        }
+    }
 
 }
 
@@ -1309,89 +1283,79 @@ bool TraderCTP::extractEntrustID(const char* entrustid, uint32_t& frontid, uint3
 
 bool TraderCTP::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
 {
-	if (pRspInfo && pRspInfo->ErrorID != 0)
-		return true;
-
-	return false;
+    if (pRspInfo && pRspInfo->ErrorID != 0) return true;
+    return false;
 }
 
 void TraderCTP::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo)
 {
-	WTSEntrust* entrust = makeEntrust(pInputOrder);
-	if (entrust)
-	{
-		WTSError *err = makeError(pRspInfo, WEC_ORDERINSERT);
-		//g_orderMgr.onRspEntrust(entrust, err);
-		if (m_sink)
-			m_sink->onRspEntrust(entrust, err);
-		entrust->release();
-		err->release();
-	}
+    WTSEntrust* entrust = makeEntrust(pInputOrder);
+    if (entrust) {
+        WTSError *err = makeError(pRspInfo, WEC_ORDERINSERT);
+        //g_orderMgr.onRspEntrust(entrust, err);
+        if (m_sink) m_sink->onRspEntrust(entrust, err);
+        entrust->release();
+        err->release();
+    }
 }
 
 void TraderCTP::OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField *pInstrumentStatus)
 {
-	if (m_sink)
-		m_sink->onPushInstrumentStatus(pInstrumentStatus->ExchangeID, pInstrumentStatus->InstrumentID, (WTSTradeStatus)pInstrumentStatus->InstrumentStatus);
+    if (m_sink) m_sink->onPushInstrumentStatus(pInstrumentStatus->ExchangeID, pInstrumentStatus->InstrumentID, 
+                                               (WTSTradeStatus) pInstrumentStatus->InstrumentStatus);
 }
 
 bool TraderCTP::isConnected()
 {
-	return (m_wrapperState == WS_ALLREADY);
+    return (m_wrapperState == WS_ALLREADY);
 }
 
 int TraderCTP::queryConfirm()
 {
-	if (m_pUserAPI == NULL || m_wrapperState != WS_LOGINED)
-	{
-		return -1;
-	}
+    if (m_pUserAPI == NULL || m_wrapperState != WS_LOGINED) return -1;
 
-	{
-		StdUniqueLock lock(m_mtxQuery);
-		m_queQuery.push([this]() {
-			CThostFtdcQrySettlementInfoConfirmField req;
-			memset(&req, 0, sizeof(req));
-			wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-			wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+    {
+        StdUniqueLock lock(m_mtxQuery);
+        m_queQuery.push([this]() {
+            CThostFtdcQrySettlementInfoConfirmField req;
+            memset(&req, 0, sizeof(req));
+            wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+            wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+         
+            int iResult = m_pUserAPI->ReqQrySettlementInfoConfirm(&req, genRequestID());
+            if (iResult != 0) {
+            write_log(m_sink, LL_ERROR, 
+                      "[TraderCTP][{}-{}] Sending query of settlement data confirming state failed: {}", 
+                      m_strBroker.c_str(), m_strUser.c_str(), iResult);
+            }
+        });
+    }
 
-			int iResult = m_pUserAPI->ReqQrySettlementInfoConfirm(&req, genRequestID());
-			if (iResult != 0)
-			{
-				write_log(m_sink, LL_ERROR, "[TraderCTP][{}-{}] Sending query of settlement data confirming state failed: {}", m_strBroker.c_str(), m_strUser.c_str(), iResult);
-			}
-		});
-	}
-
-	//triggerQuery();
-
-	return 0;
+    //triggerQuery();
+    return 0;
 }
 
 int TraderCTP::confirm()
 {
-	if (m_pUserAPI == NULL || m_wrapperState != WS_CONFIRM_QRYED)
-	{
-		return -1;
-	}
+    if (m_pUserAPI == NULL || m_wrapperState != WS_CONFIRM_QRYED) return -1;
 
-	//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	CThostFtdcSettlementInfoConfirmField req;
-	memset(&req, 0, sizeof(req));
-	wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
-	wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    CThostFtdcSettlementInfoConfirmField req;
+    memset(&req, 0, sizeof(req));
+    wt_strcpy(req.BrokerID, m_strBroker.c_str(), m_strBroker.size());
+    wt_strcpy(req.InvestorID, m_strUser.c_str(), m_strUser.size());
 
-	fmt::format_to(req.ConfirmDate, "{}", TimeUtils::getCurDate());
-	memcpy(req.ConfirmTime, TimeUtils::getLocalTime().c_str(), 8);
+    fmt::format_to(req.ConfirmDate, "{}", TimeUtils::getCurDate());
+    memcpy(req.ConfirmTime, TimeUtils::getLocalTime().c_str(), 8);
 
-	int iResult = m_pUserAPI->ReqSettlementInfoConfirm(&req, genRequestID());
-	if (iResult != 0)
-	{
-		write_log(m_sink, LL_ERROR, "[TraderCTP][{}-{}] Sending confirming of settlement data failed: {}", m_strBroker.c_str(), m_strUser.c_str(), iResult);
-		return -1;
-	}
-
-	return 0;
+    int iResult = m_pUserAPI->ReqSettlementInfoConfirm(&req, genRequestID());
+    if (iResult) { // != 0
+        write_log(m_sink, LL_ERROR, 
+                  "[TraderCTP][{}-{}] Sending confirming of settlement data failed: {}", 
+                  m_strBroker.c_str(), m_strUser.c_str(), iResult);
+        return -1;
+    }
+    return 0;
 }
 
 int TraderCTP::authenticate()
