@@ -13,28 +13,27 @@
 
 NS_WTP_BEGIN
 
-class WTSError : public WTSObject
-{
+class WTSError : public WTSObject {
 protected:
-	WTSError():m_errCode(WEC_NONE),m_strMsg(""){}
-	virtual ~WTSError(){}
+    WTSError():m_errCode(WEC_NONE),m_strMsg(""){}
+    virtual ~WTSError(){}
 
 public:
-	static WTSError* create(WTSErroCode ec, const char* errmsg)
-	{
-		WTSError* pRet = new WTSError;
-		pRet->m_errCode = ec;
-		pRet->m_strMsg = errmsg;
+    static WTSError* create(WTSErroCode ec, const char* errmsg)
+    {
+        WTSError* pRet = new WTSError;
+        pRet->m_errCode = ec;
+        pRet->m_strMsg = errmsg;
+     
+        return pRet;
+    }
 
-		return pRet;
-	}
-
-	const char*		getMessage() const{return m_strMsg.c_str();}
-	WTSErroCode		getErrorCode() const{return m_errCode;}
+    const char*		getMessage() const { return m_strMsg.c_str(); }
+    WTSErroCode		getErrorCode() const { return m_errCode; }
 
 protected:
-	WTSErroCode		m_errCode;
-	std::string		m_strMsg;
+    WTSErroCode		m_errCode;
+    std::string		m_strMsg;
 };
 
 
