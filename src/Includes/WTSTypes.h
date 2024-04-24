@@ -163,11 +163,10 @@ typedef enum tagPriceType {
 /*
  *	时间条件
  */
-typedef enum tagTimeCondition
-{
-	WTC_IOC		= '1',	//立即完成,否则撤销
-	WTC_GFS,			//本节有效
-	WTC_GFD,			//当日有效
+typedef enum tagTimeCondition {
+    WTC_IOC		= '1',	//立即完成,否则撤销
+    WTC_GFS,			//本节有效
+    WTC_GFD,			//当日有效
 } WTSTimeCondition;
 
 /*
@@ -249,52 +248,48 @@ typedef enum tagOrderType {
 /*
  *	成交类型
  */
-typedef enum tagTradeType
-{
-	WTT_Common				= '0',	//普通
-	WTT_OptionExecution		= '1',	//期权执行
-	WTT_OTC					= '2',	//OTC成交
-	WTT_EFPDerived			= '3',	//期转现衍生成交
-	WTT_CombinationDerived	= '4'	//组合衍生成交
+typedef enum tagTradeType {
+    WTT_Common				= '0',	//普通
+    WTT_OptionExecution		= '1',	//期权执行
+    WTT_OTC					= '2',	//OTC成交
+    WTT_EFPDerived			= '3',	//期转现衍生成交
+    WTT_CombinationDerived	= '4'	//组合衍生成交
 } WTSTradeType;
 
 
 /*
  *	错误代码
  */
-typedef enum tagErrorCode
-{
-	WEC_NONE			=	0,		//没有错误
-	WEC_ORDERINSERT,				//下单错误
-	WEC_ORDERCANCEL,				//撤单错误
-	WEC_EXECINSERT,					//行权指令错误
-	WEC_EXECCANCEL,					//行权撤销错误
-	WEC_UNKNOWN			=	9999	//未知错误
+typedef enum tagErrorCode {
+    WEC_NONE			=	0,		//没有错误
+    WEC_ORDERINSERT,				//下单错误
+    WEC_ORDERCANCEL,				//撤单错误
+    WEC_EXECINSERT,					//行权指令错误
+    WEC_EXECCANCEL,					//行权撤销错误
+    WEC_UNKNOWN			=	9999	//未知错误
 } WTSErroCode;
 
 /*
  *	比较字段
  */
-typedef enum tagCompareField
-{
-	WCF_NEWPRICE			=	0,	//最新价
-	WCF_BIDPRICE,					//买一价
-	WCF_ASKPRICE,					//卖一价
-	WCF_PRICEDIFF,					//价差,止盈止损专用
-	WCF_NONE				=	9	//不比较
+typedef enum tagCompareField {
+    WCF_NEWPRICE			=	0,	//最新价
+    WCF_BIDPRICE,					//买一价
+    WCF_ASKPRICE,					//卖一价
+    WCF_PRICEDIFF,					//价差,止盈止损专用
+    WCF_NONE				=	9	//不比较
 } WTSCompareField;
 
 /*
  *	比较类型
  */
-typedef enum tagCompareType
-{
-	WCT_Equal			= 0,		//等于
-	WCT_Larger,						//大于
-	WCT_Smaller,					//小于
-	WCT_LargerOrEqual,				//大于等于
-	WCT_SmallerOrEqual				//小于等于
-}WTSCompareType;
+typedef enum tagCompareType {
+    WCT_Equal			= 0,		//等于
+    WCT_Larger,						//大于
+    WCT_Smaller,					//小于
+    WCT_LargerOrEqual,				//大于等于
+    WCT_SmallerOrEqual				//小于等于
+} WTSCompareType;
 
 /*
  *	行情解析器事件
@@ -309,27 +304,25 @@ typedef enum tagParserEvent {
 /*
  *	交易模块事件
  */
-typedef enum tagTraderEvent
-{
-	WTE_Connect			= 0,		//连接事件
-	WTE_Close,						//关闭事件
-	WTE_Login,						//登录
-	WTE_Logout						//注销
-}WTSTraderEvent;
+typedef enum tagTraderEvent {
+    WTE_Connect			= 0,		//连接事件
+    WTE_Close,						//关闭事件
+    WTE_Login,						//登录
+    WTE_Logout						//注销
+} WTSTraderEvent;
 
 /*
  *	交易状态
  */
-typedef enum tagTradeStatus
-{
-	TS_BeforeTrading	= '0',	//开盘前
-	TS_NotTrading		= '1',	//非交易
-	TS_Continous		= '2',	//连续竞价
-	TS_AuctionOrdering	= '3',	//集合竞价下单
-	TS_AuctionBalance	= '4',	//集合竞价平衡
-	TS_AuctionMatch		= '5',	//集合竞价撮合
-	TS_Closed			= '6'	//收盘
-}WTSTradeStatus;
+typedef enum tagTradeStatus {
+    TS_BeforeTrading	= '0',	//开盘前
+    TS_NotTrading		= '1',	//非交易
+    TS_Continous		= '2',	//连续竞价
+    TS_AuctionOrdering	= '3',	//集合竞价下单
+    TS_AuctionBalance	= '4',	//集合竞价平衡
+    TS_AuctionMatch		= '5',	//集合竞价撮合
+    TS_Closed			= '6'	//收盘
+} WTSTradeStatus;
 
 /*
  *	买卖方向类型

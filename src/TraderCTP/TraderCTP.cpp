@@ -164,43 +164,45 @@ void TraderCTP::connect()
 
     if (m_pUserAPI) m_pUserAPI->Init();
 
-	if (m_thrdWorker == NULL) {
-		m_thrdWorker.reset(new StdThread([this]() {
-			while (!m_bStopped) {
-				if(m_queQuery.empty() || m_bInQuery) {
-					std::this_thread::sleep_for(std::chrono::milliseconds(1));
-					continue;
-				}
-
-				uint64_t curTime = TimeUtils::getLocalTimeNow();
-				if (curTime - m_lastQryTime < 1000) {
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-					continue;
-				}
-
-				m_bInQuery = true;
-				CommonExecuter& handler = m_queQuery.front();
-				handler();
-
-				{
-					StdUniqueLock lock(m_mtxQuery);
-					m_queQuery.pop();
-				}
-
-				m_lastQryTime = TimeUtils::getLocalTimeNow();
-			}
-		}));
-	}
+    if (m_thrdWorker == NULL) {
+        m_thrdWorker.reset(new StdThread([this]() 
+                                         {
+                                            while (!m_bStopped) {
+                                                if(m_queQuery.empty() || m_bInQuery) {
+                                                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                                                    continue;
+                                                }
+                                              
+                                                uint64_t curTime = TimeUtils::getLocalTimeNow();
+                                                if (curTime - m_lastQryTime < 1000) {
+                                                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                                                    continue;
+                                                }
+                                              
+                                                m_bInQuery = true;
+                                                CommonExecuter& handler = m_queQuery.front();
+                                                handler();
+                                             
+                                                {
+                                                    StdUniqueLock lock(m_mtxQuery);
+                                                    m_queQuery.pop();
+                                                }
+                                             
+                                                m_lastQryTime = TimeUtils::getLocalTimeNow();
+                                            }
+                                         }));
+    }
 }
 
 void TraderCTP::disconnect()
 {
-	m_queQuery.push([this]() {
-		release();
-	});
+    m_queQuery.push([this]() 
+                    {
+                        release();
+                    });
 
     if (m_thrdWorker) {
-        m_thrdWorker->join();
+        m_thrdWorker->join(); //  wait for the thread to finish its execution before continuing
         m_thrdWorker = NULL;
     }
 }
@@ -300,8 +302,7 @@ int TraderCTP::orderInsert(WTSEntrust* entrust)
         fmt::format_to(req.OrderRef, "{}", orderref); //报单引用
                                                       //
         m_eidCache.put(entrust->getEntrustID(), entrust->getUserTag(), 0, 
-                       [this] (const char* message) 
-                       {
+                       [this] (const char* message) {
                             write_log(m_sink, LL_WARN, message);
                        });
     }
@@ -596,7 +597,7 @@ void TraderCTP::OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmFie
     }
 
     if (!IsErrorRspInfo(pRspInfo)) {
-        if (pSettlementInfoConfirm != NULL) {
+        if (pSettlementInfoConfirm) { // != NULL
             uint32_t uConfirmDate = strtoul(pSettlementInfoConfirm->ConfirmDate, NULL, 10);
             if (uConfirmDate >= m_lDate) {
                 m_wrapperState = WS_CONFIRMED;
@@ -622,39 +623,31 @@ void TraderCTP::OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmFie
 
 void TraderCTP::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (!IsErrorRspInfo(pRspInfo) && pSettlementInfoConfirm != NULL)
-	{
-		if (m_wrapperState == WS_CONFIRM_QRYED)
-		{
-			m_wrapperState = WS_CONFIRMED;
-
-			write_log(m_sink, LL_INFO, "[TraderCTP][{}-{}] Trading channel initialized...", m_strBroker.c_str(), m_strUser.c_str());
-			m_wrapperState = WS_ALLREADY;
-			if (m_sink)
-				m_sink->onLoginResult(true, "", m_lDate);
-		}
-	}
+    if (!IsErrorRspInfo(pRspInfo) && pSettlementInfoConfirm) { // != NULL
+        if (m_wrapperState == WS_CONFIRM_QRYED) {
+            m_wrapperState = WS_CONFIRMED;
+            write_log(m_sink, LL_INFO, 
+                      "[TraderCTP][{}-{}] Trading channel initialized...", m_strBroker.c_str(), m_strUser.c_str());
+            m_wrapperState = WS_ALLREADY;
+            if (m_sink) m_sink->onLoginResult(true, "", m_lDate);
+        }
+    }
 }
 
 void TraderCTP::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	WTSEntrust* entrust = makeEntrust(pInputOrder);
-	if (entrust)
-	{
-		WTSError *err = makeError(pRspInfo, WEC_ORDERINSERT);
-		//g_orderMgr.onRspEntrust(entrust, err);
-		if (m_sink)
-			m_sink->onRspEntrust(entrust, err);
-		entrust->release();
-		err->release();
-	}
-	else if(IsErrorRspInfo(pRspInfo))
-	{
-		WTSError *err = makeError(pRspInfo, WEC_ORDERINSERT);
-		if (m_sink)
-			m_sink->onTraderError(err);
-		err->release();
-	}
+    WTSEntrust* entrust = makeEntrust(pInputOrder);
+    if (entrust) {
+        WTSError* err = makeError(pRspInfo, WEC_ORDERINSERT);
+        if (m_sink) m_sink->onRspEntrust(entrust, err);
+        entrust->release();
+        err->release();
+    }
+    else if(IsErrorRspInfo(pRspInfo)) {
+        WTSError* err = makeError(pRspInfo, WEC_ORDERINSERT);
+        if (m_sink) m_sink->onTraderError(err);
+        err->release();
+    }
 }
 
 void TraderCTP::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -1162,48 +1155,40 @@ WTSOrderInfo* TraderCTP::makeOrderInfo(CThostFtdcOrderField* orderField)
 
 WTSEntrust* TraderCTP::makeEntrust(CThostFtdcInputOrderField *entrustField)
 {
-	WTSContractInfo* ct = m_bdMgr->getContract(entrustField->InstrumentID, entrustField->ExchangeID);
-	if (ct == NULL)
-		return NULL;
+    WTSContractInfo* ct = m_bdMgr->getContract(entrustField->InstrumentID, entrustField->ExchangeID);
+    if (ct == NULL) return NULL;
 
-	WTSEntrust* pRet = WTSEntrust::create(
-		entrustField->InstrumentID,
-		entrustField->VolumeTotalOriginal,
-		entrustField->LimitPrice,
-		ct->getExchg());
+    WTSEntrust* pRet = WTSEntrust::create(entrustField->InstrumentID,
+                                          entrustField->VolumeTotalOriginal,
+                                          entrustField->LimitPrice,
+                                          ct->getExchg());
+    pRet->setContractInfo(ct);
+    pRet->setDirection(wrapDirectionType(entrustField->Direction, entrustField->CombOffsetFlag[0]));
+    pRet->setPriceType(wrapPriceType(entrustField->OrderPriceType));
+    pRet->setOffsetType(wrapOffsetType(entrustField->CombOffsetFlag[0]));
 
-	pRet->setContractInfo(ct);
+    if (entrustField->TimeCondition == THOST_FTDC_TC_GFD)
+        pRet->setOrderFlag(WOF_NOR);
+    else if (entrustField->TimeCondition == THOST_FTDC_TC_IOC) {
+        if (entrustField->VolumeCondition == THOST_FTDC_VC_AV || entrustField->VolumeCondition == THOST_FTDC_VC_MV)
+            pRet->setOrderFlag(WOF_FAK);
+        else
+            pRet->setOrderFlag(WOF_FOK);
+    }
 
-	pRet->setDirection(wrapDirectionType(entrustField->Direction, entrustField->CombOffsetFlag[0]));
-	pRet->setPriceType(wrapPriceType(entrustField->OrderPriceType));
-	pRet->setOffsetType(wrapOffsetType(entrustField->CombOffsetFlag[0]));
-	
-	if (entrustField->TimeCondition == THOST_FTDC_TC_GFD)
-	{
-		pRet->setOrderFlag(WOF_NOR);
-	}
-	else if (entrustField->TimeCondition == THOST_FTDC_TC_IOC)
-	{
-		if (entrustField->VolumeCondition == THOST_FTDC_VC_AV || entrustField->VolumeCondition == THOST_FTDC_VC_MV)
-			pRet->setOrderFlag(WOF_FAK);
-		else
-			pRet->setOrderFlag(WOF_FOK);
-	}
+    //pRet->setEntrustID(generateEntrustID(m_frontID, m_sessionID, atoi(entrustField->OrderRef)).c_str());
+    generateEntrustID(pRet->getEntrustID(), m_frontID, m_sessionID, atoi(entrustField->OrderRef));
 
-	//pRet->setEntrustID(generateEntrustID(m_frontID, m_sessionID, atoi(entrustField->OrderRef)).c_str());
-	generateEntrustID(pRet->getEntrustID(), m_frontID, m_sessionID, atoi(entrustField->OrderRef));
+    const char* usertag = m_eidCache.get(pRet->getEntrustID());
+    if (strlen(usertag) > 0) pRet->setUserTag(usertag);
 
-	const char* usertag = m_eidCache.get(pRet->getEntrustID());
-	if (strlen(usertag) > 0)
-		pRet->setUserTag(usertag);
-
-	return pRet;
+    return pRet;
 }
 
 WTSError* TraderCTP::makeError(CThostFtdcRspInfoField* rspInfo, WTSErroCode ec /* = WEC_NONE */)
 {
-	WTSError* pRet = WTSError::create(ec, rspInfo->ErrorMsg);
-	return pRet;
+    WTSError* pRet = WTSError::create(ec, rspInfo->ErrorMsg);
+    return pRet;
 }
 
 WTSTradeInfo* TraderCTP::makeTradeRecord(CThostFtdcTradeField *tradeField)
