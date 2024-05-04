@@ -502,91 +502,93 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //持仓信息
-class WTSPositionItem : public WTSPoolObject<WTSPositionItem>
-{
+class WTSPositionItem : public WTSPoolObject<WTSPositionItem> {
 public:
-	static inline WTSPositionItem* create(const char* code, const char* currency = "CNY", const char* exchg = "", WTSBusinessType bType = BT_CASH)
-	{
-		WTSPositionItem *pRet = WTSPositionItem::allocate();
-		wt_strcpy(pRet->m_strExchg, exchg);
-		wt_strcpy(pRet->m_strCode, code);
-		wt_strcpy(pRet->m_strCurrency, currency);
-		pRet->m_businessType = bType;
+    static inline WTSPositionItem* create(const char* code, const char* currency = "CNY", const char* exchg = "", 
+                                          WTSBusinessType bType = BT_CASH)
+    {
+        WTSPositionItem *pRet = WTSPositionItem::allocate();
+        wt_strcpy(pRet->m_strExchg, exchg);
+        wt_strcpy(pRet->m_strCode, code);
+        wt_strcpy(pRet->m_strCurrency, currency);
+        pRet->m_businessType = bType;
+     
+        return pRet;
+    }
 
-		return pRet;
-	}
+    inline void setDirection(WTSDirectionType dType){m_direction = dType;}
+    inline void setPrePosition(double prePos){ m_dPrePosition = prePos; }
+    inline void setNewPosition(double newPos){ m_dNewPosition = newPos; }
+    inline void setAvailPrePos(double availPos){ m_dAvailPrePos = availPos; }
+    inline void setAvailNewPos(double availPos){ m_dAvailNewPos = availPos; }
+    inline void setPositionCost(double cost){m_dTotalPosCost = cost;}
+    inline void setMargin(double margin){ m_dMargin = margin; }
+    inline void setAvgPrice(double avgPrice){ m_dAvgPrice = avgPrice; }
+    inline void setDynProfit(double profit){ m_dDynProfit = profit; }
 
-	inline void setDirection(WTSDirectionType dType){m_direction = dType;}
-	inline void setPrePosition(double prePos){ m_dPrePosition = prePos; }
-	inline void setNewPosition(double newPos){ m_dNewPosition = newPos; }
-	inline void setAvailPrePos(double availPos){ m_dAvailPrePos = availPos; }
-	inline void setAvailNewPos(double availPos){ m_dAvailNewPos = availPos; }
-	inline void setPositionCost(double cost){m_dTotalPosCost = cost;}
-	inline void setMargin(double margin){ m_dMargin = margin; }
-	inline void setAvgPrice(double avgPrice){ m_dAvgPrice = avgPrice; }
-	inline void setDynProfit(double profit){ m_dDynProfit = profit; }
+    inline WTSDirectionType getDirection() const{return m_direction;}
+    inline double	getPrePosition() const{ return m_dPrePosition; }
+    inline double	getNewPosition() const{ return m_dNewPosition; }
+    inline double	getAvailPrePos() const{ return m_dAvailPrePos; }
+    inline double	getAvailNewPos() const{ return m_dAvailNewPos; }
 
-	inline WTSDirectionType getDirection() const{return m_direction;}
-	inline double	getPrePosition() const{ return m_dPrePosition; }
-	inline double	getNewPosition() const{ return m_dNewPosition; }
-	inline double	getAvailPrePos() const{ return m_dAvailPrePos; }
-	inline double	getAvailNewPos() const{ return m_dAvailNewPos; }
+    inline double	getTotalPosition() const{ return m_dPrePosition + m_dNewPosition; }
+    inline double	getAvailPosition() const{ return m_dAvailPrePos + m_dAvailNewPos; }
 
-	inline double	getTotalPosition() const{ return m_dPrePosition + m_dNewPosition; }
-	inline double	getAvailPosition() const{ return m_dAvailPrePos + m_dAvailNewPos; }
+    inline double	getFrozenPosition() const{ return getTotalPosition() - getAvailPosition(); }
+    inline double	getFrozenNewPos() const{ return m_dNewPosition - m_dAvailNewPos; }
+    inline double	getFrozenPrePos() const{ return m_dPrePosition - m_dAvailPrePos; }
 
-	inline double	getFrozenPosition() const{ return getTotalPosition() - getAvailPosition(); }
-	inline double	getFrozenNewPos() const{ return m_dNewPosition - m_dAvailNewPos; }
-	inline double	getFrozenPrePos() const{ return m_dPrePosition - m_dAvailPrePos; }
+    inline double		getPositionCost() const{ return m_dTotalPosCost; }
+    inline double		getMargin() const{ return m_dMargin; }
+    inline double		getAvgPrice() const{ return m_dAvgPrice; }
+    inline double		getDynProfit() const{ return m_dDynProfit; }
 
-	inline double		getPositionCost() const{ return m_dTotalPosCost; }
-	inline double		getMargin() const{ return m_dMargin; }
-	inline double		getAvgPrice() const{ return m_dAvgPrice; }
-	inline double		getDynProfit() const{ return m_dDynProfit; }
+    inline const char* getCode() const{ return m_strCode; }
+    inline const char* getCurrency() const{ return m_strCurrency; }
+    inline const char* getExchg() const{ return m_strExchg; }
 
-	inline const char* getCode() const{ return m_strCode; }
-	inline const char* getCurrency() const{ return m_strCurrency; }
-	inline const char* getExchg() const{ return m_strExchg; }
+    inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
+    inline WTSBusinessType	getBusinessType() const { return m_businessType; }
 
-	inline void setBusinessType(WTSBusinessType bType) { m_businessType = bType; }
-	inline WTSBusinessType	getBusinessType() const { return m_businessType; }
-
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 public:
-	WTSPositionItem()
-		: m_direction(WDT_LONG)
-		, m_dPrePosition(0)
-		, m_dNewPosition(0)
-		, m_dAvailPrePos(0)
-		, m_dAvailNewPos(0)
-		, m_dMargin(0)
-		, m_dAvgPrice(0)
-		, m_dDynProfit(0)
-		, m_dTotalPosCost(0)
-		, m_businessType(BT_CASH)
-		, m_pContract(NULL)
-	{}
-	virtual ~WTSPositionItem(){}
+    WTSPositionItem()
+        : m_direction(WDT_LONG)
+        , m_dPrePosition(0)
+        , m_dNewPosition(0)
+        , m_dAvailPrePos(0)
+        , m_dAvailNewPos(0)
+        , m_dMargin(0)
+        , m_dAvgPrice(0)
+        , m_dDynProfit(0)
+        , m_dTotalPosCost(0)
+        , m_businessType(BT_CASH)
+        , m_pContract(NULL)
+    {
+    }
+
+    virtual ~WTSPositionItem(){}
 
 protected:
-	char			m_strExchg[MAX_EXCHANGE_LENGTH];
-	char			m_strCode[MAX_INSTRUMENT_LENGTH];
-	char			m_strCurrency[8] = { 0 };
+    char			m_strExchg[MAX_EXCHANGE_LENGTH];
+    char			m_strCode[MAX_INSTRUMENT_LENGTH];
+    char			m_strCurrency[8] = { 0 };
 
-	WTSDirectionType	m_direction;//多空方向
-	double		m_dPrePosition;		//昨仓
-	double		m_dNewPosition;		//今仓
-	double		m_dAvailPrePos;		//可平昨仓
-	double		m_dAvailNewPos;		//可平今仓
-	double		m_dTotalPosCost;	//持仓总成本
-	double		m_dMargin;			//占用保证金
-	double		m_dAvgPrice;		//持仓均价
-	double		m_dDynProfit;		//浮动盈亏
+    WTSDirectionType	m_direction;//多空方向
+    double		m_dPrePosition;		//昨仓
+    double		m_dNewPosition;		//今仓
+    double		m_dAvailPrePos;		//可平昨仓
+    double		m_dAvailNewPos;		//可平今仓
+    double		m_dTotalPosCost;	//持仓总成本
+    double		m_dMargin;			//占用保证金
+    double		m_dAvgPrice;		//持仓均价
+    double		m_dDynProfit;		//浮动盈亏
 
-	WTSBusinessType		m_businessType;
-	WTSContractInfo*	m_pContract;
+    WTSBusinessType		m_businessType;
+    WTSContractInfo*	m_pContract;
 };
 
 //////////////////////////////////////////////////////////////////////////
