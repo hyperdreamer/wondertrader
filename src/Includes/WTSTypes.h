@@ -39,11 +39,10 @@ typedef enum tagContractCategory {
 /*
  *	期权类型
  */
-typedef enum tagOptionType
-{
-	OT_None = 0,
-	OT_Call = '1',		//看涨期权
-	OT_Put	= '2'		//看跌期权
+typedef enum tagOptionType {
+    OT_None = 0,
+    OT_Call = '1',		//看涨期权
+    OT_Put	= '2'		//看跌期权
 } OptionType;
 
 /*
@@ -80,33 +79,30 @@ typedef enum tagPriceMode {
  *	K线数据类型
  *	开、高、低、收、量、额、日期、时间
  */
-typedef enum tagKlineFieldType
-{
-	KFT_OPEN,
-	KFT_HIGH,
-	KFT_LOW,
-	KFT_CLOSE,
-	KFT_DATE,
-	KFT_TIME,
-	KFT_VOLUME,
-	KFT_SVOLUME
+typedef enum tagKlineFieldType {
+    KFT_OPEN,
+    KFT_HIGH,
+    KFT_LOW,
+    KFT_CLOSE,
+    KFT_DATE,
+    KFT_TIME,
+    KFT_VOLUME,
+    KFT_SVOLUME
 } WTSKlineFieldType;
 
 /*
  *	K线周期
  */
-typedef enum tagKlinePeriod
-{
-	KP_Tick,
-	KP_Minute1,
-	KP_Minute5,
-	KP_DAY,
-	KP_Week,
-	KP_Month
+typedef enum tagKlinePeriod {
+    KP_Tick,
+    KP_Minute1,
+    KP_Minute5,
+    KP_DAY,
+    KP_Week,
+    KP_Month
 } WTSKlinePeriod;
 
-static const char* PERIOD_NAME[] = 
-{
+static const char* PERIOD_NAME[] = {
 	"tick",
 	"min1",
 	"min5",
