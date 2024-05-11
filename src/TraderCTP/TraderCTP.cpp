@@ -712,7 +712,6 @@ void TraderCTP::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
             WTSCommodityInfo* commInfo = contract->getCommInfo();
             std::string key = fmt::format("{}-{}", pInvestorPosition->InstrumentID, pInvestorPosition->PosiDirection);
             WTSPositionItem* pos = (WTSPositionItem*) m_mapPosition->get(key);
-         
             if(pos == NULL) {
                 pos = WTSPositionItem::create(pInvestorPosition->InstrumentID, commInfo->getCurrency(), 
                                               commInfo->getExchg());
@@ -722,7 +721,7 @@ void TraderCTP::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
          
             pos->setDirection(wrapPosDirection(pInvestorPosition->PosiDirection));
          
-            if(commInfo->getCoverMode() == CM_CoverToday) { // TODO: what does it for?
+            if(commInfo->getCoverMode() == CM_CoverToday) { // for contracts of SHFE & INE
                 if (pInvestorPosition->PositionDate == THOST_FTDC_PSD_Today)
                     pos->setNewPosition(pInvestorPosition->Position);
                 else
@@ -743,7 +742,7 @@ void TraderCTP::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
                 pos->setAvgPrice(0);
              
             if (commInfo->getCategoty() != CC_Combination) {
-                if (commInfo->getCoverMode() == CM_CoverToday) {
+                if (commInfo->getCoverMode() == CM_CoverToday) { // for contracts of SHFE & INE
                     if (pInvestorPosition->PositionDate == THOST_FTDC_PSD_Today) {
                         int availNew = pInvestorPosition->Position;
                      
@@ -782,8 +781,8 @@ void TraderCTP::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
                     pos->setAvailNewPos(availNew);
                  
                     double availPre = pos->getNewPosition() + pos->getPrePosition() - 
-                        pInvestorPosition->LongFrozen - pInvestorPosition->ShortFrozen - 
-                        pos->getAvailNewPos();
+                                      pInvestorPosition->LongFrozen - pInvestorPosition->ShortFrozen - 
+                                      pos->getAvailNewPos();
                     pos->setAvailPrePos(availPre);
                 }
             }
@@ -796,28 +795,19 @@ void TraderCTP::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
         }
     }
 
-    if (bIsLast)
-    {
-
+    if (bIsLast) {
         WTSArray* ayPos = WTSArray::create();
-
-        if(m_mapPosition && m_mapPosition->size() > 0)
-        {
-            for (auto it = m_mapPosition->begin(); it != m_mapPosition->end(); it++)
-            {
-                ayPos->append(it->second, true);
-            }
-        }
-
-        if (m_sink)
-            m_sink->onRspPosition(ayPos);
-
-        if (m_mapPosition)
-        {
+     
+        if(m_mapPosition && m_mapPosition->size() > 0) 
+            for (auto it = m_mapPosition->begin(); it != m_mapPosition->end(); ++it) ayPos->append(it->second, true);
+     
+        if (m_sink) m_sink->onRspPosition(ayPos);
+     
+        if (m_mapPosition) {
             m_mapPosition->release();
             m_mapPosition = NULL;
         }
-
+     
         ayPos->release();
     }
 }
@@ -911,28 +901,22 @@ void TraderCTP::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, boo
 
 void TraderCTP::OnRtnOrder(CThostFtdcOrderField *pOrder)
 {
-	WTSOrderInfo *orderInfo = makeOrderInfo(pOrder);
-	if (orderInfo)
-	{
-		if (m_sink)
-			m_sink->onPushOrder(orderInfo);
+    WTSOrderInfo *orderInfo = makeOrderInfo(pOrder);
+    if (orderInfo) {
+        if (m_sink) m_sink->onPushOrder(orderInfo);
+        orderInfo->release();
+    }
 
-		orderInfo->release();
-	}
-
-	//ReqQryTradingAccount();
+    //ReqQryTradingAccount();
 }
 
 void TraderCTP::OnRtnTrade(CThostFtdcTradeField *pTrade)
 {
-	WTSTradeInfo *tRecord = makeTradeRecord(pTrade);
-	if (tRecord)
-	{
-		if (m_sink)
-			m_sink->onPushTrade(tRecord);
-
-		tRecord->release();
-	}
+    WTSTradeInfo *tRecord = makeTradeRecord(pTrade);
+    if (tRecord) {
+        if (m_sink) m_sink->onPushTrade(tRecord);
+        tRecord->release();
+    }
 }
 
 int TraderCTP::wrapDirectionType(WTSDirectionType dirType, WTSOffsetType offsetType)
