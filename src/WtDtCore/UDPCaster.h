@@ -29,100 +29,96 @@ USING_NS_WTP;
 class WTSBaseDataMgr;
 class DataManager;
 
-class UDPCaster
-{
+class UDPCaster {
 public:
-	UDPCaster();
-	~UDPCaster();
+    UDPCaster();
+    ~UDPCaster();
 
-	typedef boost::asio::ip::udp::endpoint EndPoint;
-	typedef struct tagUDPReceiver
-	{
-		EndPoint	_ep;
-		uint32_t	_type;
-
-
-		tagUDPReceiver(EndPoint ep, uint32_t t)
-		{
-			_ep = ep;
-			_type = t;
-		}
-
-	} UDPReceiver;
-	typedef std::shared_ptr<UDPReceiver>	UDPReceiverPtr;
-	typedef std::vector<UDPReceiverPtr>		ReceiverList;
+    typedef boost::asio::ip::udp::endpoint EndPoint;
+    typedef struct tagUDPReceiver {
+        EndPoint	_ep;
+        uint32_t	_type;
+     
+        tagUDPReceiver(EndPoint ep, uint32_t t)
+        {
+            _ep = ep;
+            _type = t;
+        }
+    } UDPReceiver;
+    typedef std::shared_ptr<UDPReceiver>	UDPReceiverPtr;
+    typedef std::vector<UDPReceiverPtr>		ReceiverList;
 
 private:
-	void handle_send_broad(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred); 
-	void handle_send_multi(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred); 
+    void handle_send_broad(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred); 
+    void handle_send_multi(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred); 
 
-	void do_receive();
-	void do_send();
+    void do_receive();
+    void do_send();
 
-	void broadcast(WTSObject* data, uint32_t dataType);
+    void broadcast(WTSObject* data, uint32_t dataType);
 
 public:
-	bool	init(WTSVariant* cfg, WTSBaseDataMgr* bdMgr, DataManager* dtMgr);
-	void	start(int bport);
-	void	stop();
+    bool	init(WTSVariant* cfg, WTSBaseDataMgr* bdMgr, DataManager* dtMgr);
+    void	start(int bport);
+    void	stop();
 
-	bool	addBRecver(const char* remote, int port, int type = 0);
-	bool	addMRecver(const char* remote, int port, int sendport, int type = 0);
+    bool	addBRecver(const char* remote, int port, int type = 0);
+    bool	addMRecver(const char* remote, int port, int sendport, int type = 0);
 
-	void	broadcast(WTSTickData* curTick);
-	void	broadcast(WTSOrdQueData* curOrdQue);
-	void	broadcast(WTSOrdDtlData* curOrdDtl);
-	void	broadcast(WTSTransData* curTrans);
+    void	broadcast(WTSTickData* curTick);
+    void	broadcast(WTSOrdQueData* curOrdQue);
+    void	broadcast(WTSOrdDtlData* curOrdDtl);
+    void	broadcast(WTSTransData* curTrans);
 
 private:
-	typedef boost::asio::ip::udp::socket	UDPSocket;
-	typedef std::shared_ptr<UDPSocket>		UDPSocketPtr;
+    typedef boost::asio::ip::udp::socket	UDPSocket;
+    typedef std::shared_ptr<UDPSocket>		UDPSocketPtr;
 
-	enum 
-	{ 
-		max_length = 2048 
-	};
+    enum 
+    { 
+        max_length = 2048 
+    };
 
-	boost::asio::ip::udp::endpoint	m_senderEP;
-	char			m_data[max_length];
+    boost::asio::ip::udp::endpoint	m_senderEP;
+    char			m_data[max_length];
 
-	//¹ã²¥
-	ReceiverList	m_listFlatRecver;
-	ReceiverList	m_listJsonRecver;
-	ReceiverList	m_listRawRecver;
-	UDPSocketPtr	m_sktBroadcast;
-	UDPSocketPtr	m_sktSubscribe;
+    //¹ã²¥
+    ReceiverList	m_listFlatRecver;
+    ReceiverList	m_listJsonRecver;
+    ReceiverList	m_listRawRecver;
+    UDPSocketPtr	m_sktBroadcast;
+    UDPSocketPtr	m_sktSubscribe;
 
-	typedef std::pair<UDPSocketPtr,UDPReceiverPtr>	MulticastPair;
-	typedef std::vector<MulticastPair>	MulticastList;
-	MulticastList	m_listFlatGroup;
-	MulticastList	m_listJsonGroup;
-	MulticastList	m_listRawGroup;
-	boost::asio::io_service		m_ioservice;
-	StdThreadPtr	m_thrdIO;
+    typedef std::pair<UDPSocketPtr,UDPReceiverPtr>	MulticastPair;
+    typedef std::vector<MulticastPair>	MulticastList;
+    MulticastList	m_listFlatGroup;
+    MulticastList	m_listJsonGroup;
+    MulticastList	m_listRawGroup;
+    boost::asio::io_service		m_ioservice;
+    StdThreadPtr	m_thrdIO;
 
-	StdThreadPtr	m_thrdCast;
-	StdCondVariable	m_condCast;
-	StdUniqueMutex	m_mtxCast;
-	bool			m_bTerminated;
+    StdThreadPtr	m_thrdCast;
+    StdCondVariable	m_condCast;
+    StdUniqueMutex	m_mtxCast;
+    bool			m_bTerminated;
 
-	WTSBaseDataMgr*	m_bdMgr;
-	DataManager*	m_dtMgr;
+    WTSBaseDataMgr*	m_bdMgr;
+    DataManager*	m_dtMgr;
 
-	typedef struct _CastData {
+    typedef struct _CastData {
         uint32_t	_datatype;
         WTSObject*	_data;
-     
+
         _CastData(WTSObject* obj = NULL, uint32_t dataType = 0) : _data(obj), _datatype(dataType)
         {
             if (_data) _data->retain();
         }
-     
+
         _CastData(const _CastData& data) : _data(data._data), _datatype(data._datatype)
         {
             if (_data) _data->retain();
         }
-     
+
         ~_CastData()
         {
             if (_data) {
@@ -132,5 +128,5 @@ private:
         }
     } CastData;
 
-	std::queue<CastData>		m_dataQue;
+    std::queue<CastData>		m_dataQue;
 };
