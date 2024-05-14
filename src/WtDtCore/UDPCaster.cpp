@@ -61,41 +61,36 @@ UDPCaster::~UDPCaster()
 
 bool UDPCaster::init(WTSVariant* cfg, WTSBaseDataMgr* bdMgr, DataManager* dtMgr)
 {
-	m_bdMgr = bdMgr;
-	m_dtMgr = dtMgr;
+    m_bdMgr = bdMgr;
+    m_dtMgr = dtMgr;
 
-	if (!cfg->getBoolean("active"))
-		return false;
+    if (!cfg->getBoolean("active")) return false;
 
-	WTSVariant* cfgBC = cfg->get("broadcast");
-	if (cfgBC)
-	{
-		for (uint32_t idx = 0; idx < cfgBC->size(); idx++)
-		{
-			WTSVariant* cfgItem = cfgBC->get(idx);
-			addBRecver(cfgItem->getCString("host"), cfgItem->getInt32("port"), cfgItem->getUInt32("type"));
-		}
-	}
+    WTSVariant* cfgBC = cfg->get("broadcast");
+    if (cfgBC) {
+        for (uint32_t idx = 0; idx < cfgBC->size(); ++idx) {
+            WTSVariant* cfgItem = cfgBC->get(idx);
+            addBRecver(cfgItem->getCString("host"), cfgItem->getInt32("port"), cfgItem->getUInt32("type"));
+        }
+    }
 
-	WTSVariant* cfgMC = cfg->get("multicast");
-	if (cfgMC)
-	{
-		for (uint32_t idx = 0; idx < cfgMC->size(); idx++)
-		{
-			WTSVariant* cfgItem = cfgMC->get(idx);
-			addMRecver(cfgItem->getCString("host"), cfgItem->getInt32("port"), cfgItem->getInt32("sendport"), cfgItem->getUInt32("type"));
-		}
-	}
+    WTSVariant* cfgMC = cfg->get("multicast");
+    if (cfgMC) {
+        for (uint32_t idx = 0; idx < cfgMC->size(); idx++) {
+            WTSVariant* cfgItem = cfgMC->get(idx);
+            addMRecver(cfgItem->getCString("host"), cfgItem->getInt32("port"), cfgItem->getInt32("sendport"), 
+                       cfgItem->getUInt32("type"));
+        }
+    }
 
-	//By Wesley @ 2022.01.11
-	//这是订阅端口，但是以前全部用的bport，属于笔误
-	//只能写一个兼容了
-	int32_t sport = cfg->getInt32("sport");
-	if (sport == 0)
-		sport = cfg->getInt32("bport");
-	start(sport);
+    //By Wesley @ 2022.01.11
+    //这是订阅端口，但是以前全部用的bport，属于笔误
+    //只能写一个兼容了
+    int32_t sport = cfg->getInt32("sport");
+    if (sport == 0) sport = cfg->getInt32("bport");
+    start(sport);
 
-	return true;
+    return true;
 }
 
 void UDPCaster::start(int sport)
