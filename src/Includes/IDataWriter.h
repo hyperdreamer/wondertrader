@@ -69,35 +69,34 @@ typedef wt_hashmap<std::string, IHisDataDumper*> ExtDumpers;
 /*
  *	数据落地接口
  */
-class IDataWriter
-{
+class IDataWriter {
 public:
-	IDataWriter():_sink(NULL){}
+    IDataWriter():_sink(NULL){}
 
-	virtual bool init(WTSVariant* params, IDataWriterSink* sink) { _sink = sink; return true; }
+    virtual bool init(WTSVariant* params, IDataWriterSink* sink) { _sink = sink; return true; }
 
-	virtual void release() = 0;
+    virtual void release() = 0;
 
-	void	add_ext_dumper(const char* id, IHisDataDumper* dumper) { _dumpers[id] = dumper; }
+    void	add_ext_dumper(const char* id, IHisDataDumper* dumper) { _dumpers[id] = dumper; }
 
 public:
-	virtual bool writeTick(WTSTickData* curTick, uint32_t procFlag) = 0;
+    virtual bool writeTick(WTSTickData* curTick, uint32_t procFlag) = 0;
 
-	virtual bool writeOrderQueue(WTSOrdQueData* curOrdQue) { return false; }
+    virtual bool writeOrderQueue(WTSOrdQueData* curOrdQue) { return false; }
 
-	virtual bool writeOrderDetail(WTSOrdDtlData* curOrdDetail) { return false; }
+    virtual bool writeOrderDetail(WTSOrdDtlData* curOrdDetail) { return false; }
 
-	virtual bool writeTransaction(WTSTransData* curTrans) { return false; }
+    virtual bool writeTransaction(WTSTransData* curTrans) { return false; }
 
-	virtual void transHisData(const char* sid) {}
+    virtual void transHisData(const char* sid) {}
 
-	virtual bool isSessionProceeded(const char* sid) { return true; }
+    virtual bool isSessionProceeded(const char* sid) { return true; }
 
-	virtual WTSTickData* getCurTick(const char* code, const char* exchg = "") = 0;
+    virtual WTSTickData* getCurTick(const char* code, const char* exchg = "") = 0;
 
 protected:
-	ExtDumpers			_dumpers;
-	IDataWriterSink*	_sink;
+    ExtDumpers			_dumpers;
+    IDataWriterSink*	_sink;
 };
 
 NS_WTP_END
