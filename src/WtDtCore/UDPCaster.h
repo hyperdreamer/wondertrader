@@ -109,17 +109,17 @@ private:
     typedef struct _CastData {
         uint32_t	_datatype;
         WTSObject*	_data;
-
+     
         _CastData(WTSObject* obj = NULL, uint32_t dataType = 0) : _data(obj), _datatype(dataType)
         {
             if (_data) _data->retain();
         }
-
+     
         _CastData(const _CastData& data) : _data(data._data), _datatype(data._datatype)
         {
             if (_data) _data->retain();
         }
-
+     
         ~_CastData()
         {
             if (_data) {
