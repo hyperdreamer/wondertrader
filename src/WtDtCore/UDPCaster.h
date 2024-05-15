@@ -74,12 +74,12 @@ private:
     typedef boost::asio::ip::udp::socket	UDPSocket;
     typedef std::shared_ptr<UDPSocket>		UDPSocketPtr;
 
-    enum 
-    { 
+    enum { 
         max_length = 2048 
-    };
+    }; // to define constant without wasting memory space
 
-    boost::asio::ip::udp::endpoint	m_senderEP;
+    //boost::asio::ip::udp::endpoint	m_senderEP;
+    EndPoint        m_senderEP;
     char			m_data[max_length];
 
     //¹ã²¥
@@ -94,6 +94,7 @@ private:
     MulticastList	m_listFlatGroup;
     MulticastList	m_listJsonGroup;
     MulticastList	m_listRawGroup;
+
     boost::asio::io_service		m_ioservice;
     StdThreadPtr	m_thrdIO;
 
