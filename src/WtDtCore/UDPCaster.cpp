@@ -122,14 +122,13 @@ void UDPCaster::start(int sport)
 
 void UDPCaster::stop()
 {
-	m_bTerminated = true;
-	m_ioservice.stop();
-	if (m_thrdIO)
-		m_thrdIO->join();
+    m_bTerminated = true;
 
-	m_condCast.notify_all();
-	if (m_thrdCast)
-		m_thrdCast->join();
+    m_ioservice.stop();
+    if (m_thrdIO) m_thrdIO->join();
+
+    m_condCast.notify_all();
+    if (m_thrdCast) m_thrdCast->join();
 }
 
 void UDPCaster::do_receive()
