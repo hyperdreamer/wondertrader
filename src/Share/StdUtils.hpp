@@ -29,10 +29,11 @@ typedef std::shared_ptr<StdThread> StdThreadPtr;
 
 //////////////////////////////////////////////////////////////////////////
 //std»¥³âÁ¿ºÍËø
-typedef std::recursive_mutex	StdRecurMutex;
+typedef std::recursive_mutex	StdRecurMutex; // for a thread to lock multiple times
 typedef std::mutex				StdUniqueMutex;
 typedef std::condition_variable_any	StdCondVariable;
 
+// lock in scope, unlock out of the scope
 typedef std::unique_lock<StdUniqueMutex>	StdUniqueLock;
 
 template<typename T>

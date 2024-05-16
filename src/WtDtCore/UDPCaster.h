@@ -55,6 +55,7 @@ private:
     void do_receive();
     void do_send();
 
+    void broadcast_loop(); // the loop for thread
     void broadcast(WTSObject* data, uint32_t dataType);
 
 public:

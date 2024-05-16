@@ -27,16 +27,14 @@
 
 #pragma pack(push,1)
 //UDP请求包
-typedef struct _UDPReqPacket
-{
+typedef struct _UDPReqPacket {
 	uint32_t		_type;
 	char			_data[1020];
 } UDPReqPacket;
 
 //UDPTick数据包
 template <typename T>
-struct UDPDataPacket
-{
+struct UDPDataPacket {
 	uint32_t	_type;
 	T			_data;
 };
@@ -47,13 +45,11 @@ typedef UDPDataPacket<WTSOrdDtlStruct>	UDPOrdDtlPacket;
 typedef UDPDataPacket<WTSTransStruct>	UDPTransPacket;
 
 UDPCaster::UDPCaster()
-	: m_bTerminated(false)
-	, m_bdMgr(NULL)
-	, m_dtMgr(NULL)
+    : m_bTerminated(false)
+    , m_bdMgr(NULL)
+    , m_dtMgr(NULL)
 {
-	
 }
-
 
 UDPCaster::~UDPCaster()
 {
@@ -95,34 +91,33 @@ bool UDPCaster::init(WTSVariant* cfg, WTSBaseDataMgr* bdMgr, DataManager* dtMgr)
 
 void UDPCaster::start(int sport)
 {
-	if (!m_listFlatRecver.empty() || !m_listJsonRecver.empty() || !m_listRawRecver.empty())
-	{
-		m_sktBroadcast.reset(new UDPSocket(m_ioservice, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)));
-		boost::asio::socket_base::broadcast option(true);
-		m_sktBroadcast->set_option(option);
-	}
+    if (!m_listFlatRecver.empty() || !m_listJsonRecver.empty() || !m_listRawRecver.empty()) {
+        m_sktBroadcast.reset(new UDPSocket(m_ioservice, 
+                                           boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)));
+        // enable broadcast
+        boost::asio::socket_base::broadcast option(true);
+        m_sktBroadcast->set_option(option);
+    }
 
-	try
-	{
-		m_sktSubscribe.reset(new UDPSocket(m_ioservice, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), sport)));
-	}
-	catch(...)
-	{
-		WTSLogger::error("Exception raised while start subscribing service @ port {}", sport);
-	}
+    try {
+        m_sktSubscribe.reset(new UDPSocket(m_ioservice, 
+                                           boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), sport)));
+    }
+    catch(...) {
+        WTSLogger::error("Exception raised while start subscribing service @ port {}", sport);
+    }
 
-	do_receive();
+    do_receive();
 
-	m_thrdIO.reset(new StdThread([this](){
-		try
-		{
-			m_ioservice.run();
-		}
-		catch(...)
-		{
-			m_ioservice.stop();
-		}
-	}));
+    m_thrdIO.reset(new StdThread([this]() 
+                                 {
+                                    try {
+                                        m_ioservice.run();
+                                    }
+                                    catch(...) {
+                                        m_ioservice.stop();
+                                    }
+                                 }));
 }
 
 void UDPCaster::stop()
@@ -216,25 +211,22 @@ void UDPCaster::do_receive()
 
 bool UDPCaster::addBRecver(const char* remote, int port, int type /* = 0 */)
 {
-	try
-	{
-		boost::asio::ip::address_v4 addr = boost::asio::ip::address_v4::from_string(remote);
-		UDPReceiverPtr item(new UDPReceiver(EndPoint(addr, port), type));
-		if(type == 0)
-			m_listFlatRecver.emplace_back(item);
-		else if(type == 1)
-			m_listJsonRecver.emplace_back(item);
-		else if(type == 2)
-			m_listRawRecver.emplace_back(item);
-	}
-	catch(...)
-	{
-		return false;
-	}
+    try {
+        boost::asio::ip::address_v4 addr = boost::asio::ip::address_v4::from_string(remote);
+        UDPReceiverPtr item(new UDPReceiver(EndPoint(addr, port), type));
+        if(type == 0)
+            m_listFlatRecver.emplace_back(item);
+        else if(type == 1)
+            m_listJsonRecver.emplace_back(item);
+        else if(type == 2)
+            m_listRawRecver.emplace_back(item);
+    }
+    catch(...) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
-
 
 bool UDPCaster::addMRecver(const char* remote, int port, int sendport, int type /* = 0 */)
 {
@@ -280,133 +272,108 @@ void UDPCaster::broadcast(WTSTransData* curTrans)
 	broadcast(curTrans, UDP_MSG_PUSHTRANS);
 }
 
+void UDPCaster::broadcast_loop()
+{
+    while (!m_bTerminated) {
+        if (m_dataQue.empty()) {
+            StdUniqueLock lock(m_mtxCast);
+            m_condCast.wait(lock);
+            continue;
+        }	
+     
+        std::queue<CastData> tmpQue;
+        {
+            StdUniqueLock lock(m_mtxCast);
+            tmpQue.swap(m_dataQue);
+        }
+     
+        while (!tmpQue.empty()) {
+            const CastData& castData = tmpQue.front();
+         
+            if (castData._data == NULL) break;
+         
+            //直接广播
+            if (!m_listRawGroup.empty() || !m_listRawRecver.empty()) {
+                std::string buf_raw;
+             
+                if (castData._datatype == UDP_MSG_PUSHTICK) {
+                    buf_raw.resize(sizeof(UDPTickPacket));
+                    UDPTickPacket* pack = (UDPTickPacket*) buf_raw.data();
+                    pack->_type = castData._datatype;
+                    WTSTickData* curObj = (WTSTickData*) castData._data;
+                    memcpy(&pack->_data, &curObj->getTickStruct(), sizeof(WTSTickStruct));
+                }
+                else if (castData._datatype == UDP_MSG_PUSHORDDTL) {
+                    buf_raw.resize(sizeof(UDPOrdDtlPacket));
+                    UDPOrdDtlPacket* pack = (UDPOrdDtlPacket*) buf_raw.data();
+                    pack->_type = castData._datatype;
+                    WTSOrdDtlData* curObj = (WTSOrdDtlData*) castData._data;
+                    memcpy(&pack->_data, &curObj->getOrdDtlStruct(), sizeof(WTSOrdDtlStruct));
+                }
+                else if (castData._datatype == UDP_MSG_PUSHORDQUE) {
+                    buf_raw.resize(sizeof(UDPOrdQuePacket));
+                    UDPOrdQuePacket* pack = (UDPOrdQuePacket*) buf_raw.data();
+                    pack->_type = castData._datatype;
+                    WTSOrdQueData* curObj = (WTSOrdQueData*) castData._data;
+                    memcpy(&pack->_data, &curObj->getOrdQueStruct(), sizeof(WTSOrdQueStruct));
+                }
+                else if (castData._datatype == UDP_MSG_PUSHTRANS) {
+                    buf_raw.resize(sizeof(UDPTransPacket));
+                    UDPTransPacket* pack = (UDPTransPacket*) buf_raw.data();
+                    pack->_type = castData._datatype;
+                    WTSTransData* curObj = (WTSTransData*) castData._data;
+                    memcpy(&pack->_data, &curObj->getTransStruct(), sizeof(WTSTransStruct));
+                }
+                else
+                    break;
+             
+                boost::system::error_code ec;
+             
+                for (auto it = m_listRawRecver.begin(); it != m_listRawRecver.end(); ++it) { //广播
+                    const UDPReceiverPtr& receiver = (*it);
+                    m_sktBroadcast->send_to(boost::asio::buffer(buf_raw), receiver->_ep, 0, ec);
+                    if (ec) WTSLogger::error("Error occured while sending to ({}:{}): {}({})", 
+                                             receiver->_ep.address().to_string(), receiver->_ep.port(), ec.value(), ec.message());
+                }
+             
+                for (auto it = m_listRawGroup.begin(); it != m_listRawGroup.end(); ++it) { //组播
+                    const MulticastPair& item = *it;
+                    it->first->send_to(boost::asio::buffer(buf_raw), item.second->_ep, 0, ec);
+                    if (ec) WTSLogger::error("Error occured while sending to ({}:{}): {}({})",
+                                             item.second->_ep.address().to_string(), item.second->_ep.port(), 
+                                             ec.value(), ec.message());
+                }
+            }
+         
+            tmpQue.pop();
+        } 
+    }
+}
+
 void UDPCaster::broadcast(WTSObject* data, uint32_t dataType)
 {
-	if(m_sktBroadcast == NULL || data == NULL || m_bTerminated)
-		return;
+    if(m_sktBroadcast == NULL || data == NULL || m_bTerminated) return;
 
-	{
-		StdUniqueLock lock(m_mtxCast);
-		m_dataQue.push(CastData(data, dataType));
-	}
+    {
+        StdUniqueLock lock(m_mtxCast);
+        m_dataQue.push(CastData(data, dataType));
+    }
 
-	if(m_thrdCast == NULL)
-	{
-		m_thrdCast.reset(new StdThread([this](){
-
-			while (!m_bTerminated)
-			{
-				if(m_dataQue.empty())
-				{
-					StdUniqueLock lock(m_mtxCast);
-					m_condCast.wait(lock);
-					continue;
-				}	
-
-				std::queue<CastData> tmpQue;
-				{
-					StdUniqueLock lock(m_mtxCast);
-					tmpQue.swap(m_dataQue);
-				}
-				
-				while(!tmpQue.empty())
-				{
-					const CastData& castData = tmpQue.front();
-
-					if (castData._data == NULL)
-						break;
-
-					//直接广播
-					if (!m_listRawGroup.empty() || !m_listRawRecver.empty())
-					{
-						std::string buf_raw;
-						if (castData._datatype == UDP_MSG_PUSHTICK)
-						{
-							buf_raw.resize(sizeof(UDPTickPacket));
-							UDPTickPacket* pack = (UDPTickPacket*)buf_raw.data();
-							pack->_type = castData._datatype;
-							WTSTickData* curObj = (WTSTickData*)castData._data;
-							memcpy(&pack->_data, &curObj->getTickStruct(), sizeof(WTSTickStruct));
-						}
-						else if (castData._datatype == UDP_MSG_PUSHORDDTL)
-						{
-							buf_raw.resize(sizeof(UDPOrdDtlPacket));
-							UDPOrdDtlPacket* pack = (UDPOrdDtlPacket*)buf_raw.data();
-							pack->_type = castData._datatype;
-							WTSOrdDtlData* curObj = (WTSOrdDtlData*)castData._data;
-							memcpy(&pack->_data, &curObj->getOrdDtlStruct(), sizeof(WTSOrdDtlStruct));
-						}
-						else if (castData._datatype == UDP_MSG_PUSHORDQUE)
-						{
-							buf_raw.resize(sizeof(UDPOrdQuePacket));
-							UDPOrdQuePacket* pack = (UDPOrdQuePacket*)buf_raw.data();
-							pack->_type = castData._datatype;
-							WTSOrdQueData* curObj = (WTSOrdQueData*)castData._data;
-							memcpy(&pack->_data, &curObj->getOrdQueStruct(), sizeof(WTSOrdQueStruct));
-						}
-						else if (castData._datatype == UDP_MSG_PUSHTRANS)
-						{
-							buf_raw.resize(sizeof(UDPTransPacket));
-							UDPTransPacket* pack = (UDPTransPacket*)buf_raw.data();
-							pack->_type = castData._datatype;
-							WTSTransData* curObj = (WTSTransData*)castData._data;
-							memcpy(&pack->_data, &curObj->getTransStruct(), sizeof(WTSTransStruct));
-						}
-						else
-						{
-							break;
-						}
-
-						//广播
-						boost::system::error_code ec;
-						for (auto it = m_listRawRecver.begin(); it != m_listRawRecver.end(); it++)
-						{
-							const UDPReceiverPtr& receiver = (*it);
-							m_sktBroadcast->send_to(boost::asio::buffer(buf_raw), receiver->_ep, 0, ec);
-							if (ec)
-							{
-								WTSLogger::error("Error occured while sending to ({}:{}): {}({})", 
-									receiver->_ep.address().to_string(), receiver->_ep.port(), ec.value(), ec.message());
-							}
-						}
-
-						//组播
-						for (auto it = m_listRawGroup.begin(); it != m_listRawGroup.end(); it++)
-						{
-							const MulticastPair& item = *it;
-							it->first->send_to(boost::asio::buffer(buf_raw), item.second->_ep, 0, ec);
-							if (ec)
-							{
-								WTSLogger::error("Error occured while sending to ({}:{}): {}({})",
-									item.second->_ep.address().to_string(), item.second->_ep.port(), ec.value(), ec.message());
-							}
-						}
-					}
-
-					tmpQue.pop();
-				} 
-			}
-		}));
-	}
-	else
-	{
-		m_condCast.notify_all();
-	}
+    if(m_thrdCast == NULL)
+        m_thrdCast.reset(new StdThread(&UDPCaster::broadcast_loop, this));
+    else
+        m_condCast.notify_all();
 }
 
 void UDPCaster::handle_send_broad(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred)
 {
-	if(error)
-	{
-		WTSLogger::error("Broadcasting of market data failed, remote addr: {}, error message: {}", ep.address().to_string().c_str(), error.message().c_str());
-	}
+    if (error) WTSLogger::error("Broadcasting of market data failed, remote addr: {}, error message: {}", 
+                               ep.address().to_string().c_str(), error.message().c_str());
 }
 
 void UDPCaster::handle_send_multi(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred)
 {
-	if(error)
-	{
-		WTSLogger::error("Multicasting of market data failed, remote addr: {}, error message: {}", ep.address().to_string().c_str(), error.message().c_str());
-	}
+    if (error) WTSLogger::error("Multicasting of market data failed, remote addr: {}, error message: {}", 
+                               ep.address().to_string().c_str(), error.message().c_str());
 }
 
