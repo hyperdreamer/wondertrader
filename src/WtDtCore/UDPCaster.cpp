@@ -18,6 +18,7 @@
 #include "../WTSTools/WTSBaseDataMgr.h"
 #include "../WTSTools/WTSLogger.h"
 
+#include <boost/bind.hpp>
 
 #define UDP_MSG_SUBSCRIBE	0x100
 #define UDP_MSG_PUSHTICK	0x200
@@ -122,90 +123,81 @@ void UDPCaster::start(int sport)
 
 void UDPCaster::stop()
 {
-    m_bTerminated = true;
+	m_bTerminated = true;
 
-    m_ioservice.stop();
-    if (m_thrdIO) m_thrdIO->join();
+	m_ioservice.stop();
+	if (m_thrdIO) m_thrdIO->join();
 
-    m_condCast.notify_all();
-    if (m_thrdCast) m_thrdCast->join();
+	m_condCast.notify_all();
+	if (m_thrdCast) m_thrdCast->join();
+}
+
+void UDPCaster::receiving_action(const boost::system::error_code& ec, std::size_t bytes_recvd)
+{
+    if (ec) { // error occurs
+        do_receive();
+        return;
+    }
+
+    if (bytes_recvd == sizeof(UDPReqPacket)) {
+        UDPReqPacket* req = (UDPReqPacket*) m_data;
+        //处理请求
+        if (req->_type == UDP_MSG_SUBSCRIBE) {
+            const StringVector& ay = StrUtil::split(req->_data, ",");
+            std::string code, exchg;
+         
+            for(const std::string& fullcode : ay) {
+                auto pos = fullcode.find(".");
+                if (pos == std::string::npos) // rawcode
+                    code = fullcode;
+                else { // stdCode
+                    code = fullcode.substr(pos + 1);
+                    exchg = fullcode.substr(0, pos);
+                }
+             
+                WTSContractInfo* ct = m_bdMgr->getContract(code.c_str(), exchg.c_str());
+                if (ct == NULL) continue;
+             
+                WTSTickData* curTick = m_dtMgr->getCurTick(code.c_str(), exchg.c_str());
+                if(curTick == NULL) continue;
+             
+                std::string* data = new std::string();
+                data->resize(sizeof(UDPTickPacket), 0);
+                UDPTickPacket* pkt = (UDPTickPacket*) data->data();
+                
+                pkt->_type = req->_type;
+                memcpy(&pkt->_data, &curTick->getTickStruct(), sizeof(WTSTickStruct));
+                curTick->release(); // Since WtDataWriter::getCurTick() creates, you have to release().
+                m_sktSubscribe->async_send_to(boost::asio::buffer(*data, data->size()), m_senderEP,
+                    [this, data](const boost::system::error_code& ec, std::size_t /*bytes_sent*/)
+                    {
+                        delete data;
+                        if (ec) WTSLogger::error("Sending data on UDP failed: {}", ec.message().c_str());
+                    }
+                );
+            }
+        }			
+    }
+    else {
+        std::string* data = new std::string("Can not indentify the command");
+        m_sktSubscribe->async_send_to(boost::asio::buffer(*data, data->size()), m_senderEP,
+            [this, data](const boost::system::error_code& ec, std::size_t /*bytes_sent*/)
+            {
+                delete data;
+                if (ec) WTSLogger::error("Sending data on UDP failed: {}", ec.message().c_str());
+            }
+        );
+    }
+
+    do_receive();
 }
 
 void UDPCaster::do_receive()
 {
 	m_sktSubscribe->async_receive_from(boost::asio::buffer(m_data, max_length), m_senderEP,
-		[this](boost::system::error_code ec, std::size_t bytes_recvd)
-	{
-		if(ec)
-		{
-			do_receive();
-			return;
-		}
-
-		if (bytes_recvd == sizeof(UDPReqPacket))
-		{
-			UDPReqPacket* req = (UDPReqPacket*)m_data;
-
-			std::string data;
-			//处理请求
-			if (req->_type == UDP_MSG_SUBSCRIBE)
-			{
-				const StringVector& ay = StrUtil::split(req->_data, ",");
-				std::string code, exchg;
-				for(const std::string& fullcode : ay)
-				{
-					auto pos = fullcode.find(".");
-					if (pos == std::string::npos)
-						code = fullcode;
-					else
-					{
-						code = fullcode.substr(pos + 1);
-						exchg = fullcode.substr(0, pos);
-					}
-					WTSContractInfo* ct = m_bdMgr->getContract(code.c_str(), exchg.c_str());
-					if (ct == NULL)
-						continue;
-
-					WTSTickData* curTick = m_dtMgr->getCurTick(code.c_str(), exchg.c_str());
-					if(curTick == NULL)
-						continue;
-
-					std::string* data = new std::string();
-					data->resize(sizeof(UDPTickPacket), 0);
-					UDPTickPacket* pkt = (UDPTickPacket*)data->data();
-					pkt->_type = req->_type;
-					memcpy(&pkt->_data, &curTick->getTickStruct(), sizeof(WTSTickStruct));
-					curTick->release();
-					m_sktSubscribe->async_send_to(
-						boost::asio::buffer(*data, data->size()), m_senderEP,
-						[this, data](const boost::system::error_code& ec, std::size_t /*bytes_sent*/)
-					{
-						delete data;
-						if (ec)
-						{
-							WTSLogger::error("Sending data on UDP failed: {}", ec.message().c_str());
-						}
-					});
-				}
-			}			
-		}
-		else
-		{
-			std::string* data = new std::string("Can not indentify the command");
-			m_sktSubscribe->async_send_to(
-				boost::asio::buffer(*data, data->size()), m_senderEP,
-				[this, data](const boost::system::error_code& ec, std::size_t /*bytes_sent*/)
-			{
-				delete data;
-				if (ec)
-				{
-					WTSLogger::error("Sending data on UDP failed: {}", ec.message().c_str());
-				}
-			});
-		}
-
-		do_receive();
-	});
+                                       boost::bind(&UDPCaster::receiving_action, this, 
+                                                   boost::asio::placeholders::error, 
+                                                   boost::asio::placeholders::bytes_transferred));
 }
 
 bool UDPCaster::addBRecver(const char* remote, int port, int type /* = 0 */)
@@ -229,26 +221,22 @@ bool UDPCaster::addBRecver(const char* remote, int port, int type /* = 0 */)
 
 bool UDPCaster::addMRecver(const char* remote, int port, int sendport, int type /* = 0 */)
 {
-	try
-	{
-		boost::asio::ip::address_v4 addr = boost::asio::ip::address_v4::from_string(remote);
-		UDPReceiverPtr item(new UDPReceiver(EndPoint(addr, port), type));
-		UDPSocketPtr sock(new UDPSocket(m_ioservice, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), sendport)));
-		boost::asio::ip::multicast::join_group option(item->_ep.address());
-		sock->set_option(option);
-		if(type == 0)
-			m_listFlatGroup.emplace_back(std::make_pair(sock, item));
-		else if(type == 1)
-			m_listJsonGroup.emplace_back(std::make_pair(sock, item));
-		else if(type == 2)
-			m_listRawGroup.emplace_back(std::make_pair(sock, item));
-	}
-	catch(...)
-	{
-		return false;
-	}
+    try {
+        boost::asio::ip::address_v4 addr = boost::asio::ip::address_v4::from_string(remote);
+        UDPReceiverPtr item(new UDPReceiver(EndPoint(addr, port), type));
+        UDPSocketPtr sock(new UDPSocket(m_ioservice, 
+                                        boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), sendport)));
+        boost::asio::ip::multicast::join_group option(item->_ep.address());
+        sock->set_option(option);
+        if(type == 0) m_listFlatGroup.emplace_back(std::make_pair(sock, item));
+        else if(type == 1) m_listJsonGroup.emplace_back(std::make_pair(sock, item));
+        else if(type == 2) m_listRawGroup.emplace_back(std::make_pair(sock, item));
+    }
+    catch(...) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 void UDPCaster::broadcast(WTSTickData* curTick)
@@ -332,7 +320,8 @@ void UDPCaster::broadcast_loop()
                     const UDPReceiverPtr& receiver = (*it);
                     m_sktBroadcast->send_to(boost::asio::buffer(buf_raw), receiver->_ep, 0, ec);
                     if (ec) WTSLogger::error("Error occured while sending to ({}:{}): {}({})", 
-                                             receiver->_ep.address().to_string(), receiver->_ep.port(), ec.value(), ec.message());
+                                             receiver->_ep.address().to_string(), receiver->_ep.port(), 
+                                             ec.value(), ec.message());
                 }
              
                 for (auto it = m_listRawGroup.begin(); it != m_listRawGroup.end(); ++it) { //组播
