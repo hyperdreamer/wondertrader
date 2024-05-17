@@ -52,6 +52,7 @@ private:
     void handle_send_broad(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred); 
     void handle_send_multi(const EndPoint& ep, const boost::system::error_code& error, std::size_t bytes_transferred); 
 
+    void receiving_action(const boost::system::error_code& ec, std::size_t bytes_recvd);
     void do_receive();
     //void do_send();
 
