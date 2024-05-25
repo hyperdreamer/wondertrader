@@ -33,22 +33,20 @@ inline void pipe_writer_log(IDataWriterSink* sink, WTSLogLevel ll, const char* f
  */
 extern bool proc_block_data(std::string& content, bool isBar, bool bKeepHead = true);
 
-extern "C"
-{
-	EXPORT_FLAG IDataWriter* createWriter()
-	{
-		IDataWriter* ret = new WtDataWriter();
-		return ret;
-	}
+extern "C" {
+    EXPORT_FLAG IDataWriter* createWriter()
+    {
+        IDataWriter* ret = new WtDataWriter();
+        return ret;
+    }
 
-	EXPORT_FLAG void deleteWriter(IDataWriter* &writer)
-	{
-		if (writer != NULL)
-		{
-			delete writer;
-			writer = NULL;
-		}
-	}
+    EXPORT_FLAG void deleteWriter(IDataWriter* &writer)
+    {
+        if (writer != NULL) {
+            delete writer;
+            writer = NULL;
+        }
+    }
 };
 
 static const uint32_t CACHE_SIZE_STEP = 200;
@@ -57,7 +55,6 @@ static const uint32_t KLINE_SIZE_STEP = 200;
 
 const char CMD_CLEAR_CACHE[] = "CMD_CLEAR_CACHE";
 const char MARKER_FILE[] = "marker.ini";
-
 
 WtDataWriter::WtDataWriter()
 	: _terminated(false)
@@ -76,7 +73,6 @@ WtDataWriter::WtDataWriter()
 {
 }
 
-
 WtDataWriter::~WtDataWriter()
 {
 }
@@ -90,105 +86,78 @@ bool WtDataWriter::isSessionProceeded(const char* sid)
 	return (it->second >= TimeUtils::getCurDate());
 }
 
-
 bool WtDataWriter::init(WTSVariant* params, IDataWriterSink* sink)
 {
-	IDataWriter::init(params, sink);
+    IDataWriter::init(params, sink);
 
-	_bd_mgr = sink->getBDMgr();
-	_save_tick_log = params->getBoolean("savelog");
+    _bd_mgr = sink->getBDMgr();
+    _save_tick_log = params->getBoolean("savelog");
 
-	_base_dir = StrUtil::standardisePath(params->getCString("path"));
-	if (!BoostFile::exists(_base_dir.c_str()))
-		BoostFile::create_directories(_base_dir.c_str());
-	_cache_file = params->getCString("cache");
-	if (_cache_file.empty())
-		_cache_file = "cache.dmb";
+    _base_dir = StrUtil::standardisePath(params->getCString("path"));
+    if (!BoostFile::exists(_base_dir.c_str())) BoostFile::create_directories(_base_dir.c_str());
+    _cache_file = params->getCString("cache");
+    if (_cache_file.empty()) _cache_file = "cache.dmb";
 
-	_async_proc = params->getBoolean("async");
-	_log_group_size = params->getUInt32("groupsize");
+    _async_proc = params->getBoolean("async");
+    _log_group_size = params->getUInt32("groupsize");
 
-	// 没有成交的tick在有些数据源中不会用于更新bar,这里做一下细分
-	// 即便没有成交的tick，但仍然会产生一个bar，价格延续前一个bar，参考快期，万德
-	_skip_notrade_tick = params->getBoolean("skip_notrade_tick");
-	// 如果一个bar内没有一个有成交的tick，则不会有这个bar，参考掘金,MC
-	_skip_notrade_bar = params->getBoolean("skip_notrade_bar");
+    // 没有成交的tick在有些数据源中不会用于更新bar,这里做一下细分
+    // 即便没有成交的tick，但仍然会产生一个bar，价格延续前一个bar，参考快期，万德
+    _skip_notrade_tick = params->getBoolean("skip_notrade_tick");
+    // 如果一个bar内没有一个有成交的tick，则不会有这个bar，参考掘金,MC
+    _skip_notrade_bar = params->getBoolean("skip_notrade_bar");
 
-	//禁用历史数据
-	_disable_his = params->getBoolean("disablehis");
+    //禁用历史数据
+    _disable_his = params->getBoolean("disablehis");
 
-	_disable_tick = params->getBoolean("disabletick");
-	_disable_min1 = params->getBoolean("disablemin1");
-	_disable_min5 = params->getBoolean("disablemin5");
-	_disable_day = params->getBoolean("disableday");
+    _disable_tick = params->getBoolean("disabletick");
+    _disable_min1 = params->getBoolean("disablemin1");
+    _disable_min5 = params->getBoolean("disablemin5");
+    _disable_day = params->getBoolean("disableday");
 
-	_disable_trans = params->getBoolean("disabletrans");
-	_disable_ordque = params->getBoolean("disableordque");
-	_disable_orddtl = params->getBoolean("disableorddtl");
+    _disable_trans = params->getBoolean("disabletrans");
+    _disable_ordque = params->getBoolean("disableordque");
+    _disable_orddtl = params->getBoolean("disableorddtl");
 
-	_min_price_mode = params->getUInt32("minbar_price_mode");
+    _min_price_mode = params->getUInt32("minbar_price_mode");
 
-	{
-		std::string filename = _base_dir + MARKER_FILE;
-		IniHelper iniHelper;
-		iniHelper.load(filename.c_str());
-		StringVector ayKeys, ayVals;
-		iniHelper.readSecKeyValArray("markers", ayKeys, ayVals);
-		for (uint32_t idx = 0; idx < ayKeys.size(); idx++)
-		{
-			_proc_date[ayKeys[idx].c_str()] = strtoul(ayVals[idx].c_str(), 0, 10);
-		}
-	}
+    { // redundant brackets ???
+        std::string filename = _base_dir + MARKER_FILE;
+        IniHelper iniHelper;
+        iniHelper.load(filename.c_str());
+        StringVector ayKeys, ayVals;
+        iniHelper.readSecKeyValArray("markers", ayKeys, ayVals);
+        for (uint32_t idx = 0; idx < ayKeys.size(); ++idx)
+            _proc_date[ayKeys[idx].c_str()] = strtoul(ayVals[idx].c_str(), 0, 10);
+    }
 
-	loadCache();
+    loadCache();
 
-	_proc_chk.reset(new StdThread(boost::bind(&WtDataWriter::check_loop, this)));
+    _proc_chk.reset(new StdThread(boost::bind(&WtDataWriter::check_loop, this)));
 
-	pipe_writer_log(sink, LL_INFO, "WtDataWriter initialized, root dir: {}, save_csv_tick: {}, async_mode: {}, log_group_size: {}, disable_history: {}, "
-		"disable_tick: {}, disable_min1: {}, disable_min5: {}, disable_day: {}, disable_trans: {}, disable_ordque: {}, disable_orders: {}, min_price_mode: {}", 
-		_base_dir, _save_tick_log, _async_proc, _log_group_size, _disable_his, _disable_tick, 
-		_disable_min1, _disable_min5, _disable_day, _disable_trans, _disable_ordque, _disable_orddtl, _min_price_mode);
-	return true;
+    pipe_writer_log(sink, LL_INFO, 
+                    "WtDataWriter initialized, root dir: {}, save_csv_tick: {}, async_mode: {}, log_group_size: {}, disable_history: {}, "
+                    "disable_tick: {}, disable_min1: {}, disable_min5: {}, disable_day: {}, disable_trans: {}, disable_ordque: {}, disable_orders: {}, min_price_mode: {}", 
+                    _base_dir, _save_tick_log, _async_proc, _log_group_size, _disable_his, _disable_tick, 
+                    _disable_min1, _disable_min5, _disable_day, _disable_trans, _disable_ordque, _disable_orddtl, _min_price_mode);
+    return true;
 }
 
 void WtDataWriter::release()
 {
-	_terminated = true;
-	if (_proc_thrd)
-	{
-		_proc_cond.notify_all();
-		_proc_thrd->join();
-	}
+    _terminated = true;
 
-	for(auto& v : _rt_ticks_blocks)
-	{
-		delete v.second;
-	}
+    if (_proc_thrd) {
+        _proc_cond.notify_all();
+        _proc_thrd->join();
+    }
 
-	for (auto& v : _rt_trans_blocks)
-	{
-		delete v.second;
-	}
-
-	for (auto& v : _rt_orddtl_blocks)
-	{
-		delete v.second;
-	}
-
-	for (auto& v : _rt_ordque_blocks)
-	{
-		delete v.second;
-	}
-
-	for (auto& v : _rt_min1_blocks)
-	{
-		delete v.second;
-	}
-
-	for (auto& v : _rt_min5_blocks)
-	{
-		delete v.second;
-	}
+    for (auto& v : _rt_ticks_blocks) delete v.second;
+    for (auto& v : _rt_trans_blocks) delete v.second;
+    for (auto& v : _rt_orddtl_blocks) delete v.second;
+    for (auto& v : _rt_ordque_blocks) delete v.second;
+    for (auto& v : _rt_min1_blocks) delete v.second;
+    for (auto& v : _rt_min5_blocks) delete v.second;
 }
 
 /*
@@ -243,46 +212,40 @@ void DataManager::preloadRtCaches(const char* exchg)
 
 void WtDataWriter::loadCache()
 {
-	if (_tick_cache_file != NULL)
-		return;
+    if (_tick_cache_file != NULL) return;
 
-	bool bNew = false;
-	std::string filename = _base_dir + _cache_file;
-	if (!BoostFile::exists(filename.c_str()))
-	{
-		uint64_t uSize = sizeof(RTTickCache) + sizeof(TickCacheItem) * CACHE_SIZE_STEP;
-		BoostFile bf;
-		bf.create_new_file(filename.c_str());
-		bf.truncate_file((uint32_t)uSize);
-		bf.close_file();
-		bNew = true;
-	}
+    bool bNew = false;
+    std::string filename = _base_dir + _cache_file;
+    if (!BoostFile::exists(filename.c_str())) {
+        uint64_t uSize = sizeof(RTTickCache) + sizeof(TickCacheItem) * CACHE_SIZE_STEP;
+        BoostFile bf;
+        bf.create_new_file(filename.c_str());
+        bf.truncate_file((uint32_t) uSize);
+        bf.close_file();
+        bNew = true;
+    }
 
-	_tick_cache_file.reset(new BoostMappingFile);
-	_tick_cache_file->map(filename.c_str());
-	_tick_cache_block = (RTTickCache*)_tick_cache_file->addr();
+    _tick_cache_file.reset(new BoostMappingFile);
+    _tick_cache_file->map(filename.c_str());
+    _tick_cache_block = (RTTickCache*) _tick_cache_file->addr();
+    _tick_cache_block->_size = min(_tick_cache_block->_size, _tick_cache_block->_capacity);
 
-	_tick_cache_block->_size = min(_tick_cache_block->_size, _tick_cache_block->_capacity);
-
-	if(bNew)
-	{
-		memset(_tick_cache_block, 0, _tick_cache_file->size());
-
-		_tick_cache_block->_capacity = CACHE_SIZE_STEP;
-		_tick_cache_block->_type = BT_RT_Cache;
-		_tick_cache_block->_size = 0;
-		_tick_cache_block->_version = 1;
-		strcpy(_tick_cache_block->_blk_flag, BLK_FLAG);
-	}
-	else
-	{
-		for (uint32_t i = 0; i < _tick_cache_block->_size; i++)
-		{
-			const TickCacheItem& item = _tick_cache_block->_ticks[i];
-			std::string key = fmt::format("{}.{}", item._tick.exchg, item._tick.code);
-			_tick_cache_idx[key] = i;
-		}
-	}
+    if (bNew) {
+        memset(_tick_cache_block, 0, _tick_cache_file->size());
+     
+        _tick_cache_block->_capacity = CACHE_SIZE_STEP;
+        _tick_cache_block->_type = BT_RT_Cache;
+        _tick_cache_block->_size = 0;
+        _tick_cache_block->_version = 1;
+        strcpy(_tick_cache_block->_blk_flag, BLK_FLAG);
+    }
+    else {
+        for (uint32_t i = 0; i < _tick_cache_block->_size; ++i) {
+            const TickCacheItem& item = _tick_cache_block->_ticks[i];
+            std::string key = fmt::format("{}.{}", item._tick.exchg, item._tick.code);
+            _tick_cache_idx[key] = i;
+        }
+    }
 }
 
 template<typename HeaderType, typename T>
@@ -1270,13 +1233,12 @@ void WtDataWriter::pipeToKlines(WTSContractInfo* ct, WTSTickData* curTick)
 template<typename T>
 void WtDataWriter::releaseBlock(T* block)
 {
-	if (block == NULL || block->_file == NULL)
-		return;
+    if (block == NULL || block->_file == NULL) return;
 
-	SpinLock lock(block->_mutex);
-	block->_block = NULL;
-	block->_file.reset();
-	block->_lasttime = 0;
+    SpinLock lock(block->_mutex);
+    block->_block = NULL;
+    block->_file.reset();
+    block->_lasttime = 0;
 }
 
 WtDataWriter::KBlockPair* WtDataWriter::getKlineBlock(WTSContractInfo* ct, WTSKlinePeriod period, bool bAutoCreate /* = true */)
@@ -1559,84 +1521,70 @@ void WtDataWriter::transHisData(const char* sid)
 
 void WtDataWriter::check_loop()
 {
-	uint32_t expire_secs = 600;
-	while(!_terminated)
-	{
-		std::this_thread::sleep_for(std::chrono::seconds(10));
-		/*
-		 *	By Wesley @ 2022.04.18
-		 *	如果收盘作业线程已经启动，则直接退出检查线程
-		 */
-		if(_proc_thrd != NULL)
-			break;
-
-		uint64_t now = TimeUtils::getLocalTimeNow() / 1000;
-		for (auto it = _rt_ticks_blocks.begin(); it != _rt_ticks_blocks.end(); it++)
-		{
-			const char* key = it->first.c_str();
-			TickBlockPair* tBlk = (TickBlockPair*)it->second;
-			if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs))
-			{
-				pipe_writer_log(_sink, LL_INFO, "tick cache of {} mapping expired, automatically closed", key);
-				releaseBlock<TickBlockPair>(tBlk);
-			}
-		}
-
-		for (auto it = _rt_trans_blocks.begin(); it != _rt_trans_blocks.end(); it++)
-		{
-			const char* key = it->first.c_str();
-			TransBlockPair* tBlk = (TransBlockPair*)it->second;
-			if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs))
-			{
-				pipe_writer_log(_sink, LL_INFO, "trans cache o {} mapping expired, automatically closed", key);
-				releaseBlock<TransBlockPair>(tBlk);
-			}
-		}
-
-		for (auto it = _rt_orddtl_blocks.begin(); it != _rt_orddtl_blocks.end(); it++)
-		{
-			const char* key = it->first.c_str();
-			OrdDtlBlockPair* tBlk = (OrdDtlBlockPair*)it->second;
-			if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs))
-			{
-				pipe_writer_log(_sink, LL_INFO, "order cache of {} mapping expired, automatically closed", key);
-				releaseBlock<OrdDtlBlockPair>(tBlk);
-			}
-		}
-
-		for (auto& v : _rt_ordque_blocks)
-		{
-			const char* key = v.first.c_str();
-			OrdQueBlockPair* tBlk = (OrdQueBlockPair*)v.second;
-			if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs))
-			{
-				pipe_writer_log(_sink, LL_INFO, "queue cache of {} mapping expired, automatically closed", key);
-				releaseBlock<OrdQueBlockPair>(tBlk);
-			}
-		}
-
-		for (auto it = _rt_min1_blocks.begin(); it != _rt_min1_blocks.end(); it++)
-		{
-			const char* key = it->first.c_str();
-			KBlockPair* kBlk = (KBlockPair*)it->second;
-			if (kBlk->_lasttime != 0 && (now - kBlk->_lasttime > expire_secs))
-			{
-				pipe_writer_log(_sink, LL_INFO, "min1 cache of {} mapping expired, automatically closed", key);
-				releaseBlock<KBlockPair>(kBlk);
-			}
-		}
-
-		for (auto it = _rt_min5_blocks.begin(); it != _rt_min5_blocks.end(); it++)
-		{
-			const char* key = it->first.c_str();
-			KBlockPair* kBlk = (KBlockPair*)it->second;
-			if (kBlk->_lasttime != 0 && (now - kBlk->_lasttime > expire_secs))
-			{
-				pipe_writer_log(_sink, LL_INFO, "min5 cache of {} mapping expired, automatically closed", key);
-				releaseBlock<KBlockPair>(kBlk);
-			}
-		}
-	}
+    uint32_t expire_secs = 600;
+    while (!_terminated) {
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+        /*
+         *	By Wesley @ 2022.04.18
+         *	如果收盘作业线程已经启动，则直接退出检查线程
+         */
+        if (_proc_thrd != NULL) break;
+     
+        uint64_t now = TimeUtils::getLocalTimeNow() / 1000;
+        for (auto it = _rt_ticks_blocks.begin(); it != _rt_ticks_blocks.end(); ++it) {
+            const char* key = it->first.c_str();
+            TickBlockPair* tBlk = (TickBlockPair*) it->second;
+            if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs)) {
+                pipe_writer_log(_sink, LL_INFO, "tick cache of {} mapping expired, automatically closed", key);
+                releaseBlock<TickBlockPair>(tBlk);
+            }
+        }
+     
+        for (auto it = _rt_trans_blocks.begin(); it != _rt_trans_blocks.end(); ++it) {
+            const char* key = it->first.c_str();
+            TransBlockPair* tBlk = (TransBlockPair*) it->second;
+            if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs)) {
+                pipe_writer_log(_sink, LL_INFO, "trans cache o {} mapping expired, automatically closed", key);
+                releaseBlock<TransBlockPair>(tBlk);
+            }
+        }
+     
+        for (auto it = _rt_orddtl_blocks.begin(); it != _rt_orddtl_blocks.end(); ++it) {
+            const char* key = it->first.c_str();
+            OrdDtlBlockPair* tBlk = (OrdDtlBlockPair*) it->second;
+            if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs)) {
+                pipe_writer_log(_sink, LL_INFO, "order cache of {} mapping expired, automatically closed", key);
+                releaseBlock<OrdDtlBlockPair>(tBlk);
+            }
+        }
+     
+        for (auto& v : _rt_ordque_blocks) {
+            const char* key = v.first.c_str();
+            OrdQueBlockPair* tBlk = (OrdQueBlockPair*) v.second;
+            if (tBlk->_lasttime != 0 && (now - tBlk->_lasttime > expire_secs)) {
+                pipe_writer_log(_sink, LL_INFO, "queue cache of {} mapping expired, automatically closed", key);
+                releaseBlock<OrdQueBlockPair>(tBlk);
+            }
+        }
+     
+        for (auto it = _rt_min1_blocks.begin(); it != _rt_min1_blocks.end(); ++it) {
+            const char* key = it->first.c_str();
+            KBlockPair* kBlk = (KBlockPair*)it->second;
+            if (kBlk->_lasttime != 0 && (now - kBlk->_lasttime > expire_secs)) {
+                pipe_writer_log(_sink, LL_INFO, "min1 cache of {} mapping expired, automatically closed", key);
+                releaseBlock<KBlockPair>(kBlk);
+            }
+        }
+     
+        for (auto it = _rt_min5_blocks.begin(); it != _rt_min5_blocks.end(); ++it) {
+            const char* key = it->first.c_str();
+            KBlockPair* kBlk = (KBlockPair*)it->second;
+            if (kBlk->_lasttime != 0 && (now - kBlk->_lasttime > expire_secs)) {
+                pipe_writer_log(_sink, LL_INFO, "min5 cache of {} mapping expired, automatically closed", key);
+                releaseBlock<KBlockPair>(kBlk);
+            }
+        }
+    }
 }
 
 uint32_t WtDataWriter::dump_bars_via_dumper(WTSContractInfo* ct)

@@ -107,15 +107,13 @@ typedef struct _RTOrdQueBlock : RTDayBlockHeader {
     WTSOrdQueStruct	_queues[0];
 } RTOrdQueBlock;
 
-typedef struct _TickCacheItem
-{
+typedef struct _TickCacheItem {
 	uint32_t		_date;
 	WTSTickStruct	_tick;
 } TickCacheItem;
 
 //实时tick缓存
-typedef struct _RTTickCache : RTBlockHeader
-{
+typedef struct _RTTickCache : RTBlockHeader {
 	TickCacheItem	_ticks[0];
 } RTTickCache;
 
@@ -126,53 +124,46 @@ typedef struct _HisTickBlock : BlockHeader {
 } HisTickBlock;
 
 //历史Tick数据V2
-typedef struct _HisTickBlockV2 : BlockHeaderV2
-{
-	char			_data[0];
+typedef struct _HisTickBlockV2 : BlockHeaderV2 {
+    char			_data[0];
 } HisTickBlockV2;
 
 typedef struct _HisTransBlock : BlockHeader {
 	WTSTransStruct	_items[0];
 } HisTransBlock;
 
-typedef struct _HisTransBlockV2 : BlockHeaderV2
-{
-	char			_data[0];
+typedef struct _HisTransBlockV2 : BlockHeaderV2 {
+    char			_data[0];
 } HisTransBlockV2;
 
 typedef struct _HisOrdDtlBlock : BlockHeader {
     WTSOrdDtlStruct	_items[0];
 } HisOrdDtlBlock;
 
-typedef struct _HisOrdDtlBlockV2 : BlockHeaderV2
-{
-	char			_data[0];
+typedef struct _HisOrdDtlBlockV2 : BlockHeaderV2 {
+    char			_data[0];
 } HisOrdDtlBlockV2;
 
 typedef struct _HisOrdQueBlock : BlockHeader {
     WTSOrdQueStruct	_items[0];
 } HisOrdQueBlock;
 
-typedef struct _HisOrdQueBlockV2 : BlockHeaderV2
-{
+typedef struct _HisOrdQueBlockV2 : BlockHeaderV2 {
 	char			_data[0];
 } HisOrdQueBlockV2;
 
 //历史K线数据
-typedef struct _HisKlineBlock : BlockHeader
-{
+typedef struct _HisKlineBlock : BlockHeader {
 	WTSBarStruct	_bars[0];
 } HisKlineBlock;
 
 //历史K线数据V2
-typedef struct _HisKlineBlockV2 : BlockHeaderV2
-{
+typedef struct _HisKlineBlockV2 : BlockHeaderV2 {
 	char			_data[0];
 } HisKlineBlockV2;
 
 //历史K线数据
-typedef struct _HisKlineBlockOld : BlockHeader
-{
+typedef struct _HisKlineBlockOld : BlockHeader {
 	WTSBarStructOld	_bars[0];
 } HisKlineBlockOld;
 
