@@ -1,6 +1,9 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 PROJECT(WonderTrader)
+
+# Always export compile_commands.json for clangd/LSP (nvim)
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #3. 环境判断
 IF (WIN32)
