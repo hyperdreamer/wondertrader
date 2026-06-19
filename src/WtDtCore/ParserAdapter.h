@@ -4,7 +4,7 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
+ *
  * \brief 行情解析模块适配类定义
  */
 #pragma once
@@ -24,71 +24,67 @@ class WTSBaseDataMgr;
 class DataManager;
 class IndexWorkerMgr;
 
-class ParserAdapter : public IParserSpi, private boost::noncopyable
-{
+class ParserAdapter : public IParserSpi, private boost::noncopyable {
 public:
-	ParserAdapter(WTSBaseDataMgr * bgMgr, DataManager* dtMgr, IndexWorkerMgr *idxFactory);
-	~ParserAdapter();
-
-public:
-	bool	init(const char* id, WTSVariant* cfg);
-
-	bool	initExt(const char* id, IParserApi* api);
-
-	void	release();
-
-	bool	run();
-
-	const char* id() const { return _id.c_str(); }
+    ParserAdapter(WTSBaseDataMgr* bgMgr, DataManager* dtMgr, IndexWorkerMgr* idxFactory);
+    ~ParserAdapter();
 
 public:
-	virtual void handleSymbolList(const WTSArray* aySymbols) override;
+    bool init(const char* id, WTSVariant* cfg);
 
-	virtual void handleQuote(WTSTickData *quote, uint32_t procFlag) override;
+    bool initExt(const char* id, IParserApi* api);
 
-	virtual void handleOrderQueue(WTSOrdQueData* ordQueData) override;
+    void release();
 
-	virtual void handleTransaction(WTSTransData* transData) override;
+    bool run();
 
-	virtual void handleOrderDetail(WTSOrdDtlData* ordDetailData) override;
+    const char* id() const { return _id.c_str(); }
 
-	virtual void handleParserLog(WTSLogLevel ll, const char* message) override;
+public:
+    virtual void handleSymbolList(const WTSArray* aySymbols) override;
 
-	virtual IBaseDataMgr* getBaseDataMgr() override;
+    virtual void handleQuote(WTSTickData* quote, uint32_t procFlag) override;
+
+    virtual void handleOrderQueue(WTSOrdQueData* ordQueData) override;
+
+    virtual void handleTransaction(WTSTransData* transData) override;
+
+    virtual void handleOrderDetail(WTSOrdDtlData* ordDetailData) override;
+
+    virtual void handleParserLog(WTSLogLevel ll, const char* message) override;
+
+    virtual IBaseDataMgr* getBaseDataMgr() override;
 
 private:
-	IParserApi*			_parser_api;
-	FuncDeleteParser	_remover;
-	WTSBaseDataMgr*		_bd_mgr;
-	DataManager*		_dt_mgr;
-	IndexWorkerMgr*		_idx_fact;
+    IParserApi* _parser_api;
+    FuncDeleteParser _remover;
+    WTSBaseDataMgr* _bd_mgr;
+    DataManager* _dt_mgr;
+    IndexWorkerMgr* _idx_fact;
 
-	bool				_stopped;
+    bool _stopped;
 
-	typedef wt_hashset<std::string>	ExchgFilter;
-	ExchgFilter			_filters;
-	WTSVariant*			_cfg;
-	std::string			_id;
+    typedef wt_hashset<std::string> ExchgFilter;
+    ExchgFilter _filters;
+    WTSVariant* _cfg;
+    std::string _id;
 };
 
-typedef std::shared_ptr<ParserAdapter>	ParserAdapterPtr;
-typedef wt_hashmap<std::string, ParserAdapterPtr>	ParserAdapterMap;
+typedef std::shared_ptr<ParserAdapter> ParserAdapterPtr;
+typedef wt_hashmap<std::string, ParserAdapterPtr> ParserAdapterMap;
 
-class ParserAdapterMgr : private boost::noncopyable
-{
+class ParserAdapterMgr : private boost::noncopyable {
 public:
-	void	release();
+    void release();
 
-	void	run();
+    void run();
 
-	ParserAdapterPtr getAdapter(const char* id);
+    ParserAdapterPtr getAdapter(const char* id);
 
-	bool	addAdapter(const char* id, ParserAdapterPtr& adapter);
+    bool addAdapter(const char* id, ParserAdapterPtr& adapter);
 
-	uint32_t size() const { return (uint32_t)_adapters.size(); }
+    uint32_t size() const { return (uint32_t)_adapters.size(); }
 
 public:
-	ParserAdapterMap _adapters;
+    ParserAdapterMap _adapters;
 };
-
-
