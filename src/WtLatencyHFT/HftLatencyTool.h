@@ -4,8 +4,8 @@
  *
  * /author Wesley
  * /date 2020/03/30
- * 
- * /brief 
+ *
+ * /brief
  */
 #pragma once
 #include "../WtCore/WtHftEngine.h"
@@ -18,47 +18,43 @@
 #include "../WTSTools/WTSBaseDataMgr.h"
 #include "../WTSTools/WTSHotMgr.h"
 
-
 NS_WTP_BEGIN
 class WTSVariant;
 NS_WTP_END
 
-namespace hft
-{
-	class HftLatencyTool
-	{
-	public:
-		HftLatencyTool();
-		~HftLatencyTool();
+namespace hft {
+class HftLatencyTool {
+public:
+    HftLatencyTool();
+    ~HftLatencyTool();
 
-	public:
-		/*
-		 *	≥ı ºªØ
-		 */
-		bool init();
+public:
+    /*
+     *	≥ı ºªØ
+     */
+    bool init();
 
-		void run();
+    void run();
 
-	private:
-		bool initModules();
-		bool initStrategies();
+private:
+    bool initModules();
+    bool initStrategies();
 
-		bool initEngine(WTSVariant* cfg);
+    bool initEngine(WTSVariant* cfg);
 
-	private:
-		TraderAdapterMgr	_traders;
-		ParserAdapterMgr	_parsers;
-		HftStrategyMgr		_stra_mgr;
+private:
+    TraderAdapterMgr _traders;
+    ParserAdapterMgr _parsers;
+    HftStrategyMgr _stra_mgr;
 
-		WtHftEngine			_engine;
+    WtHftEngine _engine;
 
-		WTSBaseDataMgr		_bd_mgr;
-		WTSHotMgr			_hot_mgr;
-		ActionPolicyMgr		_act_mgr;
-		WtDtMgr				_dt_mgr;
+    WTSBaseDataMgr _bd_mgr;
+    WTSHotMgr _hot_mgr;
+    ActionPolicyMgr _act_mgr;
+    WtDtMgr _dt_mgr;
 
-		uint32_t			_times;
-		uint32_t			_core;
-	};
-}
-
+    uint32_t _times;
+    uint32_t _core;
+};
+} // namespace hft
