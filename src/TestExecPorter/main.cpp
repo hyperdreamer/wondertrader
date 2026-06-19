@@ -5,28 +5,28 @@
 void test_exec()
 {
 #ifdef _WIN32
-	DLLHelper::load_library("WtExecMon.dll");
+    DLLHelper::load_library("WtExecMon.dll");
 #else
-	DLLHelper::load_library("libWtExecMon.so");
+    DLLHelper::load_library("libWtExecMon.so");
 #endif
 
-	init_exec("logcfgexec.yaml");
+    init_exec("logcfgexec.yaml");
 
-	config_exec("config_exec.yaml");
+    config_exec("config_exec.yaml");
 
-	run_exec();
+    run_exec();
 
-	set_position("CFFEX.IF.HOT", 1);
+    set_position("CFFEX.IF.HOT", 1);
 
-	printf("press enter key to exit\n");
-	getchar();
+    printf("press enter key to exit\n");
+    getchar();
 
-	release_exec();
+    release_exec();
 }
 
 int main()
 {
-	test_exec();
-	getchar();
-	return 0;
+    test_exec();
+    getchar();
+    return 0;
 }
