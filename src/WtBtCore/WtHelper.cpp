@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #include "WtHelper.h"
 
@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 
 #ifdef _MSC_VER
 #include <direct.h>
-#else	//UNIX
+#else // UNIX
 #include <unistd.h>
 #endif
 
@@ -24,29 +24,28 @@ std::string WtHelper::_out_dir = "./outputs_bt/";
 
 std::string WtHelper::getCWD()
 {
-	static std::string _cwd;
-	if(_cwd.empty())
-	{
-		char   buffer[255];
+    static std::string _cwd;
+    if (_cwd.empty()) {
+        char buffer[255];
 #ifdef _MSC_VER
-		_getcwd(buffer, 255);
-#else	//UNIX
-		getcwd(buffer, 255);
+        _getcwd(buffer, 255);
+#else // UNIX
+        getcwd(buffer, 255);
 #endif
-		_cwd = buffer;
-		_cwd = StrUtil::standardisePath(_cwd);
-	}	
-	return _cwd;
+        _cwd = buffer;
+        _cwd = StrUtil::standardisePath(_cwd);
+    }
+    return _cwd;
 }
 
 void WtHelper::setOutputDir(const char* out_dir)
 {
-	_out_dir = StrUtil::standardisePath(std::string(out_dir));
+    _out_dir = StrUtil::standardisePath(std::string(out_dir));
 }
 
 const char* WtHelper::getOutputDir()
 {
-	if (!fs::exists(_out_dir.c_str()))
+    if (!fs::exists(_out_dir.c_str()))
         fs::create_directories(_out_dir.c_str());
-	return _out_dir.c_str();
+    return _out_dir.c_str();
 }
