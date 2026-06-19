@@ -5,31 +5,31 @@
 
 Dumper& getDumper()
 {
-	static Dumper dumper;
-	return dumper;
+    static Dumper dumper;
+    return dumper;
 }
 
-void register_callbacks(FuncOnAccount cbAccount, FuncOnOrder  cbOrder, FuncOnTrade cbTrade, FuncOnPosition cbPosition)
+void register_callbacks(FuncOnAccount cbAccount, FuncOnOrder cbOrder, FuncOnTrade cbTrade, FuncOnPosition cbPosition)
 {
-	getDumper().register_callbacks(cbAccount, cbOrder, cbTrade, cbPosition);
+    getDumper().register_callbacks(cbAccount, cbOrder, cbTrade, cbPosition);
 }
 
 void init(const char* logProfile)
 {
-	getDumper().init(logProfile);
+    getDumper().init(logProfile);
 }
 
 bool config(const char* cfgfile, bool isFile)
 {
-	return getDumper().config(cfgfile, isFile, getBinDir());
+    return getDumper().config(cfgfile, isFile, getBinDir());
 }
 
 void run(bool bOnce)
 {
-	getDumper().run(bOnce);
+    getDumper().run(bOnce);
 }
 
 void release()
 {
-	getDumper().release();
+    getDumper().release();
 }
