@@ -3,10 +3,11 @@
 #include "nodeevents.h"
 
 namespace YAML {
-Node Clone(const Node& node) {
-  NodeEvents events(node);
-  NodeBuilder builder;
-  events.Emit(builder);
-  return builder.Root();
+Node Clone(const Node& node)
+{
+    NodeEvents events(node);
+    NodeBuilder builder;
+    events.Emit(builder);
+    return builder.Root();
 }
-}  // namespace YAML
+} // namespace YAML
