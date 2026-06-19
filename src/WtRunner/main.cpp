@@ -4,8 +4,8 @@
  *
  * /author Wesley
  * /date 2020/03/30
- * 
- * /brief 
+ *
+ * /brief
  */
 
 #include "WtRunner.h"
@@ -18,43 +18,42 @@
 
 #include "../Share/cppcli.hpp"
 
-//#include <vld.h>
+// #include <vld.h>
 
 int main(int argc, char* argv[])
 {
 #ifdef _MSC_VER
-	CMiniDumper::Enable("WtRunner.exe", true);
+    CMiniDumper::Enable("WtRunner.exe", true);
 #endif
 
-	cppcli::Option opt(argc, argv);
+    cppcli::Option opt(argc, argv);
 
-	auto cParam = opt("-c", "--config", "configure filepath, dtcfg.yaml as default", false);
-	auto lParam = opt("-l", "--logcfg", "logging configure filepath, logcfgbt.yaml as default", false);
+    auto cParam = opt("-c", "--config", "configure filepath, dtcfg.yaml as default", false);
+    auto lParam = opt("-l", "--logcfg", "logging configure filepath, logcfgbt.yaml as default", false);
 
-	auto hParam = opt("-h", "--help", "gain help doc", false)->asHelpParam();
+    auto hParam = opt("-h", "--help", "gain help doc", false)->asHelpParam();
 
-	opt.parse();
+    opt.parse();
 
-	if (hParam->exists())
-		return 0;
+    if (hParam->exists())
+        return 0;
 
-	std::string filename;
-	if (lParam->exists())
-		filename = lParam->get<std::string>();
-	else
-		filename = "./logcfg.yaml";
+    std::string filename;
+    if (lParam->exists())
+        filename = lParam->get<std::string>();
+    else
+        filename = "./logcfg.yaml";
 
-	WtRunner runner;
-	runner.init(filename);
+    WtRunner runner;
+    runner.init(filename);
 
-	if (cParam->exists())
-		filename = cParam->get<std::string>();
-	else
-		filename = "./config.yaml";
+    if (cParam->exists())
+        filename = cParam->get<std::string>();
+    else
+        filename = "./config.yaml";
 
-	runner.config(filename);
+    runner.config(filename);
 
-	runner.run(false);
-	return 0;
+    runner.run(false);
+    return 0;
 }
-
