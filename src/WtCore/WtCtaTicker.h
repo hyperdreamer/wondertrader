@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #pragma once
 #include <stdint.h>
@@ -21,50 +21,42 @@ class WTSTickData;
 
 class WtCtaEngine;
 //////////////////////////////////////////////////////////////////////////
-//生产时间步进器
-class WtCtaRtTicker
-{
+// 生产时间步进器
+class WtCtaRtTicker {
 public:
-	WtCtaRtTicker(WtCtaEngine* engine) 
-		: _engine(engine)
-		, _stopped(false)
-		, _date(0)
-		, _time(UINT_MAX)
-		, _next_check_time(0)
-		, _last_emit_pos(0)
-		, _cur_pos(0){}
-	~WtCtaRtTicker(){}
+    WtCtaRtTicker(WtCtaEngine* engine)
+        : _engine(engine), _stopped(false), _date(0), _time(UINT_MAX), _next_check_time(0), _last_emit_pos(0), _cur_pos(0) {}
+    ~WtCtaRtTicker() {}
 
 public:
-	void	init(IDataReader* store, const char* sessionID);
-	//void	set_time(uint32_t uDate, uint32_t uTime);
-	void	on_tick(WTSTickData* curTick);
+    void init(IDataReader* store, const char* sessionID);
+    // void	set_time(uint32_t uDate, uint32_t uTime);
+    void on_tick(WTSTickData* curTick);
 
-	void	run();
-	void	stop();
+    void run();
+    void stop();
 
-	bool		is_in_trading() const;
-	uint32_t	time_to_mins(uint32_t uTime) const;
-
-private:
-	void	trigger_price(WTSTickData* curTick);
+    bool is_in_trading() const;
+    uint32_t time_to_mins(uint32_t uTime) const;
 
 private:
-	WTSSessionInfo*	_s_info;
-	WtCtaEngine*	_engine;
-	IDataReader*	_store;
+    void trigger_price(WTSTickData* curTick);
 
-	uint32_t	_date;
-	uint32_t	_time;
+private:
+    WTSSessionInfo* _s_info;
+    WtCtaEngine* _engine;
+    IDataReader* _store;
 
-	uint32_t	_cur_pos;
+    uint32_t _date;
+    uint32_t _time;
 
-	StdUniqueMutex	_mtx;
-	std::atomic<uint64_t>	_next_check_time;
-	std::atomic<uint32_t>	_last_emit_pos;
+    uint32_t _cur_pos;
 
-	bool			_stopped;
-	StdThreadPtr	_thrd;
+    StdUniqueMutex _mtx;
+    std::atomic<uint64_t> _next_check_time;
+    std::atomic<uint32_t> _last_emit_pos;
 
+    bool _stopped;
+    StdThreadPtr _thrd;
 };
 NS_WTP_END
