@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #pragma once
 #include "../Includes/IParserApi.h"
@@ -21,73 +21,70 @@
 USING_NS_WTP;
 using namespace boost::asio;
 
-class ParserXeleSkt : public IParserApi
-{
+class ParserXeleSkt : public IParserApi {
 public:
-	ParserXeleSkt();
-	~ParserXeleSkt();
+    ParserXeleSkt();
+    ~ParserXeleSkt();
 
-	//IQuoteParser ½Ó¿Ú
+    // IQuoteParser ½Ó¿Ú
 public:
-	virtual bool init(WTSVariant* config) override;
+    virtual bool init(WTSVariant* config) override;
 
-	virtual void release() override;
+    virtual void release() override;
 
-	virtual bool connect() override;
+    virtual bool connect() override;
 
-	virtual bool disconnect() override;
+    virtual bool disconnect() override;
 
-	virtual bool isConnected() override;
+    virtual bool isConnected() override;
 
-	virtual void subscribe(const CodeSet &vecSymbols) override;
-	virtual void unsubscribe(const CodeSet &vecSymbols) override;
+    virtual void subscribe(const CodeSet& vecSymbols) override;
+    virtual void unsubscribe(const CodeSet& vecSymbols) override;
 
-	virtual void registerSpi(IParserSpi* listener) override;
-
-
-private:
-	void	handle_udp_read(const boost::system::error_code& e, std::size_t bytes_transferred);
-
-	bool	prepare();
-
-	bool	reconnect();
-
-	void	extract_buffer(uint32_t length);
+    virtual void registerSpi(IParserSpi* listener) override;
 
 private:
-	void	doOnConnected();
-	void	doOnDisconnected();
+    void handle_udp_read(const boost::system::error_code& e, std::size_t bytes_transferred);
+
+    bool prepare();
+
+    bool reconnect();
+
+    void extract_buffer(uint32_t length);
 
 private:
-	std::string	_tcp_host;
-	int			_tcp_port;
-	std::string	_mcast_host;
-	int			_mcast_port;
-	std::string	_local_host;
-	uint32_t	_gpsize;
+    void doOnConnected();
+    void doOnDisconnected();
 
-	ip::udp::endpoint	_mcast_ep;
-	ip::udp::endpoint	_udp_ep;
-	ip::tcp::endpoint	_tcp_ep;
-	io_service			_io_service;
+private:
+    std::string _tcp_host;
+    int _tcp_port;
+    std::string _mcast_host;
+    int _mcast_port;
+    std::string _local_host;
+    uint32_t _gpsize;
 
-	io_service::strand	_strand;
+    ip::udp::endpoint _mcast_ep;
+    ip::udp::endpoint _udp_ep;
+    ip::tcp::endpoint _tcp_ep;
+    io_service _io_service;
 
-	ip::udp::socket*	_udp_socket;
+    io_service::strand _strand;
 
-	boost::array<char, 4096> _udp_buffer;
+    ip::udp::socket* _udp_socket;
 
-	IParserSpi*		_sink;
-	IBaseDataMgr*	_bd_mgr;
-	bool			_stopped;
-	bool			_prepared;
+    boost::array<char, 4096> _udp_buffer;
 
-	CodeSet			_set_subs;
-	StdThreadPtr	_thrd_parser;
+    IParserSpi* _sink;
+    IBaseDataMgr* _bd_mgr;
+    bool _stopped;
+    bool _prepared;
 
-	typedef WTSHashMap<int>	TickCache;
-	TickCache*		_tick_cache;
+    CodeSet _set_subs;
+    StdThreadPtr _thrd_parser;
 
-	wt_hashmap<int, double> _price_scales;
+    typedef WTSHashMap<int> TickCache;
+    TickCache* _tick_cache;
+
+    wt_hashmap<int, double> _price_scales;
 };
-
