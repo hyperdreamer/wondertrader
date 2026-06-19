@@ -258,6 +258,9 @@ bool WtRunner::initCtaStrategies()
         const char* name = cfgItem->getCString("name");
         int32_t slippage = cfgItem->getInt32("slippage");
         CtaStrategyPtr stra = _cta_stra_mgr.createStrategy(name, id);
+        if (stra == NULL)
+            continue;
+
         stra->self()->init(cfgItem->get("params"));
         CtaStraContext* ctx = new CtaStraContext(&_cta_engine, id, slippage);
         ctx->set_strategy(stra->self());
