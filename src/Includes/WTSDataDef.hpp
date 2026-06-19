@@ -4,7 +4,7 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
+ *
  * \brief Wt行情数据定义文件,包括tick、bar、orderqueue、orderdetail、transaction等数据
  */
 #pragma once
@@ -23,8 +23,7 @@
 
 using namespace std;
 
-#pragma warning(disable:4267)
-
+#pragma warning(disable : 4267)
 
 NS_WTP_BEGIN
 class WTSContractInfo;
@@ -34,164 +33,160 @@ class WTSContractInfo;
  *	包含数据格式化字符串
  *	数值的数据类型为double
  */
-class WTSValueArray : public WTSObject
-{
+class WTSValueArray : public WTSObject {
 protected:
-	vector<double>	m_vecData;
+    vector<double> m_vecData;
 
 public:
-	/*
-	 *	创建一个数值数组对象
-	 *	@decimal 保留的小数点位数
-	 */
-	static WTSValueArray* create()
-	{
-		WTSValueArray* pRet = new WTSValueArray;
-		pRet->m_vecData.clear();
-		return pRet;
-	}
+    /*
+     *	创建一个数值数组对象
+     *	@decimal 保留的小数点位数
+     */
+    static WTSValueArray* create()
+    {
+        WTSValueArray* pRet = new WTSValueArray;
+        pRet->m_vecData.clear();
+        return pRet;
+    }
 
-	/*
-	 *	读取数组的长度
-	 */
-	inline uint32_t	size() const{ return m_vecData.size(); }
-	inline bool		empty() const{ return m_vecData.empty(); }
+    /*
+     *	读取数组的长度
+     */
+    inline uint32_t size() const { return m_vecData.size(); }
+    inline bool empty() const { return m_vecData.empty(); }
 
-	/*
-	 *	读取指定位置的数据
-	 *	如果超出范围,则返回INVALID_VALUE
-	 */
-	inline double		at(uint32_t idx) const
-	{
-		idx = translateIdx(idx);
+    /*
+     *	读取指定位置的数据
+     *	如果超出范围,则返回INVALID_VALUE
+     */
+    inline double at(uint32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		if(idx < 0 || idx >= m_vecData.size())
-			return INVALID_DOUBLE;
+        if (idx < 0 || idx >= m_vecData.size())
+            return INVALID_DOUBLE;
 
-		return m_vecData[idx];
-	}
+        return m_vecData[idx];
+    }
 
-	inline int32_t		translateIdx(int32_t idx) const
-	{
-		if(idx < 0)
-		{
-			return m_vecData.size()+idx;
-		}
+    inline int32_t translateIdx(int32_t idx) const
+    {
+        if (idx < 0) {
+            return m_vecData.size() + idx;
+        }
 
-		return idx;
-	}
+        return idx;
+    }
 
-	/*
-	 *	找到指定范围内的最大值
-	 *	如果超出范围,则返回INVALID_VALUE
-	 */
-	double		maxvalue(int32_t head, int32_t tail, bool isAbs = false) const
-	{
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+    /*
+     *	找到指定范围内的最大值
+     *	如果超出范围,则返回INVALID_VALUE
+     */
+    double maxvalue(int32_t head, int32_t tail, bool isAbs = false) const
+    {
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-		uint32_t begin = min(head, tail);
-		uint32_t end = max(head, tail);
+        uint32_t begin = min(head, tail);
+        uint32_t end = max(head, tail);
 
-		if(begin <0 || begin >= m_vecData.size() || end < 0 || end > m_vecData.size())
-			return INVALID_DOUBLE;
+        if (begin < 0 || begin >= m_vecData.size() || end < 0 || end > m_vecData.size())
+            return INVALID_DOUBLE;
 
-		double maxValue = INVALID_DOUBLE;
-		for(uint32_t i = begin; i <= end; i++)
-		{
-			if(m_vecData[i] == INVALID_DOUBLE)
-				continue;
+        double maxValue = INVALID_DOUBLE;
+        for (uint32_t i = begin; i <= end; i++) {
+            if (m_vecData[i] == INVALID_DOUBLE)
+                continue;
 
-			if(maxValue == INVALID_DOUBLE)
-				maxValue = isAbs?abs(m_vecData[i]):m_vecData[i];
-			else
-				maxValue = max(maxValue, isAbs?abs(m_vecData[i]):m_vecData[i]);
-		}
+            if (maxValue == INVALID_DOUBLE)
+                maxValue = isAbs ? abs(m_vecData[i]) : m_vecData[i];
+            else
+                maxValue = max(maxValue, isAbs ? abs(m_vecData[i]) : m_vecData[i]);
+        }
 
-		//if (maxValue == INVALID_DOUBLE)
-		//	maxValue = 0.0;
+        // if (maxValue == INVALID_DOUBLE)
+        //	maxValue = 0.0;
 
-		return maxValue;
-	}
+        return maxValue;
+    }
 
-	/*
-	 *	找到指定范围内的最小值
-	 *	如果超出范围,则返回INVALID_VALUE
-	 */
-	double		minvalue(int32_t head, int32_t tail, bool isAbs = false) const
-	{
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+    /*
+     *	找到指定范围内的最小值
+     *	如果超出范围,则返回INVALID_VALUE
+     */
+    double minvalue(int32_t head, int32_t tail, bool isAbs = false) const
+    {
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-		uint32_t begin = min(head, tail);
-		uint32_t end = max(head, tail);
+        uint32_t begin = min(head, tail);
+        uint32_t end = max(head, tail);
 
-		if(begin <0 || begin >= m_vecData.size() || end < 0 || end > m_vecData.size())
-			return INVALID_DOUBLE;
+        if (begin < 0 || begin >= m_vecData.size() || end < 0 || end > m_vecData.size())
+            return INVALID_DOUBLE;
 
-		double minValue = INVALID_DOUBLE;
-		for(uint32_t i = begin; i <= end; i++)
-		{
-			if (m_vecData[i] == INVALID_DOUBLE)
-				continue;
+        double minValue = INVALID_DOUBLE;
+        for (uint32_t i = begin; i <= end; i++) {
+            if (m_vecData[i] == INVALID_DOUBLE)
+                continue;
 
-			if(minValue == INVALID_DOUBLE)
-				minValue = isAbs?abs(m_vecData[i]):m_vecData[i];
-			else
-				minValue = min(minValue, isAbs?abs(m_vecData[i]):m_vecData[i]);
-		}
+            if (minValue == INVALID_DOUBLE)
+                minValue = isAbs ? abs(m_vecData[i]) : m_vecData[i];
+            else
+                minValue = min(minValue, isAbs ? abs(m_vecData[i]) : m_vecData[i]);
+        }
 
-		//if (minValue == INVALID_DOUBLE)
-		//	minValue = 0.0;
+        // if (minValue == INVALID_DOUBLE)
+        //	minValue = 0.0;
 
-		return minValue;
-	}
+        return minValue;
+    }
 
-	/*
-	 *	在数组末尾添加数据
-	 */
-	inline void		append(double val)
-	{
-		m_vecData.emplace_back(val);
-	}
+    /*
+     *	在数组末尾添加数据
+     */
+    inline void append(double val)
+    {
+        m_vecData.emplace_back(val);
+    }
 
-	/*
-	 *	设置指定位置的数据
-	 */
-	inline void		set(uint32_t idx, double val)
-	{
-		if(idx < 0 || idx >= m_vecData.size())
-			return;
+    /*
+     *	设置指定位置的数据
+     */
+    inline void set(uint32_t idx, double val)
+    {
+        if (idx < 0 || idx >= m_vecData.size())
+            return;
 
-		m_vecData[idx] = val;
-	}
+        m_vecData[idx] = val;
+    }
 
-	/*
-	 *	重新分配数组大小,并设置默认值
-	 */
-	inline void		resize(uint32_t uSize, double val = INVALID_DOUBLE)
-	{
-		m_vecData.resize(uSize, val);
-	}
+    /*
+     *	重新分配数组大小,并设置默认值
+     */
+    inline void resize(uint32_t uSize, double val = INVALID_DOUBLE)
+    {
+        m_vecData.resize(uSize, val);
+    }
 
-	/*
-	 *	重载操作符[]
-	 *	用法同getValue接口
-	 */
-	inline double&		operator[](uint32_t idx)
-	{
-		return m_vecData[idx];
-	}
+    /*
+     *	重载操作符[]
+     *	用法同getValue接口
+     */
+    inline double& operator[](uint32_t idx)
+    {
+        return m_vecData[idx];
+    }
 
-	inline double		operator[](uint32_t idx) const
-	{
-		return m_vecData[idx];
-	}
+    inline double operator[](uint32_t idx) const
+    {
+        return m_vecData[idx];
+    }
 
-	inline std::vector<double>& getDataRef()
-	{
-		return m_vecData;
-	}
+    inline std::vector<double>& getDataRef()
+    {
+        return m_vecData;
+    }
 };
 
 /*
@@ -199,237 +194,221 @@ public:
  *	这个比较特殊,因为要拼接当日和历史的
  *	所以有两个开始地址
  */
-class WTSKlineSlice : public WTSObject
-{
+class WTSKlineSlice : public WTSObject {
 private:
-	char			_code[MAX_INSTRUMENT_LENGTH];
-	WTSKlinePeriod	_period;
-	uint32_t		_times;
-	typedef std::pair<WTSBarStruct*, uint32_t> BarBlock;
-	std::vector<BarBlock> _blocks;
-	uint32_t		_count;
+    char _code[MAX_INSTRUMENT_LENGTH];
+    WTSKlinePeriod _period;
+    uint32_t _times;
+    typedef std::pair<WTSBarStruct*, uint32_t> BarBlock;
+    std::vector<BarBlock> _blocks;
+    uint32_t _count;
 
 protected:
-	WTSKlineSlice()
-		: _period(KP_Minute1)
-		, _times(1)
-		, _count(0)
-	{
+    WTSKlineSlice()
+        : _period(KP_Minute1), _times(1), _count(0)
+    {
+    }
 
-	}
+    inline int32_t translateIdx(int32_t idx) const
+    {
+        int32_t totalCnt = _count;
+        if (idx < 0) {
+            return max(0, totalCnt + idx);
+        }
 
-	inline int32_t		translateIdx(int32_t idx) const
-	{
-		int32_t totalCnt = _count;
-		if (idx < 0)
-		{
-			return max(0, totalCnt + idx);
-		}
-
-		return idx;
-	}
-
+        return idx;
+    }
 
 public:
-	static WTSKlineSlice* create(const char* code, WTSKlinePeriod period, uint32_t times, WTSBarStruct* bars = NULL, int32_t count = 0) noexcept
-	{
-		WTSKlineSlice *pRet = new WTSKlineSlice;
-		wt_strcpy(pRet->_code, code);
-		pRet->_period = period;
-		pRet->_times = times;
-		if(bars)
-			pRet->_blocks.emplace_back(BarBlock(bars, count));
-		pRet->_count = count;
+    static WTSKlineSlice* create(const char* code, WTSKlinePeriod period, uint32_t times, WTSBarStruct* bars = NULL, int32_t count = 0) noexcept
+    {
+        WTSKlineSlice* pRet = new WTSKlineSlice;
+        wt_strcpy(pRet->_code, code);
+        pRet->_period = period;
+        pRet->_times = times;
+        if (bars)
+            pRet->_blocks.emplace_back(BarBlock(bars, count));
+        pRet->_count = count;
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	inline bool appendBlock(WTSBarStruct* bars, uint32_t count)
-	{
-		if (bars == NULL || count == 0)
-			return false;
+    inline bool appendBlock(WTSBarStruct* bars, uint32_t count)
+    {
+        if (bars == NULL || count == 0)
+            return false;
 
-		_count += count;
-		_blocks.emplace_back(BarBlock(bars, count));
-		return true;
-	}
+        _count += count;
+        _blocks.emplace_back(BarBlock(bars, count));
+        return true;
+    }
 
-	inline std::size_t	get_block_counts() const
-	{
-		return _blocks.size();
-	}
+    inline std::size_t get_block_counts() const
+    {
+        return _blocks.size();
+    }
 
-	inline WTSBarStruct*	get_block_addr(std::size_t blkIdx)
-	{
-		if (blkIdx >= _blocks.size())
-			return NULL;
+    inline WTSBarStruct* get_block_addr(std::size_t blkIdx)
+    {
+        if (blkIdx >= _blocks.size())
+            return NULL;
 
-		return _blocks[blkIdx].first;
-	}
+        return _blocks[blkIdx].first;
+    }
 
-	inline uint32_t get_block_size(std::size_t blkIdx)
-	{
-		if (blkIdx >= _blocks.size())
-			return 0;
+    inline uint32_t get_block_size(std::size_t blkIdx)
+    {
+        if (blkIdx >= _blocks.size())
+            return 0;
 
-		return _blocks[blkIdx].second;
-	}
+        return _blocks[blkIdx].second;
+    }
 
-	inline WTSBarStruct*	at(int32_t idx)
-	{
-		if (_count == 0)
-			return NULL;
+    inline WTSBarStruct* at(int32_t idx)
+    {
+        if (_count == 0)
+            return NULL;
 
-		idx = translateIdx(idx);
-		do
-		{
-			for (auto& item : _blocks)
-			{
-				if ((uint32_t)idx >= item.second)
-					idx -= item.second;
-				else
-					return item.first + idx;
-			}
-		} while (false);
+        idx = translateIdx(idx);
+        do {
+            for (auto& item : _blocks) {
+                if ((uint32_t)idx >= item.second)
+                    idx -= item.second;
+                else
+                    return item.first + idx;
+            }
+        } while (false);
 
-		return NULL;
-	}
+        return NULL;
+    }
 
-	inline const WTSBarStruct*	at(int32_t idx) const
-	{
-		if (_count == 0)
-			return NULL;
+    inline const WTSBarStruct* at(int32_t idx) const
+    {
+        if (_count == 0)
+            return NULL;
 
-		idx = translateIdx(idx);
-		do
-		{
-			for (auto& item : _blocks)
-			{
-				if ((uint32_t)idx >= item.second)
-					idx -= item.second;
-				else
-					return item.first + idx;
-			}
-		} while (false);
-		return NULL;
-	}
+        idx = translateIdx(idx);
+        do {
+            for (auto& item : _blocks) {
+                if ((uint32_t)idx >= item.second)
+                    idx -= item.second;
+                else
+                    return item.first + idx;
+            }
+        } while (false);
+        return NULL;
+    }
 
+    /*
+     *	查找指定范围内的最大价格
+     *	@head 起始位置
+     *	@tail 结束位置
+     *	如果位置超出范围,返回INVALID_VALUE
+     */
+    inline double maxprice(int32_t head, int32_t tail) const
+    {
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-	/*
-	*	查找指定范围内的最大价格
-	*	@head 起始位置
-	*	@tail 结束位置
-	*	如果位置超出范围,返回INVALID_VALUE
-	*/
-	inline double	maxprice(int32_t head, int32_t tail) const
-	{
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+        int32_t begin = max(0, min(head, tail));
+        int32_t end = min(max(head, tail), size() - 1);
 
-		int32_t begin = max(0,min(head, tail));
-		int32_t end = min(max(head, tail), size() - 1);
+        double maxValue = this->at(begin)->high;
+        for (int32_t i = begin; i <= end; i++) {
+            maxValue = max(maxValue, at(i)->high);
+        }
+        return maxValue;
+    }
 
-		double maxValue = this->at(begin)->high;
-		for (int32_t i = begin; i <= end; i++)
-		{
-			maxValue = max(maxValue, at(i)->high);
-		}
-		return maxValue;
-	}
+    /*
+     *	查找指定范围内的最小价格
+     *	@head 起始位置
+     *	@tail 结束位置
+     *	如果位置超出范围,返回INVALID_VALUE
+     */
+    inline double minprice(int32_t head, int32_t tail) const
+    {
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-	/*
-	*	查找指定范围内的最小价格
-	*	@head 起始位置
-	*	@tail 结束位置
-	*	如果位置超出范围,返回INVALID_VALUE
-	*/
-	inline double	minprice(int32_t head, int32_t tail) const
-	{
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+        int32_t begin = max(0, min(head, tail));
+        int32_t end = min(max(head, tail), size() - 1);
 
-		int32_t begin = max(0, min(head, tail));
-		int32_t end = min(max(head, tail), size() - 1);
+        double minValue = at(begin)->low;
+        for (int32_t i = begin; i <= end; i++) {
+            minValue = min(minValue, at(i)->low);
+        }
 
-		double minValue = at(begin)->low;
-		for (int32_t i = begin; i <= end; i++)
-		{
-			minValue = min(minValue, at(i)->low);
-		}
+        return minValue;
+    }
 
-		return minValue;
-	}
+    /*
+     *	返回K线的大小
+     */
+    inline int32_t size() const { return _count; }
+    inline bool empty() const { return _count == 0; }
 
-	/*
-	*	返回K线的大小
-	*/
-	inline int32_t	size() const{ return _count; }
-	inline bool	empty() const{ return _count == 0; }
+    /*
+     *	返回K线对象的合约代码
+     */
+    inline const char* code() const { return _code; }
+    inline void setCode(const char* code) { wt_strcpy(_code, code); }
 
-	/*
-	*	返回K线对象的合约代码
-	*/
-	inline const char*	code() const{ return _code; }
-	inline void		setCode(const char* code){ wt_strcpy(_code, code); }
+    /*
+     *	将指定范围内的某个特定字段的数据全部抓取出来
+     *	并保存的一个数值数组中
+     *	如果超出范围,则返回NULL
+     *	@type 支持的类型有KT_OPEN、KT_HIGH、KT_LOW、KT_CLOSE,KFT_VOLUME、KT_DATE
+     */
+    WTSValueArray* extractData(WTSKlineFieldType type, int32_t head = 0, int32_t tail = -1) const noexcept
+    {
+        if (_count == 0)
+            return NULL;
 
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-	/*
-	*	将指定范围内的某个特定字段的数据全部抓取出来
-	*	并保存的一个数值数组中
-	*	如果超出范围,则返回NULL
-	*	@type 支持的类型有KT_OPEN、KT_HIGH、KT_LOW、KT_CLOSE,KFT_VOLUME、KT_DATE
-	*/
-	WTSValueArray*	extractData(WTSKlineFieldType type, int32_t head = 0, int32_t tail = -1) const noexcept
-	{
-		if (_count == 0)
-			return NULL;
+        int32_t begin = max(0, min(head, tail));
+        int32_t end = min(max(head, tail), size() - 1);
 
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+        WTSValueArray* vArray = NULL;
 
-		int32_t begin = max(0, min(head, tail));
-		int32_t end = min(max(head, tail), size() - 1);
+        vArray = WTSValueArray::create();
 
-		WTSValueArray *vArray = NULL;
+        for (int32_t i = begin; i <= end; i++) {
+            const WTSBarStruct& day = *at(i);
+            switch (type) {
+            case KFT_OPEN:
+                vArray->append(day.open);
+                break;
+            case KFT_HIGH:
+                vArray->append(day.high);
+                break;
+            case KFT_LOW:
+                vArray->append(day.low);
+                break;
+            case KFT_CLOSE:
+                vArray->append(day.close);
+                break;
+            case KFT_VOLUME:
+                vArray->append(day.vol);
+                break;
+            case KFT_SVOLUME:
+                if (day.vol > INT_MAX)
+                    vArray->append(1 * ((day.close > day.open) ? 1 : -1));
+                else
+                    vArray->append((int32_t)day.vol * ((day.close > day.open) ? 1 : -1));
+                break;
+            case KFT_DATE:
+                vArray->append(day.date);
+                break;
+            case KFT_TIME:
+                vArray->append((double)day.time);
+            }
+        }
 
-		vArray = WTSValueArray::create();
-
-		for (int32_t i = begin; i <= end; i++)
-		{
-			const WTSBarStruct& day = *at(i);
-			switch (type)
-			{
-			case KFT_OPEN:
-				vArray->append(day.open);
-				break;
-			case KFT_HIGH:
-				vArray->append(day.high);
-				break;
-			case KFT_LOW:
-				vArray->append(day.low);
-				break;
-			case KFT_CLOSE:
-				vArray->append(day.close);
-				break;
-			case KFT_VOLUME:
-				vArray->append(day.vol);
-				break;
-			case KFT_SVOLUME:
-				if (day.vol > INT_MAX)
-					vArray->append(1 * ((day.close > day.open) ? 1 : -1));
-				else
-					vArray->append((int32_t)day.vol * ((day.close > day.open) ? 1 : -1));
-				break;
-			case KFT_DATE:
-				vArray->append(day.date);
-				break;
-			case KFT_TIME:
-				vArray->append((double)day.time);
-			}
-		}
-
-		return vArray;
-	}
+        return vArray;
+    }
 };
 
 /*
@@ -439,589 +418,574 @@ public:
  *	因为K线数据单独使用的可能性较低
  *	所以不做WTSObject派生类的封装
  */
-class WTSKlineData : public WTSObject
-{
+class WTSKlineData : public WTSObject {
 public:
-	typedef std::vector<WTSBarStruct> WTSBarList;
+    typedef std::vector<WTSBarStruct> WTSBarList;
 
 protected:
-	char			m_strCode[32];
-	WTSKlinePeriod	m_kpPeriod;
-	uint32_t		m_uTimes;
-	bool			m_bUnixTime;	//是否是时间戳格式,目前只在秒线上有效
-	WTSBarList		m_vecBarData;
-	bool			m_bClosed;		//是否是闭合K线
+    char m_strCode[32];
+    WTSKlinePeriod m_kpPeriod;
+    uint32_t m_uTimes;
+    bool m_bUnixTime; // 是否是时间戳格式,目前只在秒线上有效
+    WTSBarList m_vecBarData;
+    bool m_bClosed; // 是否是闭合K线
 
 protected:
-	WTSKlineData()
-		:m_kpPeriod(KP_Minute1)
-		,m_uTimes(1)
-		,m_bUnixTime(false)
-		,m_bClosed(true)
-	{
+    WTSKlineData()
+        : m_kpPeriod(KP_Minute1), m_uTimes(1), m_bUnixTime(false), m_bClosed(true)
+    {
+    }
 
-	}
+    inline int32_t translateIdx(int32_t idx) const
+    {
+        if (idx < 0) {
+            return max(0, (int32_t)m_vecBarData.size() + idx);
+        }
 
-	inline int32_t		translateIdx(int32_t idx) const
-	{
-		if(idx < 0)
-		{
-			return max(0, (int32_t)m_vecBarData.size() + idx);
-		}
-
-		return idx;
-	}
+        return idx;
+    }
 
 public:
-	/*
-	 *	创建一个K线数据对象
-	 *	@code 要创建的合约代码
-	 *	@size 初始分配的数据长度
-	 */
-	static WTSKlineData* create(const char* code, uint32_t size) noexcept
-	{
-		WTSKlineData *pRet = new WTSKlineData;
-		pRet->m_vecBarData.resize(size);
-		wt_strcpy(pRet->m_strCode, code);
+    /*
+     *	创建一个K线数据对象
+     *	@code 要创建的合约代码
+     *	@size 初始分配的数据长度
+     */
+    static WTSKlineData* create(const char* code, uint32_t size) noexcept
+    {
+        WTSKlineData* pRet = new WTSKlineData;
+        pRet->m_vecBarData.resize(size);
+        wt_strcpy(pRet->m_strCode, code);
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	inline void setClosed(bool bClosed){ m_bClosed = bClosed; }
-	inline bool isClosed() const{ return m_bClosed; }
+    inline void setClosed(bool bClosed) { m_bClosed = bClosed; }
+    inline bool isClosed() const { return m_bClosed; }
 
-	/*
-	 *	设置周期和步长
-	 *	@period	基础周期
-	 *	@times 倍数
-	 */
-	inline void	setPeriod(WTSKlinePeriod period, uint32_t times = 1){ m_kpPeriod = period; m_uTimes = times; }
+    /*
+     *	设置周期和步长
+     *	@period	基础周期
+     *	@times 倍数
+     */
+    inline void setPeriod(WTSKlinePeriod period, uint32_t times = 1)
+    {
+        m_kpPeriod = period;
+        m_uTimes = times;
+    }
 
-	inline void	setUnixTime(bool bEnabled = true){ m_bUnixTime = bEnabled; }
+    inline void setUnixTime(bool bEnabled = true) { m_bUnixTime = bEnabled; }
 
-	inline WTSKlinePeriod	period() const{ return m_kpPeriod; }
-	inline uint32_t		times() const{ return m_uTimes; }
-	inline bool			isUnixTime() const{ return m_bUnixTime; }
+    inline WTSKlinePeriod period() const { return m_kpPeriod; }
+    inline uint32_t times() const { return m_uTimes; }
+    inline bool isUnixTime() const { return m_bUnixTime; }
 
-	/*
-	 *	查找指定范围内的最大价格
-	 *	@head 起始位置
-	 *	@tail 结束位置
-	 *	如果位置超出范围,返回INVALID_VALUE
-	 */
-	inline double		maxprice(int32_t head, int32_t tail) const
-	{
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+    /*
+     *	查找指定范围内的最大价格
+     *	@head 起始位置
+     *	@tail 结束位置
+     *	如果位置超出范围,返回INVALID_VALUE
+     */
+    inline double maxprice(int32_t head, int32_t tail) const
+    {
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-		uint32_t begin = min(head, tail);
-		uint32_t end = max(head, tail);
+        uint32_t begin = min(head, tail);
+        uint32_t end = max(head, tail);
 
-		if(begin >= m_vecBarData.size() || end > m_vecBarData.size())
-			return INVALID_DOUBLE;
+        if (begin >= m_vecBarData.size() || end > m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-		double maxValue = m_vecBarData[begin].high;
-		for(uint32_t i = begin; i <= end; i++)
-		{
-			maxValue = max(maxValue, m_vecBarData[i].high);
-		}
+        double maxValue = m_vecBarData[begin].high;
+        for (uint32_t i = begin; i <= end; i++) {
+            maxValue = max(maxValue, m_vecBarData[i].high);
+        }
 
-		return maxValue;
-	}
+        return maxValue;
+    }
 
-	/*
-	 *	查找指定范围内的最小价格
-	 *	@head 起始位置
-	 *	@tail 结束位置
-	 *	如果位置超出范围,返回INVALID_VALUE
-	 */
-	inline double		minprice(int32_t head, int32_t tail) const
-	{
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+    /*
+     *	查找指定范围内的最小价格
+     *	@head 起始位置
+     *	@tail 结束位置
+     *	如果位置超出范围,返回INVALID_VALUE
+     */
+    inline double minprice(int32_t head, int32_t tail) const
+    {
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-		uint32_t begin = min(head, tail);
-		uint32_t end = max(head, tail);
+        uint32_t begin = min(head, tail);
+        uint32_t end = max(head, tail);
 
-		if(begin >= m_vecBarData.size() || end > m_vecBarData.size())
-			return INVALID_DOUBLE;
+        if (begin >= m_vecBarData.size() || end > m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-		double minValue = m_vecBarData[begin].low;
-		for(uint32_t i = begin; i <= end; i++)
-		{
-			minValue = min(minValue, m_vecBarData[i].low);
-		}
+        double minValue = m_vecBarData[begin].low;
+        for (uint32_t i = begin; i <= end; i++) {
+            minValue = min(minValue, m_vecBarData[i].low);
+        }
 
-		return minValue;
-	}
-	
-	/*
-	 *	返回K线的大小
-	 */
-	inline uint32_t	size() const{return m_vecBarData.size();}
-	inline bool IsEmpty() const{ return m_vecBarData.empty(); }
+        return minValue;
+    }
 
-	/*
-	 *	返回K线对象的合约代码
-	 */
-	inline const char*	code() const{ return m_strCode; }
-	inline void		setCode(const char* code){ wt_strcpy(m_strCode, code); }
+    /*
+     *	返回K线的大小
+     */
+    inline uint32_t size() const { return m_vecBarData.size(); }
+    inline bool IsEmpty() const { return m_vecBarData.empty(); }
 
-	/*
-	 *	读取指定位置的开盘价
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	open(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+    /*
+     *	返回K线对象的合约代码
+     */
+    inline const char* code() const { return m_strCode; }
+    inline void setCode(const char* code) { wt_strcpy(m_strCode, code); }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的开盘价
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double open(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].open;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的最高价
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	high(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].open;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的最高价
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double high(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].high;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的最低价
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	low(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].high;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的最低价
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double low(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].low;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的收盘价
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	close(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].low;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的收盘价
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double close(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].close;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的成交量
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	volume(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].close;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的成交量
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double volume(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].vol;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的总持
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	openinterest(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].vol;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_UINT32;
+    /*
+     *	读取指定位置的总持
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double openinterest(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].hold;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_UINT32;
 
-	/*
-	 *	读取指定位置的增仓
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	additional(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].hold;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的增仓
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double additional(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].add;
-	}	
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的总持
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	bidprice(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].add;
+    }
 
-		if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_UINT32;
+    /*
+     *	读取指定位置的总持
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double bidprice(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].bid;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_UINT32;
 
-	/*
-	 *	读取指定位置的增仓
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	askprice(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].bid;
+    }
 
-		if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的增仓
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double askprice(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].ask;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的成交额
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline double	money(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].ask;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_DOUBLE;
+    /*
+     *	读取指定位置的成交额
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline double money(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].money;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_DOUBLE;
 
-	/*
-	 *	读取指定位置的日期
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline uint32_t	date(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].money;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_UINT32;
+    /*
+     *	读取指定位置的日期
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline uint32_t date(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].date;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_UINT32;
 
-	/*
-	 *	读取指定位置的时间
-	 *	如果超出范围则返回INVALID_VALUE
-	 */
-	inline uint64_t	time(int32_t idx) const
-	{
-		idx = translateIdx(idx);
+        return m_vecBarData[idx].date;
+    }
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return INVALID_UINT32;
+    /*
+     *	读取指定位置的时间
+     *	如果超出范围则返回INVALID_VALUE
+     */
+    inline uint64_t time(int32_t idx) const
+    {
+        idx = translateIdx(idx);
 
-		return m_vecBarData[idx].time;
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return INVALID_UINT32;
 
-	/*
-	 *	将指定范围内的某个特定字段的数据全部抓取出来
-	 *	并保存的一个数值数组中
-	 *	如果超出范围,则返回NULL
-	 *	@type 支持的类型有KT_OPEN、KT_HIGH、KT_LOW、KT_CLOSE,KFT_VOLUME、KT_DATE
-	 */
-	WTSValueArray*	extractData(WTSKlineFieldType type, int32_t head = 0, int32_t tail = -1) const
-	{
-		head = translateIdx(head);
-		tail = translateIdx(tail);
+        return m_vecBarData[idx].time;
+    }
 
-		uint32_t begin = min(head, tail);
-		uint32_t end = max(head, tail);
+    /*
+     *	将指定范围内的某个特定字段的数据全部抓取出来
+     *	并保存的一个数值数组中
+     *	如果超出范围,则返回NULL
+     *	@type 支持的类型有KT_OPEN、KT_HIGH、KT_LOW、KT_CLOSE,KFT_VOLUME、KT_DATE
+     */
+    WTSValueArray* extractData(WTSKlineFieldType type, int32_t head = 0, int32_t tail = -1) const
+    {
+        head = translateIdx(head);
+        tail = translateIdx(tail);
 
-		if(begin >= m_vecBarData.size() || end >= (int32_t)m_vecBarData.size())
-			return NULL;
+        uint32_t begin = min(head, tail);
+        uint32_t end = max(head, tail);
 
-		WTSValueArray *vArray = NULL;
+        if (begin >= m_vecBarData.size() || end >= (int32_t)m_vecBarData.size())
+            return NULL;
 
-		vArray = WTSValueArray::create();
+        WTSValueArray* vArray = NULL;
 
-		for(uint32_t i = 0; i < m_vecBarData.size(); i++)
-		{
-			const WTSBarStruct& day = m_vecBarData.at(i);
-			switch(type)
-			{
-			case KFT_OPEN:
-				vArray->append(day.open);
-				break;
-			case KFT_HIGH:
-				vArray->append(day.high);
-				break;
-			case KFT_LOW:
-				vArray->append(day.low);
-				break;
-			case KFT_CLOSE:
-				vArray->append(day.close);
-				break;
-			case KFT_VOLUME:
-				vArray->append(day.vol);
-				break;
-			case KFT_SVOLUME:
-				if(day.vol > INT_MAX)
-					vArray->append(1 * ((day.close > day.open) ? 1 : -1));
-				else
-					vArray->append((int32_t)day.vol * ((day.close > day.open)?1:-1));
-				break;
-			case KFT_DATE:
-				vArray->append(day.date);
-				break;
-			case KFT_TIME:
-				vArray->append((double)day.time);
-			}
-		}
+        vArray = WTSValueArray::create();
 
-		return vArray;
-	}
+        for (uint32_t i = 0; i < m_vecBarData.size(); i++) {
+            const WTSBarStruct& day = m_vecBarData.at(i);
+            switch (type) {
+            case KFT_OPEN:
+                vArray->append(day.open);
+                break;
+            case KFT_HIGH:
+                vArray->append(day.high);
+                break;
+            case KFT_LOW:
+                vArray->append(day.low);
+                break;
+            case KFT_CLOSE:
+                vArray->append(day.close);
+                break;
+            case KFT_VOLUME:
+                vArray->append(day.vol);
+                break;
+            case KFT_SVOLUME:
+                if (day.vol > INT_MAX)
+                    vArray->append(1 * ((day.close > day.open) ? 1 : -1));
+                else
+                    vArray->append((int32_t)day.vol * ((day.close > day.open) ? 1 : -1));
+                break;
+            case KFT_DATE:
+                vArray->append(day.date);
+                break;
+            case KFT_TIME:
+                vArray->append((double)day.time);
+            }
+        }
+
+        return vArray;
+    }
 
 public:
-	/*
-	 *	获取K线内部vector的引用
-	 */
-	inline WTSBarList& getDataRef(){ return m_vecBarData; }
+    /*
+     *	获取K线内部vector的引用
+     */
+    inline WTSBarList& getDataRef() { return m_vecBarData; }
 
-	inline WTSBarStruct*	at(int32_t idx)
-	{
-		idx = translateIdx(idx);
+    inline WTSBarStruct* at(int32_t idx)
+    {
+        idx = translateIdx(idx);
 
-		if(idx < 0 || idx >= (int32_t)m_vecBarData.size())
-			return NULL;
-		return &m_vecBarData[idx];
-	}
+        if (idx < 0 || idx >= (int32_t)m_vecBarData.size())
+            return NULL;
+        return &m_vecBarData[idx];
+    }
 
-	/*
-	 *	释放K线数据
-	 *	并delete所有的日线数据,清空vector
-	 */
-	virtual void release()
-	{
-		if(isSingleRefs())
-		{
-			m_vecBarData.clear();
-		}		
+    /*
+     *	释放K线数据
+     *	并delete所有的日线数据,清空vector
+     */
+    virtual void release()
+    {
+        if (isSingleRefs()) {
+            m_vecBarData.clear();
+        }
 
-		WTSObject::release();
-	}
+        WTSObject::release();
+    }
 
-	/*
-	 *	追加一条K线
-	 */
-	inline void	appendBar(const WTSBarStruct& bar)
-	{
-		if(m_vecBarData.empty())
-		{
-			m_vecBarData.emplace_back(bar);
-		}
-		else
-		{
-			WTSBarStruct* lastBar = at(-1);
-			if(lastBar->date==bar.date && lastBar->time==bar.time)
-			{
-				memcpy(lastBar, &bar, sizeof(WTSBarStruct));
-			}
-			else
-			{
-				m_vecBarData.emplace_back(bar);
-			}
-		}
-	}
+    /*
+     *	追加一条K线
+     */
+    inline void appendBar(const WTSBarStruct& bar)
+    {
+        if (m_vecBarData.empty()) {
+            m_vecBarData.emplace_back(bar);
+        }
+        else {
+            WTSBarStruct* lastBar = at(-1);
+            if (lastBar->date == bar.date && lastBar->time == bar.time) {
+                memcpy(lastBar, &bar, sizeof(WTSBarStruct));
+            }
+            else {
+                m_vecBarData.emplace_back(bar);
+            }
+        }
+    }
 };
-
-
 
 /*
  *	Tick数据对象
  *	内部封装WTSTickStruct
  *	封装的主要目的是出于跨语言的考虑
  */
-class WTSTickData : public WTSPoolObject<WTSTickData>
-{
-	friend WTSPoolObject<WTSTickData>::PoolType;
+class WTSTickData : public WTSPoolObject<WTSTickData> {
+    friend WTSPoolObject<WTSTickData>::PoolType;
 
 protected:
-	WTSTickData() :m_pContract(NULL) {}
+    WTSTickData(): m_pContract(NULL) {}
 
 public:
-	/*
-	 *	创建一个tick数据对象
-	 *	@stdCode 合约代码
-	 */
-	static inline WTSTickData* create(const char* stdCode) noexcept
-	{
-		WTSTickData* pRet = WTSTickData::allocate();
-		auto len = strlen(stdCode);
-		memcpy(pRet->m_tickStruct.code, stdCode, len);
-		pRet->m_tickStruct.code[len] = 0;
+    /*
+     *	创建一个tick数据对象
+     *	@stdCode 合约代码
+     */
+    static inline WTSTickData* create(const char* stdCode) noexcept
+    {
+        WTSTickData* pRet = WTSTickData::allocate();
+        auto len = strlen(stdCode);
+        memcpy(pRet->m_tickStruct.code, stdCode, len);
+        pRet->m_tickStruct.code[len] = 0;
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	/*
-	 *	根据tick结构体创建一个tick数据对象
-	 *	@tickData tick结构体
-	 */
-	static inline WTSTickData* create(WTSTickStruct& tickData) noexcept
-	{
-		WTSTickData* pRet = allocate();
-		memcpy(&pRet->m_tickStruct, &tickData, sizeof(WTSTickStruct));
+    /*
+     *	根据tick结构体创建一个tick数据对象
+     *	@tickData tick结构体
+     */
+    static inline WTSTickData* create(WTSTickStruct& tickData) noexcept
+    {
+        WTSTickData* pRet = allocate();
+        memcpy(&pRet->m_tickStruct, &tickData, sizeof(WTSTickStruct));
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	inline void setCode(const char* code, std::size_t len = 0) noexcept
-	{
-		wt_strcpy(m_tickStruct.code, code, len);
-	}
+    inline void setCode(const char* code, std::size_t len = 0) noexcept
+    {
+        wt_strcpy(m_tickStruct.code, code, len);
+    }
 
-	/*
-	 *	读取合约代码
-	 */
-	constexpr inline const char* code() const noexcept { return m_tickStruct.code; }
+    /*
+     *	读取合约代码
+     */
+    constexpr inline const char* code() const noexcept { return m_tickStruct.code; }
 
-	/*
-	 *	读取市场代码
-	 */
-	constexpr inline const char*	exchg() const noexcept { return m_tickStruct.exchg; }
+    /*
+     *	读取市场代码
+     */
+    constexpr inline const char* exchg() const noexcept { return m_tickStruct.exchg; }
 
-	/*
-	 *	读取最新价
-	 */
-	constexpr inline double	price() const noexcept { return m_tickStruct.price; }
+    /*
+     *	读取最新价
+     */
+    constexpr inline double price() const noexcept { return m_tickStruct.price; }
 
-	constexpr inline double	open() const noexcept { return m_tickStruct.open; }
+    constexpr inline double open() const noexcept { return m_tickStruct.open; }
 
-	/*
-	 *	最高价
-	 */
-	constexpr inline double	high() const noexcept { return m_tickStruct.high; }
+    /*
+     *	最高价
+     */
+    constexpr inline double high() const noexcept { return m_tickStruct.high; }
 
-	/*
-	 *	最低价
-	 */
-	constexpr inline double	low() const noexcept { return m_tickStruct.low; }
+    /*
+     *	最低价
+     */
+    constexpr inline double low() const noexcept { return m_tickStruct.low; }
 
-	//昨收价,如果是期货则是昨结算
-	constexpr inline double	preclose() const noexcept { return m_tickStruct.pre_close; }
-	constexpr inline double	presettle() const noexcept { return m_tickStruct.pre_settle; }
-	constexpr inline double	preinterest() const noexcept { return m_tickStruct.pre_interest; }
+    // 昨收价,如果是期货则是昨结算
+    constexpr inline double preclose() const noexcept { return m_tickStruct.pre_close; }
+    constexpr inline double presettle() const noexcept { return m_tickStruct.pre_settle; }
+    constexpr inline double preinterest() const noexcept { return m_tickStruct.pre_interest; }
 
-	constexpr inline double	upperlimit() const noexcept { return m_tickStruct.upper_limit; }
-	constexpr inline double	lowerlimit() const noexcept { return m_tickStruct.lower_limit; }
-	//成交量
-	constexpr inline double	totalvolume() const noexcept { return m_tickStruct.total_volume; }
+    constexpr inline double upperlimit() const noexcept { return m_tickStruct.upper_limit; }
+    constexpr inline double lowerlimit() const noexcept { return m_tickStruct.lower_limit; }
+    // 成交量
+    constexpr inline double totalvolume() const noexcept { return m_tickStruct.total_volume; }
 
-	//成交量
-	constexpr inline double	volume() const noexcept { return m_tickStruct.volume; }
+    // 成交量
+    constexpr inline double volume() const noexcept { return m_tickStruct.volume; }
 
-	//结算价
-	constexpr inline double	settlepx() const noexcept { return m_tickStruct.settle_price; }
+    // 结算价
+    constexpr inline double settlepx() const noexcept { return m_tickStruct.settle_price; }
 
-	//总持
-	constexpr inline double	openinterest() const noexcept { return m_tickStruct.open_interest; }
+    // 总持
+    constexpr inline double openinterest() const noexcept { return m_tickStruct.open_interest; }
 
-	constexpr inline double	additional() const noexcept { return m_tickStruct.diff_interest; }
+    constexpr inline double additional() const noexcept { return m_tickStruct.diff_interest; }
 
-	//成交额
-	constexpr inline double	totalturnover() const noexcept { return m_tickStruct.total_turnover; }
+    // 成交额
+    constexpr inline double totalturnover() const noexcept { return m_tickStruct.total_turnover; }
 
-	//成交额
-	constexpr inline double	turnover() const noexcept { return m_tickStruct.turn_over; }
+    // 成交额
+    constexpr inline double turnover() const noexcept { return m_tickStruct.turn_over; }
 
-	//交易日
-	constexpr inline uint32_t	tradingdate() const noexcept { return m_tickStruct.trading_date; }
+    // 交易日
+    constexpr inline uint32_t tradingdate() const noexcept { return m_tickStruct.trading_date; }
 
-	//数据发生日期
-	constexpr inline uint32_t	actiondate() const noexcept { return m_tickStruct.action_date; }
+    // 数据发生日期
+    constexpr inline uint32_t actiondate() const noexcept { return m_tickStruct.action_date; }
 
-	//数据发生时间
-	constexpr inline uint32_t	actiontime() const noexcept { return m_tickStruct.action_time; }
+    // 数据发生时间
+    constexpr inline uint32_t actiontime() const noexcept { return m_tickStruct.action_time; }
 
+    /*
+     *	读取指定档位的委买价
+     *	@idx 0-9
+     */
+    constexpr inline double bidprice(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委买价
-	 *	@idx 0-9
-	 */
-	constexpr inline double		bidprice(int idx) const noexcept
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+        return m_tickStruct.bid_prices[idx];
+    }
 
-		return m_tickStruct.bid_prices[idx];
-	}
+    /*
+     *	读取指定档位的委卖价
+     *	@idx 0-9
+     */
+    constexpr inline double askprice(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委卖价
-	 *	@idx 0-9
-	 */
-	constexpr inline double		askprice(int idx) const noexcept
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+        return m_tickStruct.ask_prices[idx];
+    }
 
-		return m_tickStruct.ask_prices[idx];
-	}
+    /*
+     *	读取指定档位的委买量
+     *	@idx 0-9
+     */
+    constexpr inline double bidqty(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委买量
-	 *	@idx 0-9
-	 */
-	constexpr inline double	bidqty(int idx) const noexcept
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+        return m_tickStruct.bid_qty[idx];
+    }
 
-		return m_tickStruct.bid_qty[idx];
-	}
+    /*
+     *	读取指定档位的委卖量
+     *	@idx 0-9
+     */
+    constexpr inline double askqty(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委卖量
-	 *	@idx 0-9
-	 */
-	constexpr inline double	askqty(int idx) const noexcept
-	{
-		if(idx < 0 || idx >= 10) 
-			return -1;
+        return m_tickStruct.ask_qty[idx];
+    }
 
-		return m_tickStruct.ask_qty[idx];
-	}
+    /*
+     *	返回tick结构体的引用
+     */
+    constexpr inline WTSTickStruct& getTickStruct() noexcept { return m_tickStruct; }
 
-	/*
-	 *	返回tick结构体的引用
-	 */
-	constexpr inline WTSTickStruct&	getTickStruct() noexcept{ return m_tickStruct; }
+    constexpr inline void setContractInfo(WTSContractInfo* cInfo) noexcept { m_pContract = cInfo; }
+    constexpr inline WTSContractInfo* getContractInfo() const noexcept { return m_pContract; }
 
-	constexpr inline void setContractInfo(WTSContractInfo* cInfo) noexcept { m_pContract = cInfo; }
-	constexpr inline WTSContractInfo* getContractInfo() const noexcept { return m_pContract; }
+    inline void setLimitFlag(uint32_t flag) { m_uLimitFlag = flag; }
+    constexpr inline uint32_t getLimitFlag() const { return m_uLimitFlag; }
 
-	inline void setLimitFlag(uint32_t flag) { m_uLimitFlag = flag; }
-	constexpr inline uint32_t getLimitFlag() const { return m_uLimitFlag; }
-
-	constexpr inline bool isNewHigh() const { return m_uLimitFlag & 1; }
-	constexpr inline bool isNewLow() const { return m_uLimitFlag & 2; }
+    constexpr inline bool isNewHigh() const { return m_uLimitFlag & 1; }
+    constexpr inline bool isNewLow() const { return m_uLimitFlag & 2; }
 
 private:
-	WTSTickStruct		m_tickStruct;
-	WTSContractInfo*	m_pContract;
-	uint32_t			m_uLimitFlag = 0;
+    WTSTickStruct m_tickStruct;
+    WTSContractInfo* m_pContract;
+    uint32_t m_uLimitFlag = 0;
 };
 
 /*
@@ -1034,349 +998,342 @@ private:
  *	如果使用者要在本地retain，已经要注意这个问题
  *	推荐只在极短的时间内在本地维护
  */
-class WTSTickRef : public WTSPoolObject<WTSTickRef>
-{	
-	friend WTSPoolObject<WTSTickRef>::PoolType;
+class WTSTickRef : public WTSPoolObject<WTSTickRef> {
+    friend WTSPoolObject<WTSTickRef>::PoolType;
+
 protected:
-	WTSTickRef() :m_pContract(nullptr), m_tickStruct(nullptr) {}
+    WTSTickRef(): m_pContract(nullptr), m_tickStruct(nullptr) {}
 
 public:
-	/*
-	 *	创建一个tick数据对象
-	 *	@stdCode 合约代码
-	 */
-	static inline WTSTickRef* create(WTSTickStruct* tickStruct, WTSContractInfo* cInfo = nullptr) noexcept
-	{
-		WTSTickRef* pRet = WTSTickRef::allocate();
-		pRet->m_tickStruct = tickStruct;
-		pRet->m_pContract = cInfo;
+    /*
+     *	创建一个tick数据对象
+     *	@stdCode 合约代码
+     */
+    static inline WTSTickRef* create(WTSTickStruct* tickStruct, WTSContractInfo* cInfo = nullptr) noexcept
+    {
+        WTSTickRef* pRet = WTSTickRef::allocate();
+        pRet->m_tickStruct = tickStruct;
+        pRet->m_pContract = cInfo;
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	/*
-	 *	读取合约代码
-	 */
-	constexpr inline const char* code() const noexcept { return m_tickStruct->code; }
+    /*
+     *	读取合约代码
+     */
+    constexpr inline const char* code() const noexcept { return m_tickStruct->code; }
 
-	/*
-	 *	读取市场代码
-	 */
-	constexpr inline const char*	exchg() const noexcept { return m_tickStruct->exchg; }
+    /*
+     *	读取市场代码
+     */
+    constexpr inline const char* exchg() const noexcept { return m_tickStruct->exchg; }
 
-	/*
-	 *	读取最新价
-	 */
-	constexpr inline double	price() const noexcept { return m_tickStruct->price; }
+    /*
+     *	读取最新价
+     */
+    constexpr inline double price() const noexcept { return m_tickStruct->price; }
 
-	constexpr inline double	open() const noexcept { return m_tickStruct->open; }
+    constexpr inline double open() const noexcept { return m_tickStruct->open; }
 
-	/*
-	 *	最高价
-	 */
-	constexpr inline double	high() const noexcept { return m_tickStruct->high; }
+    /*
+     *	最高价
+     */
+    constexpr inline double high() const noexcept { return m_tickStruct->high; }
 
-	/*
-	 *	最低价
-	 */
-	constexpr inline double	low() const noexcept { return m_tickStruct->low; }
+    /*
+     *	最低价
+     */
+    constexpr inline double low() const noexcept { return m_tickStruct->low; }
 
-	//昨收价,如果是期货则是昨结算
-	constexpr inline double	preclose() const noexcept { return m_tickStruct->pre_close; }
-	constexpr inline double	presettle() const noexcept { return m_tickStruct->pre_settle; }
-	constexpr inline double	preinterest() const noexcept { return m_tickStruct->pre_interest; }
+    // 昨收价,如果是期货则是昨结算
+    constexpr inline double preclose() const noexcept { return m_tickStruct->pre_close; }
+    constexpr inline double presettle() const noexcept { return m_tickStruct->pre_settle; }
+    constexpr inline double preinterest() const noexcept { return m_tickStruct->pre_interest; }
 
-	constexpr inline double	upperlimit() const noexcept { return m_tickStruct->upper_limit; }
-	constexpr inline double	lowerlimit() const noexcept { return m_tickStruct->lower_limit; }
-	//成交量
-	constexpr inline double	totalvolume() const noexcept { return m_tickStruct->total_volume; }
+    constexpr inline double upperlimit() const noexcept { return m_tickStruct->upper_limit; }
+    constexpr inline double lowerlimit() const noexcept { return m_tickStruct->lower_limit; }
+    // 成交量
+    constexpr inline double totalvolume() const noexcept { return m_tickStruct->total_volume; }
 
-	//成交量
-	constexpr inline double	volume() const noexcept { return m_tickStruct->volume; }
+    // 成交量
+    constexpr inline double volume() const noexcept { return m_tickStruct->volume; }
 
-	//结算价
-	constexpr inline double	settlepx() const noexcept { return m_tickStruct->settle_price; }
+    // 结算价
+    constexpr inline double settlepx() const noexcept { return m_tickStruct->settle_price; }
 
-	//总持
-	constexpr inline double	openinterest() const noexcept { return m_tickStruct->open_interest; }
+    // 总持
+    constexpr inline double openinterest() const noexcept { return m_tickStruct->open_interest; }
 
-	constexpr inline double	additional() const noexcept { return m_tickStruct->diff_interest; }
+    constexpr inline double additional() const noexcept { return m_tickStruct->diff_interest; }
 
-	//成交额
-	constexpr inline double	totalturnover() const noexcept { return m_tickStruct->total_turnover; }
+    // 成交额
+    constexpr inline double totalturnover() const noexcept { return m_tickStruct->total_turnover; }
 
-	//成交额
-	constexpr inline double	turnover() const noexcept { return m_tickStruct->turn_over; }
+    // 成交额
+    constexpr inline double turnover() const noexcept { return m_tickStruct->turn_over; }
 
-	//交易日
-	constexpr inline uint32_t	tradingdate() const noexcept { return m_tickStruct->trading_date; }
+    // 交易日
+    constexpr inline uint32_t tradingdate() const noexcept { return m_tickStruct->trading_date; }
 
-	//数据发生日期
-	constexpr inline uint32_t	actiondate() const noexcept { return m_tickStruct->action_date; }
+    // 数据发生日期
+    constexpr inline uint32_t actiondate() const noexcept { return m_tickStruct->action_date; }
 
-	//数据发生时间
-	constexpr inline uint32_t	actiontime() const noexcept { return m_tickStruct->action_time; }
+    // 数据发生时间
+    constexpr inline uint32_t actiontime() const noexcept { return m_tickStruct->action_time; }
 
+    /*
+     *	读取指定档位的委买价
+     *	@idx 0-9
+     */
+    constexpr inline double bidprice(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委买价
-	 *	@idx 0-9
-	 */
-	constexpr inline double		bidprice(int idx) const noexcept
-	{
-		if (idx < 0 || idx >= 10)
-			return -1;
+        return m_tickStruct->bid_prices[idx];
+    }
 
-		return m_tickStruct->bid_prices[idx];
-	}
+    /*
+     *	读取指定档位的委卖价
+     *	@idx 0-9
+     */
+    constexpr inline double askprice(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委卖价
-	 *	@idx 0-9
-	 */
-	constexpr inline double		askprice(int idx) const noexcept
-	{
-		if (idx < 0 || idx >= 10)
-			return -1;
+        return m_tickStruct->ask_prices[idx];
+    }
 
-		return m_tickStruct->ask_prices[idx];
-	}
+    /*
+     *	读取指定档位的委买量
+     *	@idx 0-9
+     */
+    constexpr inline double bidqty(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委买量
-	 *	@idx 0-9
-	 */
-	constexpr inline double	bidqty(int idx) const noexcept
-	{
-		if (idx < 0 || idx >= 10)
-			return -1;
+        return m_tickStruct->bid_qty[idx];
+    }
 
-		return m_tickStruct->bid_qty[idx];
-	}
+    /*
+     *	读取指定档位的委卖量
+     *	@idx 0-9
+     */
+    constexpr inline double askqty(int idx) const noexcept
+    {
+        if (idx < 0 || idx >= 10)
+            return -1;
 
-	/*
-	 *	读取指定档位的委卖量
-	 *	@idx 0-9
-	 */
-	constexpr inline double	askqty(int idx) const noexcept
-	{
-		if (idx < 0 || idx >= 10)
-			return -1;
+        return m_tickStruct->ask_qty[idx];
+    }
 
-		return m_tickStruct->ask_qty[idx];
-	}
+    constexpr inline bool valid() const noexcept { return m_tickStruct != nullptr; }
 
-	constexpr inline bool valid() const noexcept { return m_tickStruct != nullptr; }
+    constexpr inline operator bool() const noexcept { return m_tickStruct != nullptr; }
 
-	constexpr inline operator bool() const noexcept { return m_tickStruct != nullptr; }
+    /*
+     *	返回tick结构体的引用
+     */
+    constexpr inline WTSTickStruct* getTickStruct() noexcept { return m_tickStruct; }
 
-	/*
-	 *	返回tick结构体的引用
-	 */
-	constexpr inline WTSTickStruct*	getTickStruct() noexcept { return m_tickStruct; }
-
-	constexpr inline void setContractInfo(WTSContractInfo* cInfo) noexcept { m_pContract = cInfo; }
-	constexpr inline WTSContractInfo* getContractInfo() const noexcept { return m_pContract; }
+    constexpr inline void setContractInfo(WTSContractInfo* cInfo) noexcept { m_pContract = cInfo; }
+    constexpr inline WTSContractInfo* getContractInfo() const noexcept { return m_pContract; }
 
 private:
-	WTSTickStruct*		m_tickStruct = nullptr;
-	WTSContractInfo*	m_pContract = nullptr;
+    WTSTickStruct* m_tickStruct = nullptr;
+    WTSContractInfo* m_pContract = nullptr;
 };
 
-
-class WTSOrdQueData : public WTSPoolObject< WTSOrdQueData>
-{
+class WTSOrdQueData : public WTSPoolObject<WTSOrdQueData> {
 public:
-	static inline WTSOrdQueData* create(const char* code) noexcept
-	{
-		WTSOrdQueData* pRet = WTSOrdQueData::allocate();
-		wt_strcpy(pRet->m_oqStruct.code, code);
-		return pRet;
-	}
+    static inline WTSOrdQueData* create(const char* code) noexcept
+    {
+        WTSOrdQueData* pRet = WTSOrdQueData::allocate();
+        wt_strcpy(pRet->m_oqStruct.code, code);
+        return pRet;
+    }
 
-	static inline WTSOrdQueData* create(WTSOrdQueStruct& ordQueData) noexcept
-	{
-		WTSOrdQueData* pRet = WTSOrdQueData::allocate();
-		memcpy(&pRet->m_oqStruct, &ordQueData, sizeof(WTSOrdQueStruct));
+    static inline WTSOrdQueData* create(WTSOrdQueStruct& ordQueData) noexcept
+    {
+        WTSOrdQueData* pRet = WTSOrdQueData::allocate();
+        memcpy(&pRet->m_oqStruct, &ordQueData, sizeof(WTSOrdQueStruct));
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	constexpr inline WTSOrdQueStruct& getOrdQueStruct(){return m_oqStruct;}
+    constexpr inline WTSOrdQueStruct& getOrdQueStruct() { return m_oqStruct; }
 
-	inline const char* exchg() const{ return m_oqStruct.exchg; }
-	inline const char* code() const{ return m_oqStruct.code; }
-	inline uint32_t tradingdate() const{ return m_oqStruct.trading_date; }
-	inline uint32_t actiondate() const{ return m_oqStruct.action_date; }
-	inline uint32_t actiontime() const { return m_oqStruct.action_time; }
+    inline const char* exchg() const { return m_oqStruct.exchg; }
+    inline const char* code() const { return m_oqStruct.code; }
+    inline uint32_t tradingdate() const { return m_oqStruct.trading_date; }
+    inline uint32_t actiondate() const { return m_oqStruct.action_date; }
+    inline uint32_t actiontime() const { return m_oqStruct.action_time; }
 
-	inline void		setCode(const char* code) { wt_strcpy(m_oqStruct.code, code); }
+    inline void setCode(const char* code) { wt_strcpy(m_oqStruct.code, code); }
 
-	constexpr inline void setContractInfo(WTSContractInfo* cInfo) noexcept { m_pContract = cInfo; }
-	constexpr inline WTSContractInfo* getContractInfo() const noexcept{ return m_pContract; }
+    constexpr inline void setContractInfo(WTSContractInfo* cInfo) noexcept { m_pContract = cInfo; }
+    constexpr inline WTSContractInfo* getContractInfo() const noexcept { return m_pContract; }
 
 private:
-	WTSOrdQueStruct		m_oqStruct;
-	WTSContractInfo*	m_pContract;
+    WTSOrdQueStruct m_oqStruct;
+    WTSContractInfo* m_pContract;
 };
 
-class WTSOrdDtlData : public WTSPoolObject<WTSOrdDtlData>
-{
+class WTSOrdDtlData : public WTSPoolObject<WTSOrdDtlData> {
 public:
-	static inline WTSOrdDtlData* create(const char* code) noexcept
-	{
-		WTSOrdDtlData* pRet = WTSOrdDtlData::allocate();
-		wt_strcpy(pRet->m_odStruct.code, code);
-		return pRet;
-	}
+    static inline WTSOrdDtlData* create(const char* code) noexcept
+    {
+        WTSOrdDtlData* pRet = WTSOrdDtlData::allocate();
+        wt_strcpy(pRet->m_odStruct.code, code);
+        return pRet;
+    }
 
-	static inline WTSOrdDtlData* create(WTSOrdDtlStruct& odData) noexcept
-	{
-		WTSOrdDtlData* pRet = WTSOrdDtlData::allocate();
-		memcpy(&pRet->m_odStruct, &odData, sizeof(WTSOrdDtlStruct));
+    static inline WTSOrdDtlData* create(WTSOrdDtlStruct& odData) noexcept
+    {
+        WTSOrdDtlData* pRet = WTSOrdDtlData::allocate();
+        memcpy(&pRet->m_odStruct, &odData, sizeof(WTSOrdDtlStruct));
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	inline WTSOrdDtlStruct& getOrdDtlStruct(){ return m_odStruct; }
+    inline WTSOrdDtlStruct& getOrdDtlStruct() { return m_odStruct; }
 
-	inline const char* exchg() const{ return m_odStruct.exchg; }
-	inline const char* code() const{ return m_odStruct.code; }
-	inline uint32_t tradingdate() const{ return m_odStruct.trading_date; }
-	inline uint32_t actiondate() const{ return m_odStruct.action_date; }
-	inline uint32_t actiontime() const { return m_odStruct.action_time; }
+    inline const char* exchg() const { return m_odStruct.exchg; }
+    inline const char* code() const { return m_odStruct.code; }
+    inline uint32_t tradingdate() const { return m_odStruct.trading_date; }
+    inline uint32_t actiondate() const { return m_odStruct.action_date; }
+    inline uint32_t actiontime() const { return m_odStruct.action_time; }
 
-	inline void		setCode(const char* code) { wt_strcpy(m_odStruct.code, code); }
+    inline void setCode(const char* code) { wt_strcpy(m_odStruct.code, code); }
 
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
-
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 private:
-	WTSOrdDtlStruct		m_odStruct;
-	WTSContractInfo*	m_pContract;
+    WTSOrdDtlStruct m_odStruct;
+    WTSContractInfo* m_pContract;
 };
 
-class WTSTransData : public WTSPoolObject<WTSTransData>
-{
+class WTSTransData : public WTSPoolObject<WTSTransData> {
 public:
-	static inline WTSTransData* create(const char* code) noexcept
-	{
-		WTSTransData* pRet = WTSTransData::allocate();
-		wt_strcpy(pRet->m_tsStruct.code, code);
-		return pRet;
-	}
+    static inline WTSTransData* create(const char* code) noexcept
+    {
+        WTSTransData* pRet = WTSTransData::allocate();
+        wt_strcpy(pRet->m_tsStruct.code, code);
+        return pRet;
+    }
 
-	static inline WTSTransData* create(WTSTransStruct& transData) noexcept
-	{
-		WTSTransData* pRet = WTSTransData::allocate();
-		memcpy(&pRet->m_tsStruct, &transData, sizeof(WTSTransStruct));
+    static inline WTSTransData* create(WTSTransStruct& transData) noexcept
+    {
+        WTSTransData* pRet = WTSTransData::allocate();
+        memcpy(&pRet->m_tsStruct, &transData, sizeof(WTSTransStruct));
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	inline const char* exchg() const{ return m_tsStruct.exchg; }
-	inline const char* code() const{ return m_tsStruct.code; }
-	inline uint32_t tradingdate() const{ return m_tsStruct.trading_date; }
-	inline uint32_t actiondate() const{ return m_tsStruct.action_date; }
-	inline uint32_t actiontime() const { return m_tsStruct.action_time; }
+    inline const char* exchg() const { return m_tsStruct.exchg; }
+    inline const char* code() const { return m_tsStruct.code; }
+    inline uint32_t tradingdate() const { return m_tsStruct.trading_date; }
+    inline uint32_t actiondate() const { return m_tsStruct.action_date; }
+    inline uint32_t actiontime() const { return m_tsStruct.action_time; }
 
-	inline WTSTransStruct& getTransStruct(){ return m_tsStruct; }
+    inline WTSTransStruct& getTransStruct() { return m_tsStruct; }
 
-	inline void		setCode(const char* code) { wt_strcpy(m_tsStruct.code, code); }
+    inline void setCode(const char* code) { wt_strcpy(m_tsStruct.code, code); }
 
-	inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
-	inline WTSContractInfo* getContractInfo() const { return m_pContract; }
+    inline void setContractInfo(WTSContractInfo* cInfo) { m_pContract = cInfo; }
+    inline WTSContractInfo* getContractInfo() const { return m_pContract; }
 
 private:
-	WTSTransStruct		m_tsStruct;
-	WTSContractInfo*	m_pContract;
+    WTSTransStruct m_tsStruct;
+    WTSContractInfo* m_pContract;
 };
 
 /*
  *	@brief 历史Tick数据数组
  *	@details 内部使用WTSArray作为容器
  */
-class WTSHisTickData : public WTSObject
-{
+class WTSHisTickData : public WTSObject {
 protected:
-	char						m_strCode[32];
-	std::vector<WTSTickStruct>	m_ayTicks;
-	bool						m_bValidOnly;
-	double						m_dFactor;
+    char m_strCode[32];
+    std::vector<WTSTickStruct> m_ayTicks;
+    bool m_bValidOnly;
+    double m_dFactor;
 
-	WTSHisTickData() :m_bValidOnly(false), m_dFactor(1.0){}
+    WTSHisTickData(): m_bValidOnly(false), m_dFactor(1.0) {}
 
 public:
-	/*
-	 *	@brief 创建指定大小的tick数组对象
-	 *	@details 内部的数组预先分配大小
-	 *
-	 *	@param stdCode 合约代码
-	 *	@param nSize 预先分配的大小
-	 */
-	static inline WTSHisTickData* create(const char* stdCode, unsigned int nSize = 0, bool bValidOnly = false, double factor = 1.0)
-	{
-		WTSHisTickData *pRet = new WTSHisTickData;
-		wt_strcpy(pRet->m_strCode, stdCode);
-		pRet->m_ayTicks.resize(nSize);
-		pRet->m_bValidOnly = bValidOnly;
-		pRet->m_dFactor = factor;
+    /*
+     *	@brief 创建指定大小的tick数组对象
+     *	@details 内部的数组预先分配大小
+     *
+     *	@param stdCode 合约代码
+     *	@param nSize 预先分配的大小
+     */
+    static inline WTSHisTickData* create(const char* stdCode, unsigned int nSize = 0, bool bValidOnly = false, double factor = 1.0)
+    {
+        WTSHisTickData* pRet = new WTSHisTickData;
+        wt_strcpy(pRet->m_strCode, stdCode);
+        pRet->m_ayTicks.resize(nSize);
+        pRet->m_bValidOnly = bValidOnly;
+        pRet->m_dFactor = factor;
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	/*
-	 *	@brief 根据tick数组对象创建历史tick数据对象
-	 *	@details 内部的tick数组不用再分配了
+    /*
+     *	@brief 根据tick数组对象创建历史tick数据对象
+     *	@details 内部的tick数组不用再分配了
 
-	 *	@param ayTicks tick数组对象指针
-	 */
-	static inline WTSHisTickData* create(const char* stdCode, bool bValidOnly = false, double factor = 1.0)
-	{
-		WTSHisTickData *pRet = new WTSHisTickData;
-		wt_strcpy(pRet->m_strCode, stdCode);
-		pRet->m_bValidOnly = bValidOnly;
-		pRet->m_dFactor = factor;
+     *	@param ayTicks tick数组对象指针
+     */
+    static inline WTSHisTickData* create(const char* stdCode, bool bValidOnly = false, double factor = 1.0)
+    {
+        WTSHisTickData* pRet = new WTSHisTickData;
+        wt_strcpy(pRet->m_strCode, stdCode);
+        pRet->m_bValidOnly = bValidOnly;
+        pRet->m_dFactor = factor;
 
-		return pRet;
-	}
+        return pRet;
+    }
 
-	//读取tick数据的条数
-	inline uint32_t	size() const{ return m_ayTicks.size(); }
-	inline bool		empty() const{ return m_ayTicks.empty(); }
+    // 读取tick数据的条数
+    inline uint32_t size() const { return m_ayTicks.size(); }
+    inline bool empty() const { return m_ayTicks.empty(); }
 
-	//读取该数据对应的合约代码
-	inline const char*		code() const{ return m_strCode; }
+    // 读取该数据对应的合约代码
+    inline const char* code() const { return m_strCode; }
 
-	/*
-	 *	获取指定位置的tick数据
-	 *	
-	 */
-	inline WTSTickStruct*	at(uint32_t idx)
-	{
-		if (m_ayTicks.empty() || idx >= m_ayTicks.size())
-			return NULL;
+    /*
+     *	获取指定位置的tick数据
+     *
+     */
+    inline WTSTickStruct* at(uint32_t idx)
+    {
+        if (m_ayTicks.empty() || idx >= m_ayTicks.size())
+            return NULL;
 
-		return &m_ayTicks[idx];
-	}
+        return &m_ayTicks[idx];
+    }
 
-	inline std::vector<WTSTickStruct>& getDataRef() { return m_ayTicks; }
+    inline std::vector<WTSTickStruct>& getDataRef() { return m_ayTicks; }
 
-	inline bool isValidOnly() const{ return m_bValidOnly; }
+    inline bool isValidOnly() const { return m_bValidOnly; }
 
-	/*
-	*	追加一条Tick
-	*/
-	inline void	appendTick(const WTSTickStruct& ts)
-	{
-		m_ayTicks.emplace_back(ts);
-		//复权修正
-		m_ayTicks.back().price *= m_dFactor;
-		m_ayTicks.back().open *= m_dFactor;
-		m_ayTicks.back().high *= m_dFactor;
-		m_ayTicks.back().low *= m_dFactor;
-	}
+    /*
+     *	追加一条Tick
+     */
+    inline void appendTick(const WTSTickStruct& ts)
+    {
+        m_ayTicks.emplace_back(ts);
+        // 复权修正
+        m_ayTicks.back().price *= m_dFactor;
+        m_ayTicks.back().open *= m_dFactor;
+        m_ayTicks.back().high *= m_dFactor;
+        m_ayTicks.back().low *= m_dFactor;
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -1385,106 +1342,101 @@ public:
  *	@details 切片并没有真实的复制内存,而只是取了开始和结尾的下标
  *	这样使用虽然更快,但是使用场景要非常小心,因为他依赖于基础数据对象
  */
-class WTSTickSlice : public WTSObject
-{
+class WTSTickSlice : public WTSObject {
 private:
-	char			_code[MAX_INSTRUMENT_LENGTH];
-	typedef std::pair<WTSTickStruct*, uint32_t> TickBlock;
-	std::vector<TickBlock> _blocks;
-	uint32_t		_count;
+    char _code[MAX_INSTRUMENT_LENGTH];
+    typedef std::pair<WTSTickStruct*, uint32_t> TickBlock;
+    std::vector<TickBlock> _blocks;
+    uint32_t _count;
 
 protected:
-	WTSTickSlice() { _blocks.clear(); }
-	inline int32_t		translateIdx(int32_t idx) const
-	{
-		if (idx < 0)
-		{
-			return max(0, (int32_t)_count + idx);
-		}
+    WTSTickSlice() { _blocks.clear(); }
+    inline int32_t translateIdx(int32_t idx) const
+    {
+        if (idx < 0) {
+            return max(0, (int32_t)_count + idx);
+        }
 
-		return idx;
-	}
+        return idx;
+    }
 
 public:
-	static inline WTSTickSlice* create(const char* code, WTSTickStruct* ticks = NULL, uint32_t count = 0)
-	{
-		//if (ticks == NULL || count == 0)
-		//	return NULL;
+    static inline WTSTickSlice* create(const char* code, WTSTickStruct* ticks = NULL, uint32_t count = 0)
+    {
+        // if (ticks == NULL || count == 0)
+        //	return NULL;
 
-		WTSTickSlice* slice = new WTSTickSlice();
-		wt_strcpy(slice->_code, code);
-		if(ticks != NULL)
-		{
-			slice->_blocks.emplace_back(TickBlock(ticks, count));
-			slice->_count = count;
-		}
+        WTSTickSlice* slice = new WTSTickSlice();
+        wt_strcpy(slice->_code, code);
+        if (ticks != NULL) {
+            slice->_blocks.emplace_back(TickBlock(ticks, count));
+            slice->_count = count;
+        }
 
-		return slice;
-	}
+        return slice;
+    }
 
-	inline bool appendBlock(WTSTickStruct* ticks, uint32_t count)
-	{
-		if (ticks == NULL || count == 0)
-			return false;
+    inline bool appendBlock(WTSTickStruct* ticks, uint32_t count)
+    {
+        if (ticks == NULL || count == 0)
+            return false;
 
-		_count += count;
-		_blocks.emplace_back(TickBlock(ticks, count));
-		return true;
-	}
+        _count += count;
+        _blocks.emplace_back(TickBlock(ticks, count));
+        return true;
+    }
 
-	inline bool insertBlock(std::size_t idx, WTSTickStruct* ticks, uint32_t count)
-	{
-		if (ticks == NULL || count == 0)
-			return false;
+    inline bool insertBlock(std::size_t idx, WTSTickStruct* ticks, uint32_t count)
+    {
+        if (ticks == NULL || count == 0)
+            return false;
 
-		_count += count;
-		_blocks.insert(_blocks.begin()+idx, TickBlock(ticks, count));
-		return true;
-	}
+        _count += count;
+        _blocks.insert(_blocks.begin() + idx, TickBlock(ticks, count));
+        return true;
+    }
 
-	inline std::size_t	get_block_counts() const
-	{
-		return _blocks.size();
-	}
+    inline std::size_t get_block_counts() const
+    {
+        return _blocks.size();
+    }
 
-	inline WTSTickStruct*	get_block_addr(std::size_t blkIdx)
-	{
-		if (blkIdx >= _blocks.size())
-			return NULL;
+    inline WTSTickStruct* get_block_addr(std::size_t blkIdx)
+    {
+        if (blkIdx >= _blocks.size())
+            return NULL;
 
-		return _blocks[blkIdx].first;
-	}
+        return _blocks[blkIdx].first;
+    }
 
-	inline uint32_t get_block_size(std::size_t blkIdx)
-	{
-		if (blkIdx >= _blocks.size())
-			return INVALID_UINT32;
+    inline uint32_t get_block_size(std::size_t blkIdx)
+    {
+        if (blkIdx >= _blocks.size())
+            return INVALID_UINT32;
 
-		return _blocks[blkIdx].second;
-	}
+        return _blocks[blkIdx].second;
+    }
 
-	inline uint32_t size() const{ return _count; }
+    inline uint32_t size() const { return _count; }
 
-	inline bool empty() const{ return (_count == 0); }
+    inline bool empty() const { return (_count == 0); }
 
-	inline const WTSTickStruct* at(int32_t idx)
-	{
-		if (_count == 0)
-			return NULL;
+    inline const WTSTickStruct* at(int32_t idx)
+    {
+        if (_count == 0)
+            return NULL;
 
-		idx = translateIdx(idx);
-		do 
-		{
-			for(auto& item : _blocks)
-			{
-				if ((uint32_t)idx >= item.second)
-					idx -= item.second;
-				else
-					return item.first + idx;
-			}
-		} while (false);
-		return NULL;
-	}
+        idx = translateIdx(idx);
+        do {
+            for (auto& item : _blocks) {
+                if ((uint32_t)idx >= item.second)
+                    idx -= item.second;
+                else
+                    return item.first + idx;
+            }
+        } while (false);
+        return NULL;
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -1493,50 +1445,48 @@ public:
  *	@details 切片并没有真实的复制内存,而只是取了开始和结尾的下标
  *	这样使用虽然更快,但是使用场景要非常小心,因为他依赖于基础数据对象
  */
-class WTSOrdDtlSlice : public WTSObject
-{
+class WTSOrdDtlSlice : public WTSObject {
 private:
-	char				m_strCode[MAX_INSTRUMENT_LENGTH];
-	WTSOrdDtlStruct*	m_ptrBegin;
-	uint32_t			m_uCount;
+    char m_strCode[MAX_INSTRUMENT_LENGTH];
+    WTSOrdDtlStruct* m_ptrBegin;
+    uint32_t m_uCount;
 
 protected:
-	WTSOrdDtlSlice() :m_ptrBegin(NULL), m_uCount(0) {}
-	inline int32_t		translateIdx(int32_t idx) const
-	{
-		if (idx < 0)
-		{
-			return max(0, (int32_t)m_uCount + idx);
-		}
+    WTSOrdDtlSlice(): m_ptrBegin(NULL), m_uCount(0) {}
+    inline int32_t translateIdx(int32_t idx) const
+    {
+        if (idx < 0) {
+            return max(0, (int32_t)m_uCount + idx);
+        }
 
-		return idx;
-	}
+        return idx;
+    }
 
 public:
-	static inline WTSOrdDtlSlice* create(const char* code, WTSOrdDtlStruct* firstItem, uint32_t count)
-	{
-		if (count == 0 || firstItem == NULL)
-			return NULL;
+    static inline WTSOrdDtlSlice* create(const char* code, WTSOrdDtlStruct* firstItem, uint32_t count)
+    {
+        if (count == 0 || firstItem == NULL)
+            return NULL;
 
-		WTSOrdDtlSlice* slice = new WTSOrdDtlSlice();
-		wt_strcpy(slice->m_strCode, code);
-		slice->m_ptrBegin = firstItem;
-		slice->m_uCount = count;
+        WTSOrdDtlSlice* slice = new WTSOrdDtlSlice();
+        wt_strcpy(slice->m_strCode, code);
+        slice->m_ptrBegin = firstItem;
+        slice->m_uCount = count;
 
-		return slice;
-	}
+        return slice;
+    }
 
-	inline uint32_t size() const { return m_uCount; }
+    inline uint32_t size() const { return m_uCount; }
 
-	inline bool empty() const { return (m_uCount == 0) || (m_ptrBegin == NULL); }
+    inline bool empty() const { return (m_uCount == 0) || (m_ptrBegin == NULL); }
 
-	inline const WTSOrdDtlStruct* at(int32_t idx)
-	{
-		if (m_ptrBegin == NULL)
-			return NULL;
-		idx = translateIdx(idx);
-		return m_ptrBegin + idx;
-	}
+    inline const WTSOrdDtlStruct* at(int32_t idx)
+    {
+        if (m_ptrBegin == NULL)
+            return NULL;
+        idx = translateIdx(idx);
+        return m_ptrBegin + idx;
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -1545,50 +1495,48 @@ public:
  *	@details 切片并没有真实的复制内存,而只是取了开始和结尾的下标
  *	这样使用虽然更快,但是使用场景要非常小心,因为他依赖于基础数据对象
  */
-class WTSOrdQueSlice : public WTSObject
-{
+class WTSOrdQueSlice : public WTSObject {
 private:
-	char				m_strCode[MAX_INSTRUMENT_LENGTH];
-	WTSOrdQueStruct*	m_ptrBegin;
-	uint32_t			m_uCount;
+    char m_strCode[MAX_INSTRUMENT_LENGTH];
+    WTSOrdQueStruct* m_ptrBegin;
+    uint32_t m_uCount;
 
 protected:
-	WTSOrdQueSlice() :m_ptrBegin(NULL), m_uCount(0) {}
-	inline int32_t		translateIdx(int32_t idx) const
-	{
-		if (idx < 0)
-		{
-			return max(0, (int32_t)m_uCount + idx);
-		}
+    WTSOrdQueSlice(): m_ptrBegin(NULL), m_uCount(0) {}
+    inline int32_t translateIdx(int32_t idx) const
+    {
+        if (idx < 0) {
+            return max(0, (int32_t)m_uCount + idx);
+        }
 
-		return idx;
-	}
+        return idx;
+    }
 
 public:
-	static inline WTSOrdQueSlice* create(const char* code, WTSOrdQueStruct* firstItem, uint32_t count)
-	{
-		if (count == 0 || firstItem == NULL)
-			return NULL;
+    static inline WTSOrdQueSlice* create(const char* code, WTSOrdQueStruct* firstItem, uint32_t count)
+    {
+        if (count == 0 || firstItem == NULL)
+            return NULL;
 
-		WTSOrdQueSlice* slice = new WTSOrdQueSlice();
-		wt_strcpy(slice->m_strCode, code);
-		slice->m_ptrBegin = firstItem;
-		slice->m_uCount = count;
+        WTSOrdQueSlice* slice = new WTSOrdQueSlice();
+        wt_strcpy(slice->m_strCode, code);
+        slice->m_ptrBegin = firstItem;
+        slice->m_uCount = count;
 
-		return slice;
-	}
+        return slice;
+    }
 
-	inline uint32_t size() const { return m_uCount; }
+    inline uint32_t size() const { return m_uCount; }
 
-	inline bool empty() const { return (m_uCount == 0) || (m_ptrBegin == NULL); }
+    inline bool empty() const { return (m_uCount == 0) || (m_ptrBegin == NULL); }
 
-	inline const WTSOrdQueStruct* at(int32_t idx)
-	{
-		if (m_ptrBegin == NULL)
-			return NULL;
-		idx = translateIdx(idx);
-		return m_ptrBegin + idx;
-	}
+    inline const WTSOrdQueStruct* at(int32_t idx)
+    {
+        if (m_ptrBegin == NULL)
+            return NULL;
+        idx = translateIdx(idx);
+        return m_ptrBegin + idx;
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -1597,50 +1545,48 @@ public:
  *	@details 切片并没有真实的复制内存,而只是取了开始和结尾的下标
  *	这样使用虽然更快,但是使用场景要非常小心,因为他依赖于基础数据对象
  */
-class WTSTransSlice : public WTSObject
-{
+class WTSTransSlice : public WTSObject {
 private:
-	char			m_strCode[MAX_INSTRUMENT_LENGTH];
-	WTSTransStruct*	m_ptrBegin;
-	uint32_t		m_uCount;
+    char m_strCode[MAX_INSTRUMENT_LENGTH];
+    WTSTransStruct* m_ptrBegin;
+    uint32_t m_uCount;
 
 protected:
-	WTSTransSlice() :m_ptrBegin(NULL), m_uCount(0) {}
-	inline int32_t		translateIdx(int32_t idx) const
-	{
-		if (idx < 0)
-		{
-			return max(0, (int32_t)m_uCount + idx);
-		}
+    WTSTransSlice(): m_ptrBegin(NULL), m_uCount(0) {}
+    inline int32_t translateIdx(int32_t idx) const
+    {
+        if (idx < 0) {
+            return max(0, (int32_t)m_uCount + idx);
+        }
 
-		return idx;
-	}
+        return idx;
+    }
 
 public:
-	static inline WTSTransSlice* create(const char* code, WTSTransStruct* firstItem, uint32_t count)
-	{
-		if (count == 0 || firstItem == NULL)
-			return NULL;
+    static inline WTSTransSlice* create(const char* code, WTSTransStruct* firstItem, uint32_t count)
+    {
+        if (count == 0 || firstItem == NULL)
+            return NULL;
 
-		WTSTransSlice* slice = new WTSTransSlice();
-		wt_strcpy(slice->m_strCode, code);
-		slice->m_ptrBegin = firstItem;
-		slice->m_uCount = count;
+        WTSTransSlice* slice = new WTSTransSlice();
+        wt_strcpy(slice->m_strCode, code);
+        slice->m_ptrBegin = firstItem;
+        slice->m_uCount = count;
 
-		return slice;
-	}
+        return slice;
+    }
 
-	inline uint32_t size() const { return m_uCount; }
+    inline uint32_t size() const { return m_uCount; }
 
-	inline bool empty() const { return (m_uCount == 0) || (m_ptrBegin == NULL); }
+    inline bool empty() const { return (m_uCount == 0) || (m_ptrBegin == NULL); }
 
-	inline const WTSTransStruct* at(int32_t idx)
-	{
-		if (m_ptrBegin == NULL)
-			return NULL;
-		idx = translateIdx(idx);
-		return m_ptrBegin + idx;
-	}
+    inline const WTSTransStruct* at(int32_t idx)
+    {
+        if (m_ptrBegin == NULL)
+            return NULL;
+        idx = translateIdx(idx);
+        return m_ptrBegin + idx;
+    }
 };
 
 NS_WTP_END
