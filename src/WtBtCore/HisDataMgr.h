@@ -10,29 +10,27 @@ NS_WTP_END
 
 USING_NS_WTP;
 
-class HisDataMgr : public IBtDtReaderSink
-{
+class HisDataMgr : public IBtDtReaderSink {
 public:
-	HisDataMgr() :_reader(NULL) {}
-	~HisDataMgr(){}
-
-public:
-	virtual void reader_log(WTSLogLevel ll, const char* message) override;
+    HisDataMgr(): _reader(NULL) {}
+    ~HisDataMgr() {}
 
 public:
-	bool	init(WTSVariant* cfg);
+    virtual void reader_log(WTSLogLevel ll, const char* message) override;
 
-	bool	load_raw_bars(const char* exchg, const char* code, WTSKlinePeriod period, FuncLoadDataCallback cb);
+public:
+    bool init(WTSVariant* cfg);
 
-	bool	load_raw_ticks(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
+    bool load_raw_bars(const char* exchg, const char* code, WTSKlinePeriod period, FuncLoadDataCallback cb);
 
-	bool	load_raw_ordque(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
+    bool load_raw_ticks(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
 
-	bool	load_raw_orddtl(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
+    bool load_raw_ordque(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
 
-	bool	load_raw_trans(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
+    bool load_raw_orddtl(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
+
+    bool load_raw_trans(const char* exchg, const char* code, uint32_t uDate, FuncLoadDataCallback cb);
 
 private:
-	IBtDtReader*	_reader;
+    IBtDtReader* _reader;
 };
-
