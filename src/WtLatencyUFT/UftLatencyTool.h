@@ -4,8 +4,8 @@
  *
  * /author Wesley
  * /date 2020/03/30
- * 
- * /brief 
+ *
+ * /brief
  */
 #pragma once
 #include "../WtUftCore/WtUftEngine.h"
@@ -19,39 +19,36 @@ NS_WTP_BEGIN
 class WTSVariant;
 NS_WTP_END
 
-namespace uft
-{
-	class UftLatencyTool
-	{
-	public:
-		UftLatencyTool();
-		~UftLatencyTool();
+namespace uft {
+class UftLatencyTool {
+public:
+    UftLatencyTool();
+    ~UftLatencyTool();
 
-	public:
-		/*
-		 *	≥ı ºªØ
-		 */
-		bool init();
+public:
+    /*
+     *	≥ı ºªØ
+     */
+    bool init();
 
-		void run();
+    void run();
 
-	private:
-		bool initModules();
-		bool initStrategies();
+private:
+    bool initModules();
+    bool initStrategies();
 
-		bool initEngine(WTSVariant* cfg);
+    bool initEngine(WTSVariant* cfg);
 
-	private:
-		TraderAdapterMgr	_traders;
-		ParserAdapterMgr	_parsers;
-		UftStrategyMgr		_stra_mgr;
+private:
+    TraderAdapterMgr _traders;
+    ParserAdapterMgr _parsers;
+    UftStrategyMgr _stra_mgr;
 
-		WtUftEngine			_engine;
+    WtUftEngine _engine;
 
-		WTSBaseDataMgr		_bd_mgr;
+    WTSBaseDataMgr _bd_mgr;
 
-		uint32_t			_times;
-		uint32_t			_core;
-	};
-}
-
+    uint32_t _times;
+    uint32_t _core;
+};
+} // namespace uft
