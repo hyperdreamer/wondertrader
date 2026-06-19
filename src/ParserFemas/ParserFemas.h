@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #pragma once
 #include "../Includes/IParserApi.h"
@@ -19,94 +19,89 @@ NS_WTP_END
 
 USING_NS_WTP;
 
-class ParserFemas : public IParserApi, public CUstpFtdcMduserSpi
-{
+class ParserFemas : public IParserApi, public CUstpFtdcMduserSpi {
 public:
-	ParserFemas();
-	virtual ~ParserFemas();
+    ParserFemas();
+    virtual ~ParserFemas();
 
 public:
-	enum LoginStatus
-	{
-		LS_NOTLOGIN,
-		LS_LOGINING,
-		LS_LOGINED
-	};
+    enum LoginStatus {
+        LS_NOTLOGIN,
+        LS_LOGINING,
+        LS_LOGINED
+    };
 
-//IQuoteParser 接口
+    // IQuoteParser 接口
 public:
-	virtual bool init(WTSVariant* config) override;
+    virtual bool init(WTSVariant* config) override;
 
-	virtual void release() override;
+    virtual void release() override;
 
-	virtual bool connect() override;
+    virtual bool connect() override;
 
-	virtual bool disconnect() override;
+    virtual bool disconnect() override;
 
-	virtual bool isConnected() override;
+    virtual bool isConnected() override;
 
-	virtual void subscribe(const CodeSet &vecSymbols) override;
-	virtual void unsubscribe(const CodeSet &vecSymbols) override;
+    virtual void subscribe(const CodeSet& vecSymbols) override;
+    virtual void unsubscribe(const CodeSet& vecSymbols) override;
 
-	virtual void registerSpi(IParserSpi* listener) override;
+    virtual void registerSpi(IParserSpi* listener) override;
 
-
-//CUstpFtdcMdSpi 接口
+    // CUstpFtdcMdSpi 接口
 public:
-	virtual void OnRspError( CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+    virtual void OnRspError(CUstpFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	virtual void OnFrontConnected();
+    virtual void OnFrontConnected();
 
-	virtual void OnRspUserLogin( CUstpFtdcRspUserLoginField *pRspUserLogin, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+    virtual void OnRspUserLogin(CUstpFtdcRspUserLoginField* pRspUserLogin, CUstpFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	///登出请求响应
-	virtual void OnRspUserLogout(CUstpFtdcRspUserLogoutField *pUserLogout, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    /// 登出请求响应
+    virtual void OnRspUserLogout(CUstpFtdcRspUserLogoutField* pUserLogout, CUstpFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	virtual void OnFrontDisconnected( int nReason );
+    virtual void OnFrontDisconnected(int nReason);
 
-	virtual void OnRspUnSubMarketData( CUstpFtdcSpecificInstrumentField *pSpecificInstrument, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+    virtual void OnRspUnSubMarketData(CUstpFtdcSpecificInstrumentField* pSpecificInstrument, CUstpFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	virtual void OnRtnDepthMarketData( CUstpFtdcDepthMarketDataField *pDepthMarketData );
+    virtual void OnRtnDepthMarketData(CUstpFtdcDepthMarketDataField* pDepthMarketData);
 
-	virtual void OnRspSubMarketData( CUstpFtdcSpecificInstrumentField *pSpecificInstrument, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast );
+    virtual void OnRspSubMarketData(CUstpFtdcSpecificInstrumentField* pSpecificInstrument, CUstpFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
-	virtual void OnHeartBeatWarning( int nTimeLapse );
+    virtual void OnHeartBeatWarning(int nTimeLapse);
 
 private:
-	/*
-	 *	发送登录请求
-	 */
-	void ReqUserLogin();
-	/*
-	 *	订阅品种行情
-	 */
-	void SubscribeMarketData();
-	/*
-	 *	检查错误信息
-	 */
-	bool IsErrorRspInfo(CUstpFtdcRspInfoField *pRspInfo);
-
+    /*
+     *	发送登录请求
+     */
+    void ReqUserLogin();
+    /*
+     *	订阅品种行情
+     */
+    void SubscribeMarketData();
+    /*
+     *	检查错误信息
+     */
+    bool IsErrorRspInfo(CUstpFtdcRspInfoField* pRspInfo);
 
 private:
-	uint32_t			m_uTradingDate;
-	LoginStatus			m_loginState;
-	CUstpFtdcMduserApi*	m_pUserAPI;
+    uint32_t m_uTradingDate;
+    LoginStatus m_loginState;
+    CUstpFtdcMduserApi* m_pUserAPI;
 
-	std::string			m_strFrontAddr;
-	std::string			m_strBroker;
-	std::string			m_strUserID;
-	std::string			m_strPassword;
-	std::string			m_strFlowDir;
+    std::string m_strFrontAddr;
+    std::string m_strBroker;
+    std::string m_strUserID;
+    std::string m_strPassword;
+    std::string m_strFlowDir;
 
-	CodeSet				m_filterSubs;
+    CodeSet m_filterSubs;
 
-	int					m_iRequestID;
+    int m_iRequestID;
 
-	IParserSpi*	m_sink;
-	IBaseDataMgr*		m_pBaseDataMgr;
+    IParserSpi* m_sink;
+    IBaseDataMgr* m_pBaseDataMgr;
 
-	DllHandle		m_hInst;
-	typedef CUstpFtdcMduserApi* (*FemasCreator)(const char *);
-	FemasCreator		m_funcCreator;
+    DllHandle m_hInst;
+    typedef CUstpFtdcMduserApi* (*FemasCreator)(const char*);
+    FemasCreator m_funcCreator;
 };
-
