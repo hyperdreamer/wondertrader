@@ -4,7 +4,7 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
+ *
  * \brief C++标准库一些定义的简单封装,方便调用
  */
 #pragma once
@@ -18,90 +18,89 @@
 
 #if _MSC_VER
 #include <io.h>
-#pragma warning(disable:4996)
+#pragma warning(disable : 4996)
 #else
 #include <unistd.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-//std线程类
+// std线程类
 typedef std::thread StdThread;
 typedef std::shared_ptr<StdThread> StdThreadPtr;
 
 //////////////////////////////////////////////////////////////////////////
-//std互斥量和锁
-typedef std::recursive_mutex	StdRecurMutex;
-typedef std::mutex				StdUniqueMutex;
-typedef std::condition_variable_any	StdCondVariable;
+// std互斥量和锁
+typedef std::recursive_mutex StdRecurMutex;
+typedef std::mutex StdUniqueMutex;
+typedef std::condition_variable_any StdCondVariable;
 
-typedef std::unique_lock<StdUniqueMutex>	StdUniqueLock;
+typedef std::unique_lock<StdUniqueMutex> StdUniqueLock;
 
 template<typename T>
-class StdLocker
-{
+class StdLocker {
 public:
-	StdLocker(T& mtx)
-	{
-		mtx.lock();
-		_mtx = &mtx;
-	}
+    StdLocker(T& mtx)
+    {
+        mtx.lock();
+        _mtx = &mtx;
+    }
 
-	~StdLocker(){
-		_mtx->unlock();
-	}
+    ~StdLocker()
+    {
+        _mtx->unlock();
+    }
 
 private:
-	T* _mtx;
+    T* _mtx;
 };
 
 //////////////////////////////////////////////////////////////////////////
-//文件辅助类
-class StdFile
-{
+// 文件辅助类
+class StdFile {
 public:
-	static inline uint64_t read_file_content(const char* filename, std::string& content)
-	{
-		FILE* f = fopen(filename, "rb");
-		fseek(f, 0, SEEK_END);
-		uint32_t length = ftell(f);
-		content.resize(length);   // allocate memory for a buffer of appropriate dimension
-		fseek(f, 0, 0);
-		fread((void*)content.data(), sizeof(char), length, f);
-		fclose(f);
-		return length;
-	}
+    static inline uint64_t read_file_content(const char* filename, std::string& content)
+    {
+        FILE* f = fopen(filename, "rb");
+        fseek(f, 0, SEEK_END);
+        uint32_t length = ftell(f);
+        content.resize(length); // allocate memory for a buffer of appropriate dimension
+        fseek(f, 0, 0);
+        fread((void*)content.data(), sizeof(char), length, f);
+        fclose(f);
+        return length;
+    }
 
-	static inline void write_file_content(const char* filename, const std::string& content)
-	{
-		FILE* f = fopen(filename, "wb");
-		fwrite((void*)content.data(), sizeof(char), content.size(), f);
-		fclose(f);
-	}
+    static inline void write_file_content(const char* filename, const std::string& content)
+    {
+        FILE* f = fopen(filename, "wb");
+        fwrite((void*)content.data(), sizeof(char), content.size(), f);
+        fclose(f);
+    }
 
-	static inline void write_file_content(const char* filename, const void* data, std::size_t length)
-	{
-		FILE* f = fopen(filename, "wb");
-		fwrite(data, sizeof(char), length, f);
-		fclose(f);
-	}
+    static inline void write_file_content(const char* filename, const void* data, std::size_t length)
+    {
+        FILE* f = fopen(filename, "wb");
+        fwrite(data, sizeof(char), length, f);
+        fclose(f);
+    }
 
-	static inline bool exists(const char* filename)
-	{
+    static inline bool exists(const char* filename)
+    {
 #if _WIN32
-		int ret = _access(filename, 0);
+        int ret = _access(filename, 0);
 #else
-		int ret = access(filename, 0);
+        int ret = access(filename, 0);
 #endif
-		return ret == 0;
-	}
+        return ret == 0;
+    }
 
-	//static inline bool create_directories(const char* folder)
-	//{
-	//	return std::filesystem::create_directories(std::filesystem::path(folder));
-	//}
+    // static inline bool create_directories(const char* folder)
+    //{
+    //	return std::filesystem::create_directories(std::filesystem::path(folder));
+    // }
 
-	//static bool delete_file(const char *name)
-	//{
-	//	return std::filesystem::remove(std::filesystem::path(name));
-	//}
+    // static bool delete_file(const char *name)
+    //{
+    //	return std::filesystem::remove(std::filesystem::path(name));
+    // }
 };
