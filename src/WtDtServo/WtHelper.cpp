@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #include "WtHelper.h"
 
@@ -13,7 +13,7 @@
 
 #ifdef _MSC_VER
 #include <direct.h>
-#else	//UNIX
+#else // UNIX
 #include <unistd.h>
 #endif
 
@@ -21,17 +21,16 @@ std::string WtHelper::_bin_dir;
 
 const char* WtHelper::get_cwd()
 {
-	static std::string _cwd;
-	if(_cwd.empty())
-	{
-		char   buffer[255];
+    static std::string _cwd;
+    if (_cwd.empty()) {
+        char buffer[255];
 #ifdef _MSC_VER
-		_getcwd(buffer, 255);
-#else	//UNIX
-		getcwd(buffer, 255);
+        _getcwd(buffer, 255);
+#else // UNIX
+        getcwd(buffer, 255);
 #endif
-		_cwd = buffer;
-		_cwd = StrUtil::standardisePath(_cwd);
-	}	
-	return _cwd.c_str();
+        _cwd = buffer;
+        _cwd = StrUtil::standardisePath(_cwd);
+    }
+    return _cwd.c_str();
 }
