@@ -20,46 +20,42 @@ typedef boost::detail::spinlock::scoped_lock SpinLock;
 #include <windows.h>
 #endif
 
-class SpinMutex
-{
+class SpinMutex {
 private:
-	std::atomic<bool> flag = { false };
+    std::atomic<bool> flag = { false };
 
 public:
-	inline void lock() noexcept
-	{
-		for (;;)
-		{
-			if (!flag.exchange(true, std::memory_order_acquire))
-				break;
+    inline void lock() noexcept
+    {
+        for (;;) {
+            if (!flag.exchange(true, std::memory_order_acquire))
+                break;
 
-			while (flag.load(std::memory_order_relaxed))
-			{
+            while (flag.load(std::memory_order_relaxed)) {
 #ifdef _MSC_VER
-				_mm_pause();
+                _mm_pause();
 #else
-				__builtin_ia32_pause();
+                __builtin_ia32_pause();
 #endif
-			}
-		}
-	}
+            }
+        }
+    }
 
-	inline void unlock() noexcept
-	{
-		flag.store(false, std::memory_order_release);
-	}
+    inline void unlock() noexcept
+    {
+        flag.store(false, std::memory_order_release);
+    }
 };
 
-class SpinLock
-{
+class SpinLock {
 public:
-	SpinLock(SpinMutex& mtx) noexcept
-		:_mutex(mtx) { _mutex.lock(); }
-	SpinLock(const SpinLock&) = delete;
-	SpinLock& operator=(const SpinLock&) = delete;
-	~SpinLock() noexcept { _mutex.unlock(); }
+    SpinLock(SpinMutex& mtx) noexcept
+        : _mutex(mtx) { _mutex.lock(); }
+    SpinLock(const SpinLock&) = delete;
+    SpinLock& operator=(const SpinLock&) = delete;
+    ~SpinLock() noexcept { _mutex.unlock(); }
 
 private:
-	SpinMutex&	_mutex;
+    SpinMutex& _mutex;
 };
 #endif
