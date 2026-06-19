@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #include "WtDtHelper.h"
 #include "../Share/StrUtil.hpp"
@@ -36,444 +36,414 @@ USING_NS_WTP;
  */
 bool proc_block_data(std::string& content, bool isBar, bool bKeepHead /* = true */)
 {
-	BlockHeader* header = (BlockHeader*)content.data();
+    BlockHeader* header = (BlockHeader*)content.data();
 
-	bool bCmped = header->is_compressed();
-	bool bOldVer = header->is_old_version();
+    bool bCmped = header->is_compressed();
+    bool bOldVer = header->is_old_version();
 
-	//如果既没有压缩，也不是老版本结构体，则直接返回
-	if (!bCmped && !bOldVer)
-	{
-		if (!bKeepHead)
-			content.erase(0, BLOCK_HEADER_SIZE);
-		return true;
-	}
+    // 如果既没有压缩，也不是老版本结构体，则直接返回
+    if (!bCmped && !bOldVer) {
+        if (!bKeepHead)
+            content.erase(0, BLOCK_HEADER_SIZE);
+        return true;
+    }
 
-	std::string buffer;
-	if (bCmped)
-	{
-		BlockHeaderV2* blkV2 = (BlockHeaderV2*)content.c_str();
+    std::string buffer;
+    if (bCmped) {
+        BlockHeaderV2* blkV2 = (BlockHeaderV2*)content.c_str();
 
-		if (content.size() != (sizeof(BlockHeaderV2) + blkV2->_size))
-		{
-			return false;
-		}
+        if (content.size() != (sizeof(BlockHeaderV2) + blkV2->_size)) {
+            return false;
+        }
 
-		//将文件头后面的数据进行解压
-		buffer = WTSCmpHelper::uncompress_data(content.data() + BLOCK_HEADERV2_SIZE, blkV2->_size);
-	}
-	else
-	{
-		if (!bOldVer)
-		{
-			//如果不是老版本，直接返回
-			if (!bKeepHead)
-				content.erase(0, BLOCK_HEADER_SIZE);
-			return true;
-		}
-		else
-		{
-			buffer.append(content.data() + BLOCK_HEADER_SIZE, content.size() - BLOCK_HEADER_SIZE);
-		}
-	}
+        // 将文件头后面的数据进行解压
+        buffer = WTSCmpHelper::uncompress_data(content.data() + BLOCK_HEADERV2_SIZE, blkV2->_size);
+    }
+    else {
+        if (!bOldVer) {
+            // 如果不是老版本，直接返回
+            if (!bKeepHead)
+                content.erase(0, BLOCK_HEADER_SIZE);
+            return true;
+        }
+        else {
+            buffer.append(content.data() + BLOCK_HEADER_SIZE, content.size() - BLOCK_HEADER_SIZE);
+        }
+    }
 
-	if (bOldVer)
-	{
-		if (isBar)
-		{
-			std::string bufV2;
-			uint32_t barcnt = buffer.size() / sizeof(WTSBarStructOld);
-			bufV2.resize(barcnt * sizeof(WTSBarStruct));
-			WTSBarStruct* newBar = (WTSBarStruct*)bufV2.data();
-			WTSBarStructOld* oldBar = (WTSBarStructOld*)buffer.data();
-			for (uint32_t idx = 0; idx < barcnt; idx++)
-			{
-				newBar[idx] = oldBar[idx];
-			}
-			buffer.swap(bufV2);
-		}
-		else
-		{
-			uint32_t tick_cnt = buffer.size() / sizeof(WTSTickStructOld);
-			std::string bufv2;
-			bufv2.resize(sizeof(WTSTickStruct)*tick_cnt);
-			WTSTickStruct* newTick = (WTSTickStruct*)bufv2.data();
-			WTSTickStructOld* oldTick = (WTSTickStructOld*)buffer.data();
-			for (uint32_t i = 0; i < tick_cnt; i++)
-			{
-				newTick[i] = oldTick[i];
-			}
-			buffer.swap(bufv2);
-		}
-	}
+    if (bOldVer) {
+        if (isBar) {
+            std::string bufV2;
+            uint32_t barcnt = buffer.size() / sizeof(WTSBarStructOld);
+            bufV2.resize(barcnt * sizeof(WTSBarStruct));
+            WTSBarStruct* newBar = (WTSBarStruct*)bufV2.data();
+            WTSBarStructOld* oldBar = (WTSBarStructOld*)buffer.data();
+            for (uint32_t idx = 0; idx < barcnt; idx++) {
+                newBar[idx] = oldBar[idx];
+            }
+            buffer.swap(bufV2);
+        }
+        else {
+            uint32_t tick_cnt = buffer.size() / sizeof(WTSTickStructOld);
+            std::string bufv2;
+            bufv2.resize(sizeof(WTSTickStruct) * tick_cnt);
+            WTSTickStruct* newTick = (WTSTickStruct*)bufv2.data();
+            WTSTickStructOld* oldTick = (WTSTickStructOld*)buffer.data();
+            for (uint32_t i = 0; i < tick_cnt; i++) {
+                newTick[i] = oldTick[i];
+            }
+            buffer.swap(bufv2);
+        }
+    }
 
-	if (bKeepHead)
-	{
-		content.resize(BLOCK_HEADER_SIZE);
-		content.append(buffer);
-		header = (BlockHeader*)content.data();
-		header->_version = BLOCK_VERSION_RAW_V2;
-	}
-	else
-	{
-		content.swap(buffer);
-	}
+    if (bKeepHead) {
+        content.resize(BLOCK_HEADER_SIZE);
+        content.append(buffer);
+        header = (BlockHeader*)content.data();
+        header->_version = BLOCK_VERSION_RAW_V2;
+    }
+    else {
+        content.swap(buffer);
+    }
 
-	return true;
+    return true;
 }
-
 
 uint32_t strToTime(const char* strTime, bool bKeepSec = false)
 {
-	std::string str;
-	const char *pos = strTime;
-	while (strlen(pos) > 0)
-	{
-		if (pos[0] != ':')
-		{
-			str.append(pos, 1);
-		}
-		pos++;
-	}
+    std::string str;
+    const char* pos = strTime;
+    while (strlen(pos) > 0) {
+        if (pos[0] != ':') {
+            str.append(pos, 1);
+        }
+        pos++;
+    }
 
-	uint32_t ret = convert::to_uint32(str.c_str());
-	if (ret > 10000 && !bKeepSec)
-		ret /= 100;
+    uint32_t ret = convert::to_uint32(str.c_str());
+    if (ret > 10000 && !bKeepSec)
+        ret /= 100;
 
-	return ret;
+    return ret;
 }
 
 uint32_t strToDate(const char* strDate)
 {
-	StringVector ay = StrUtil::split(strDate, "/");
-	if (ay.size() == 1)
-		ay = StrUtil::split(strDate, "-");
-	std::stringstream ss;
-	if (ay.size() > 1)
-	{
-		auto pos = ay[2].find(" ");
-		if (pos != std::string::npos)
-			ay[2] = ay[2].substr(0, pos);
-		ss << ay[0] << (ay[1].size() == 1 ? "0" : "") << ay[1] << (ay[2].size() == 1 ? "0" : "") << ay[2];
-	}
-	else
-		ss << ay[0];
+    StringVector ay = StrUtil::split(strDate, "/");
+    if (ay.size() == 1)
+        ay = StrUtil::split(strDate, "-");
+    std::stringstream ss;
+    if (ay.size() > 1) {
+        auto pos = ay[2].find(" ");
+        if (pos != std::string::npos)
+            ay[2] = ay[2].substr(0, pos);
+        ss << ay[0] << (ay[1].size() == 1 ? "0" : "") << ay[1] << (ay[2].size() == 1 ? "0" : "") << ay[2];
+    }
+    else
+        ss << ay[0];
 
-	return convert::to_uint32(ss.str().c_str());
+    return convert::to_uint32(ss.str().c_str());
 }
 
 void dump_bars(WtString binFolder, WtString csvFolder, WtString strFilter /* = "" */, FuncLogCallback cbLogger /* = NULL */)
 {
-	std::string srcFolder = StrUtil::standardisePath(binFolder);
-	if (!StdFile::exists(srcFolder.c_str()))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"目录{}不存在", binFolder));
-		return;
-	}
+    std::string srcFolder = StrUtil::standardisePath(binFolder);
+    if (!StdFile::exists(srcFolder.c_str())) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"目录{}不存在", binFolder));
+        return;
+    }
 
-	if (!StdFile::exists(csvFolder))
-		fs::create_directories(csvFolder);
+    if (!StdFile::exists(csvFolder))
+        fs::create_directories(csvFolder);
 
-	fs::path myPath(srcFolder);
-	fs::directory_iterator endIter;
-	for (fs::directory_iterator iter(myPath); iter != endIter; iter++)
-	{
-		if (fs::is_directory(iter->path()))
-			continue;
+    fs::path myPath(srcFolder);
+    fs::directory_iterator endIter;
+    for (fs::directory_iterator iter(myPath); iter != endIter; iter++) {
+        if (fs::is_directory(iter->path()))
+            continue;
 
-		if (iter->path().extension() != ".dsb")
-			continue;
+        if (iter->path().extension() != ".dsb")
+            continue;
 
-		const std::string& path = iter->path().string();
+        const std::string& path = iter->path().string();
 
-		std::string fileCode = iter->path().stem().string();
+        std::string fileCode = iter->path().stem().string();
 
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path));
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path));
 
-		std::string buffer;
-		StdFile::read_file_content(path.c_str(), buffer);
-		if (buffer.size() < sizeof(HisKlineBlock))
-		{
-			if (cbLogger)
-				cbLogger(fmtutil::format(u8"文件{}头部校验失败", binFolder));
-			continue;
-		}
+        std::string buffer;
+        StdFile::read_file_content(path.c_str(), buffer);
+        if (buffer.size() < sizeof(HisKlineBlock)) {
+            if (cbLogger)
+                cbLogger(fmtutil::format(u8"文件{}头部校验失败", binFolder));
+            continue;
+        }
 
-		BlockHeader* bHeader = (BlockHeader*)buffer.data();
+        BlockHeader* bHeader = (BlockHeader*)buffer.data();
 
-		if(bHeader->_type < BT_HIS_Minute1 || bHeader->_type > BT_HIS_Day)
-		{
-			if (cbLogger)
-				cbLogger(fmtutil::format(u8"文件{}不是K线数据，跳过转换", binFolder));
-			continue;
-		}
+        if (bHeader->_type < BT_HIS_Minute1 || bHeader->_type > BT_HIS_Day) {
+            if (cbLogger)
+                cbLogger(fmtutil::format(u8"文件{}不是K线数据，跳过转换", binFolder));
+            continue;
+        }
 
-		bool isDay = (bHeader->_type == BT_HIS_Day);
+        bool isDay = (bHeader->_type == BT_HIS_Day);
 
-		proc_block_data(buffer, true, false);		
+        proc_block_data(buffer, true, false);
 
-		auto kcnt = buffer.size() / sizeof(WTSBarStruct);
-		if (kcnt <= 0)
-			continue;
+        auto kcnt = buffer.size() / sizeof(WTSBarStruct);
+        if (kcnt <= 0)
+            continue;
 
-		std::string filename = StrUtil::standardisePath(csvFolder);
-		filename += fileCode;
-		filename += ".csv";
+        std::string filename = StrUtil::standardisePath(csvFolder);
+        filename += fileCode;
+        filename += ".csv";
 
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"正在写入{}...", filename));
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"正在写入{}...", filename));
 
-		WTSBarStruct* bars = (WTSBarStruct*)buffer.data();
+        WTSBarStruct* bars = (WTSBarStruct*)buffer.data();
 
-		std::stringstream ss;
-		ss << "date,time,open,high,low,close,settle,volume,turnover,open_interest,diff_interest" << std::endl;
-		ss.setf(std::ios::fixed);
+        std::stringstream ss;
+        ss << "date,time,open,high,low,close,settle,volume,turnover,open_interest,diff_interest" << std::endl;
+        ss.setf(std::ios::fixed);
 
-		for (uint32_t i = 0; i < kcnt; i++)
-		{
-			const WTSBarStruct& curBar = bars[i];
-			if(isDay)
-			{
-				ss << curBar.date << ",0,";
-			}
-			else
-			{
-				uint32_t barTime = (uint32_t)(curBar.time % 10000 * 100);
-				uint32_t barDate = (uint32_t)(curBar.time / 10000 + 19900000);
-				ss << barDate << ","
-					<< barTime << ",";
-			}
-			
-			ss << curBar.open << ","
-				<< curBar.high << ","
-				<< curBar.low << ","
-				<< curBar.close << ","
-				<< curBar.settle << ","
-				<< curBar.vol << ","
-				<< curBar.money << ","
-				<< curBar.hold << ","
-				<< curBar.add << std::endl;
-		}
+        for (uint32_t i = 0; i < kcnt; i++) {
+            const WTSBarStruct& curBar = bars[i];
+            if (isDay) {
+                ss << curBar.date << ",0,";
+            }
+            else {
+                uint32_t barTime = (uint32_t)(curBar.time % 10000 * 100);
+                uint32_t barDate = (uint32_t)(curBar.time / 10000 + 19900000);
+                ss << barDate << ","
+                   << barTime << ",";
+            }
 
-		StdFile::write_file_content(filename.c_str(), ss.str().c_str(), (uint32_t)ss.str().size());
+            ss << curBar.open << ","
+               << curBar.high << ","
+               << curBar.low << ","
+               << curBar.close << ","
+               << curBar.settle << ","
+               << curBar.vol << ","
+               << curBar.money << ","
+               << curBar.hold << ","
+               << curBar.add << std::endl;
+        }
 
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"{}写入完成,共{}条bar", filename, kcnt));
-	}
+        StdFile::write_file_content(filename.c_str(), ss.str().c_str(), (uint32_t)ss.str().size());
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"目录{}全部导出完成...", binFolder));
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"{}写入完成,共{}条bar", filename, kcnt));
+    }
+
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"目录{}全部导出完成...", binFolder));
 }
 
 void dump_ticks(WtString binFolder, WtString csvFolder, WtString strFilter /* = "" */, FuncLogCallback cbLogger /* = NULL */)
 {
-	std::string srcFolder = StrUtil::standardisePath(binFolder);
-	if (!StdFile::exists(srcFolder.c_str()))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"目录{}不存在", binFolder));
-		return;
-	}
+    std::string srcFolder = StrUtil::standardisePath(binFolder);
+    if (!StdFile::exists(srcFolder.c_str())) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"目录{}不存在", binFolder));
+        return;
+    }
 
-	if (!StdFile::exists(csvFolder))
-		fs::create_directories(csvFolder);
+    if (!StdFile::exists(csvFolder))
+        fs::create_directories(csvFolder);
 
-	fs::path myPath(srcFolder);
-	fs::directory_iterator endIter;
-	for (fs::directory_iterator iter(myPath); iter != endIter; iter++)
-	{
-		if (fs::is_directory(iter->path()))
-			continue;
+    fs::path myPath(srcFolder);
+    fs::directory_iterator endIter;
+    for (fs::directory_iterator iter(myPath); iter != endIter; iter++) {
+        if (fs::is_directory(iter->path()))
+            continue;
 
-		if (iter->path().extension() != ".dsb")
-			continue;
+        if (iter->path().extension() != ".dsb")
+            continue;
 
-		const std::string& path = iter->path().string();
+        const std::string& path = iter->path().string();
 
-		std::string fileCode = iter->path().stem().string();
+        std::string fileCode = iter->path().stem().string();
 
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-		std::string buffer;
-		StdFile::read_file_content(path.c_str(), buffer);
-		if (buffer.size() < sizeof(HisTickBlock))
-		{
-			if (cbLogger)
-				cbLogger(fmtutil::format(u8"文件{}头部校验失败", binFolder));
-			continue;
-		}
+        std::string buffer;
+        StdFile::read_file_content(path.c_str(), buffer);
+        if (buffer.size() < sizeof(HisTickBlock)) {
+            if (cbLogger)
+                cbLogger(fmtutil::format(u8"文件{}头部校验失败", binFolder));
+            continue;
+        }
 
-		proc_block_data(buffer, false, false);
+        proc_block_data(buffer, false, false);
 
-		auto tcnt = buffer.size() / sizeof(WTSTickStruct);
-		if (tcnt <= 0)
-			continue;
+        auto tcnt = buffer.size() / sizeof(WTSTickStruct);
+        if (tcnt <= 0)
+            continue;
 
-		std::string filename = StrUtil::standardisePath(csvFolder);
-		filename += fileCode;
-		filename += ".csv";
+        std::string filename = StrUtil::standardisePath(csvFolder);
+        filename += fileCode;
+        filename += ".csv";
 
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"正在写入{}...", filename.c_str()));
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"正在写入{}...", filename.c_str()));
 
-		WTSTickStruct* ticks = (WTSTickStruct*)buffer.data();
+        WTSTickStruct* ticks = (WTSTickStruct*)buffer.data();
 
-		std::stringstream ss;
-		ss.setf(std::ios::fixed, std::ios::floatfield);
-		ss.precision(6);
-		ss << "exchg,code,tradingdate,actiondate,actiontime,price,open,high,low,settle,preclose,"
-			<< "presettle,preinterest,total_volume,total_turnover,open_interest,volume,turnover,additional,";
-		for (int i = 0; i < 10; i++)
-		{
-			bool hasTail = (i != 9);
-			ss << "bidprice" << i + 1 << "," << "bidqty" << i + 1 << "," << "askprice" << i + 1 << "," << "askqty" << i + 1 << (hasTail ? "," : "");
-		}
-		ss << std::endl;
+        std::stringstream ss;
+        ss.setf(std::ios::fixed, std::ios::floatfield);
+        ss.precision(6);
+        ss << "exchg,code,tradingdate,actiondate,actiontime,price,open,high,low,settle,preclose,"
+           << "presettle,preinterest,total_volume,total_turnover,open_interest,volume,turnover,additional,";
+        for (int i = 0; i < 10; i++) {
+            bool hasTail = (i != 9);
+            ss << "bidprice" << i + 1 << "," << "bidqty" << i + 1 << "," << "askprice" << i + 1 << "," << "askqty" << i + 1 << (hasTail ? "," : "");
+        }
+        ss << std::endl;
 
-		for (uint32_t i = 0; i < tcnt; i++)
-		{
-			const WTSTickStruct& curTick = ticks[i];
-			ss << curTick.exchg << "," << curTick.code << ","
-				<< curTick.trading_date << ","
-				<< curTick.action_date << ","
-				<< curTick.action_time << ","
-				<< curTick.price << ","
-				<< curTick.open << ","
-				<< curTick.high << ","
-				<< curTick.low << ","
-				<< curTick.settle_price << ","
-				<< curTick.pre_close << ","
-				<< curTick.pre_settle << ","
-				<< curTick.pre_interest << ","
-				<< curTick.total_volume << ","
-				<< curTick.total_turnover << ","
-				<< curTick.open_interest << ","
-				<< curTick.volume << ","
-				<< curTick.turn_over << ","
-				<< curTick.diff_interest << ",";
+        for (uint32_t i = 0; i < tcnt; i++) {
+            const WTSTickStruct& curTick = ticks[i];
+            ss << curTick.exchg << "," << curTick.code << ","
+               << curTick.trading_date << ","
+               << curTick.action_date << ","
+               << curTick.action_time << ","
+               << curTick.price << ","
+               << curTick.open << ","
+               << curTick.high << ","
+               << curTick.low << ","
+               << curTick.settle_price << ","
+               << curTick.pre_close << ","
+               << curTick.pre_settle << ","
+               << curTick.pre_interest << ","
+               << curTick.total_volume << ","
+               << curTick.total_turnover << ","
+               << curTick.open_interest << ","
+               << curTick.volume << ","
+               << curTick.turn_over << ","
+               << curTick.diff_interest << ",";
 
-			for (int j = 0; j < 10; j++)
-			{
-				bool hasTail = (j != 9);
-				ss << curTick.bid_prices[j] << "," << curTick.bid_qty[j] << "," << curTick.ask_prices[j] << "," << curTick.ask_qty[j] << (hasTail ? "," : "");
-			}
-			ss << std::endl;
-		}
+            for (int j = 0; j < 10; j++) {
+                bool hasTail = (j != 9);
+                ss << curTick.bid_prices[j] << "," << curTick.bid_qty[j] << "," << curTick.ask_prices[j] << "," << curTick.ask_qty[j] << (hasTail ? "," : "");
+            }
+            ss << std::endl;
+        }
 
-		StdFile::write_file_content(filename.c_str(), ss.str().c_str(), (uint32_t)ss.str().size());
+        StdFile::write_file_content(filename.c_str(), ss.str().c_str(), (uint32_t)ss.str().size());
 
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"{}写入完成,共{}条tick数据", filename.c_str(), tcnt));
-	}
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"{}写入完成,共{}条tick数据", filename.c_str(), tcnt));
+    }
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"目录{}全部导出完成...", binFolder));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"目录{}全部导出完成...", binFolder));
 }
 
 void trans_csv_bars(WtString csvFolder, WtString binFolder, WtString period, FuncLogCallback cbLogger /* = NULL */)
 {
-	if (!StdFile::exists(csvFolder))
-		return;
+    if (!StdFile::exists(csvFolder))
+        return;
 
-	if (!StdFile::exists(binFolder))
-		fs::create_directories(binFolder);
+    if (!StdFile::exists(binFolder))
+        fs::create_directories(binFolder);
 
-	WTSKlinePeriod kp = KP_DAY;
-	if (wt_stricmp(period, "m1") == 0)
-		kp = KP_Minute1;
-	else if (wt_stricmp(period, "m5") == 0)
-		kp = KP_Minute5;
-	else
-		kp = KP_DAY;
+    WTSKlinePeriod kp = KP_DAY;
+    if (wt_stricmp(period, "m1") == 0)
+        kp = KP_Minute1;
+    else if (wt_stricmp(period, "m5") == 0)
+        kp = KP_Minute5;
+    else
+        kp = KP_DAY;
 
-	fs::path myPath(csvFolder);
-	fs::directory_iterator endIter;
-	for (fs::directory_iterator iter(myPath); iter != endIter; iter++)
-	{
-		if (fs::is_directory(iter->path()))
-			continue;
+    fs::path myPath(csvFolder);
+    fs::directory_iterator endIter;
+    for (fs::directory_iterator iter(myPath); iter != endIter; iter++) {
+        if (fs::is_directory(iter->path()))
+            continue;
 
-		if (iter->path().extension() != ".csv")
-			continue;
+        if (iter->path().extension() != ".csv")
+            continue;
 
-		const std::string& path = iter->path().string();
+        const std::string& path = iter->path().string();
 
-		if(cbLogger)
-			cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-		CsvReader reader(",");
-		if(!reader.load_from_file(path.c_str()))
-		{
-			if (cbLogger)
-				cbLogger(fmtutil::format(u8"读取数据文件{}失败...", path.c_str()));
-			continue;
-		}
+        CsvReader reader(",");
+        if (!reader.load_from_file(path.c_str())) {
+            if (cbLogger)
+                cbLogger(fmtutil::format(u8"读取数据文件{}失败...", path.c_str()));
+            continue;
+        }
 
-		std::vector<WTSBarStruct> bars;
+        std::vector<WTSBarStruct> bars;
 
-		while(reader.next_row())
-		{
-			//逐行读取
-			WTSBarStruct bs;
-			bs.date = strToDate(reader.get_string("date"));
-			if(kp != KP_DAY)
-				bs.time = TimeUtils::timeToMinBar(bs.date, strToTime(reader.get_string("time")));
-			bs.open = reader.get_double("open");
-			bs.high = reader.get_double("high");
-			bs.low = reader.get_double("low");
-			bs.close = reader.get_double("close");
-			bs.vol = reader.get_double("volume");
-			bs.money = reader.get_double("turnover");
-			bs.hold = reader.get_double("open_interest");
-			bs.add = reader.get_double("diff_interest");
-			bs.settle = reader.get_double("settle");
-			bars.emplace_back(bs);
+        while (reader.next_row()) {
+            // 逐行读取
+            WTSBarStruct bs;
+            bs.date = strToDate(reader.get_string("date"));
+            if (kp != KP_DAY)
+                bs.time = TimeUtils::timeToMinBar(bs.date, strToTime(reader.get_string("time")));
+            bs.open = reader.get_double("open");
+            bs.high = reader.get_double("high");
+            bs.low = reader.get_double("low");
+            bs.close = reader.get_double("close");
+            bs.vol = reader.get_double("volume");
+            bs.money = reader.get_double("turnover");
+            bs.hold = reader.get_double("open_interest");
+            bs.add = reader.get_double("diff_interest");
+            bs.settle = reader.get_double("settle");
+            bars.emplace_back(bs);
 
-			if (bars.size() % 1000 == 0)
-			{
-				if (cbLogger)
-					cbLogger(fmtutil::format(u8"已读取数据{}条", bars.size()));
-			}
-		}
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"数据文件{}全部读取完成,共{}条", path.c_str(), bars.size()));
+            if (bars.size() % 1000 == 0) {
+                if (cbLogger)
+                    cbLogger(fmtutil::format(u8"已读取数据{}条", bars.size()));
+            }
+        }
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"数据文件{}全部读取完成,共{}条", path.c_str(), bars.size()));
 
-		BlockType btype;
-		switch (kp)
-		{
-		case KP_Minute1: btype = BT_HIS_Minute1; break;
-		case KP_Minute5: btype = BT_HIS_Minute5; break;
-		default: btype = BT_HIS_Day; break;
-		}
+        BlockType btype;
+        switch (kp) {
+        case KP_Minute1:
+            btype = BT_HIS_Minute1;
+            break;
+        case KP_Minute5:
+            btype = BT_HIS_Minute5;
+            break;
+        default:
+            btype = BT_HIS_Day;
+            break;
+        }
 
-		HisKlineBlockV2 kBlock;
-		strcpy(kBlock._blk_flag, BLK_FLAG);
-		kBlock._type = btype;
-		kBlock._version = BLOCK_VERSION_CMP_V2;
+        HisKlineBlockV2 kBlock;
+        strcpy(kBlock._blk_flag, BLK_FLAG);
+        kBlock._type = btype;
+        kBlock._version = BLOCK_VERSION_CMP_V2;
 
-		std::string cmprsData = WTSCmpHelper::compress_data(bars.data(), sizeof(WTSBarStruct)*bars.size());
-		kBlock._size = cmprsData.size();
+        std::string cmprsData = WTSCmpHelper::compress_data(bars.data(), sizeof(WTSBarStruct) * bars.size());
+        kBlock._size = cmprsData.size();
 
-		std::string filename = StrUtil::standardisePath(binFolder);
-		filename += iter->path().stem().string();
-		filename += ".dsb";
+        std::string filename = StrUtil::standardisePath(binFolder);
+        filename += iter->path().stem().string();
+        filename += ".dsb";
 
-		BoostFile bf;
-		if (bf.create_new_file(filename.c_str()))
-		{
-			bf.write_file(&kBlock, sizeof(HisKlineBlockV2));
-		}
-		bf.write_file(cmprsData);
-		bf.close_file();
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"数据已转储至{}", filename.c_str()));
-	}
+        BoostFile bf;
+        if (bf.create_new_file(filename.c_str())) {
+            bf.write_file(&kBlock, sizeof(HisKlineBlockV2));
+        }
+        bf.write_file(cmprsData);
+        bf.close_file();
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"数据已转储至{}", filename.c_str()));
+    }
 }
 
-//bool trans_bars(WtString barFile, FuncGetBarItem getter, int count, WtString period, FuncLogCallback cbLogger /* = NULL */)
+// bool trans_bars(WtString barFile, FuncGetBarItem getter, int count, WtString period, FuncLogCallback cbLogger /* = NULL */)
 //{
 //	if (count == 0)
 //	{
@@ -537,9 +507,9 @@ void trans_csv_bars(WtString csvFolder, WtString binFolder, WtString period, Fun
 //	if (cbLogger)
 //		cbLogger("K线数据写入文件成功");
 //	return true;
-//}
+// }
 //
-//bool trans_ticks(WtString tickFile, FuncGetTickItem getter, int count, FuncLogCallback cbLogger/* = NULL*/)
+// bool trans_ticks(WtString tickFile, FuncGetTickItem getter, int count, FuncLogCallback cbLogger/* = NULL*/)
 //{
 //	if (count == 0)
 //	{
@@ -590,658 +560,604 @@ void trans_csv_bars(WtString csvFolder, WtString binFolder, WtString period, Fun
 //		cbLogger("Tick数据写入文件成功");
 //
 //	return true;
-//}
+// }
 
 WtUInt32 read_dsb_ticks(WtString tickFile, FuncGetTicksCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger /* = NULL */)
 {
-	std::string path = tickFile;
+    std::string path = tickFile;
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-	std::string content;
-	StdFile::read_file_content(path.c_str(), content);
-	if (content.size() < sizeof(HisTickBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", tickFile));
-		return 0;
-	}
+    std::string content;
+    StdFile::read_file_content(path.c_str(), content);
+    if (content.size() < sizeof(HisTickBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", tickFile));
+        return 0;
+    }
 
-	proc_block_data(content, false, false);
+    proc_block_data(content, false, false);
 
-	if (content.empty())
-	{
-		cbCnt(0);
-		return 0;
-	}
+    if (content.empty()) {
+        cbCnt(0);
+        return 0;
+    }
 
-	auto tcnt = content.size() / sizeof(WTSTickStruct);
+    auto tcnt = content.size() / sizeof(WTSTickStruct);
 
-	cbCnt(tcnt);
-	cb((WTSTickStruct*)content.data(), tcnt, true);
+    cbCnt(tcnt);
+    cb((WTSTickStruct*)content.data(), tcnt, true);
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}读取完成,共{}条tick数据", tickFile, tcnt));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}读取完成,共{}条tick数据", tickFile, tcnt));
 
-	return (WtUInt32)tcnt;
+    return (WtUInt32)tcnt;
 }
 
-WtUInt32 read_dsb_order_details(WtString dataFile, FuncGetOrdDtlCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger/* = NULL*/)
+WtUInt32 read_dsb_order_details(WtString dataFile, FuncGetOrdDtlCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger /* = NULL*/)
 {
-	std::string path = dataFile;
+    std::string path = dataFile;
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-	std::string content;
-	StdFile::read_file_content(path.c_str(), content);
-	if (content.size() < sizeof(HisOrdDtlBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", dataFile));
-		return 0;
-	}
+    std::string content;
+    StdFile::read_file_content(path.c_str(), content);
+    if (content.size() < sizeof(HisOrdDtlBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", dataFile));
+        return 0;
+    }
 
-	proc_block_data(content, false, false);
+    proc_block_data(content, false, false);
 
-	if (content.empty())
-	{
-		cbCnt(0);
-		return 0;
-	}
+    if (content.empty()) {
+        cbCnt(0);
+        return 0;
+    }
 
-	auto tcnt = content.size() / sizeof(WTSOrdDtlStruct);
+    auto tcnt = content.size() / sizeof(WTSOrdDtlStruct);
 
-	cbCnt(tcnt);
-	cb((WTSOrdDtlStruct*)content.data(), tcnt, true);
+    cbCnt(tcnt);
+    cb((WTSOrdDtlStruct*)content.data(), tcnt, true);
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}读取完成,共{}条order detail数据", dataFile, tcnt));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}读取完成,共{}条order detail数据", dataFile, tcnt));
 
-	return (WtUInt32)tcnt;
+    return (WtUInt32)tcnt;
 }
 
-WtUInt32 read_dsb_order_queues(WtString dataFile, FuncGetOrdQueCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger/* = NULL*/)
+WtUInt32 read_dsb_order_queues(WtString dataFile, FuncGetOrdQueCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger /* = NULL*/)
 {
-	std::string path = dataFile;
+    std::string path = dataFile;
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-	std::string content;
-	StdFile::read_file_content(path.c_str(), content);
-	if (content.size() < sizeof(HisOrdQueBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", dataFile));
-		return 0;
-	}
+    std::string content;
+    StdFile::read_file_content(path.c_str(), content);
+    if (content.size() < sizeof(HisOrdQueBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", dataFile));
+        return 0;
+    }
 
-	proc_block_data(content, false, false);
+    proc_block_data(content, false, false);
 
-	if (content.empty())
-	{
-		cbCnt(0);
-		return 0;
-	}
+    if (content.empty()) {
+        cbCnt(0);
+        return 0;
+    }
 
-	auto tcnt = content.size() / sizeof(WTSOrdQueStruct);
+    auto tcnt = content.size() / sizeof(WTSOrdQueStruct);
 
-	cbCnt(tcnt);
-	cb((WTSOrdQueStruct*)content.data(), tcnt, true);
+    cbCnt(tcnt);
+    cb((WTSOrdQueStruct*)content.data(), tcnt, true);
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}读取完成,共{}条order queue数据", dataFile, tcnt));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}读取完成,共{}条order queue数据", dataFile, tcnt));
 
-	return (WtUInt32)tcnt;
+    return (WtUInt32)tcnt;
 }
 
-WtUInt32 read_dsb_transactions(WtString dataFile, FuncGetTransCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger/* = NULL*/)
+WtUInt32 read_dsb_transactions(WtString dataFile, FuncGetTransCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger /* = NULL*/)
 {
-	std::string path = dataFile;
+    std::string path = dataFile;
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-	std::string content;
-	StdFile::read_file_content(path.c_str(), content);
-	if (content.size() < sizeof(HisTransBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", dataFile));
-		return 0;
-	}
+    std::string content;
+    StdFile::read_file_content(path.c_str(), content);
+    if (content.size() < sizeof(HisTransBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", dataFile));
+        return 0;
+    }
 
-	proc_block_data(content, false, false);
+    proc_block_data(content, false, false);
 
-	if (content.empty())
-	{
-		cbCnt(0);
-		return 0;
-	}
+    if (content.empty()) {
+        cbCnt(0);
+        return 0;
+    }
 
-	auto tcnt = content.size() / sizeof(WTSTransStruct);
+    auto tcnt = content.size() / sizeof(WTSTransStruct);
 
-	cbCnt(tcnt);
-	cb((WTSTransStruct*)content.data(), tcnt, true);
+    cbCnt(tcnt);
+    cb((WTSTransStruct*)content.data(), tcnt, true);
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}读取完成,共{}条transaction数据", dataFile, tcnt));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}读取完成,共{}条transaction数据", dataFile, tcnt));
 
-	return (WtUInt32)tcnt;
+    return (WtUInt32)tcnt;
 }
 
-WtUInt32 read_dsb_bars(WtString barFile, FuncGetBarsCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger )
+WtUInt32 read_dsb_bars(WtString barFile, FuncGetBarsCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger)
 {
-	std::string path = barFile;
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+    std::string path = barFile;
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-	std::string content;
-	StdFile::read_file_content(path.c_str(), content);
-	if (content.size() < sizeof(HisKlineBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", barFile));
-		return 0;
-	}
+    std::string content;
+    StdFile::read_file_content(path.c_str(), content);
+    if (content.size() < sizeof(HisKlineBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", barFile));
+        return 0;
+    }
 
-	proc_block_data(content, true, false);
+    proc_block_data(content, true, false);
 
-	if(content.empty())
-	{
-		cbCnt(0);
-		return 0;
-	}
+    if (content.empty()) {
+        cbCnt(0);
+        return 0;
+    }
 
+    auto kcnt = content.size() / sizeof(WTSBarStruct);
+    cbCnt(kcnt);
+    cb((WTSBarStruct*)content.data(), kcnt, true);
 
-	auto kcnt = content.size() / sizeof(WTSBarStruct);
-	cbCnt(kcnt);
-	cb((WTSBarStruct*)content.data(), kcnt, true);
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}读取完成,共{}条bar", barFile, kcnt));
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}读取完成,共{}条bar", barFile, kcnt));
-
-	return (WtUInt32)kcnt;
+    return (WtUInt32)kcnt;
 }
 
 WtUInt32 read_dmb_bars(WtString barFile, FuncGetBarsCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger)
 {
-	std::string path = barFile;
+    std::string path = barFile;
 
-	std::string buffer;
-	StdFile::read_file_content(path.c_str(), buffer);
-	if (buffer.size() < sizeof(RTKlineBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", barFile));
-		return 0;
-	}
+    std::string buffer;
+    StdFile::read_file_content(path.c_str(), buffer);
+    if (buffer.size() < sizeof(RTKlineBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", barFile));
+        return 0;
+    }
 
-	RTKlineBlock* tBlock = (RTKlineBlock*)buffer.c_str();
-	auto kcnt = tBlock->_size;
-	if (kcnt <= 0)
-	{
-		cbCnt(0);
-		return 0;
-	}
+    RTKlineBlock* tBlock = (RTKlineBlock*)buffer.c_str();
+    auto kcnt = tBlock->_size;
+    if (kcnt <= 0) {
+        cbCnt(0);
+        return 0;
+    }
 
-	cbCnt(kcnt);
-	cb(tBlock->_bars, kcnt, true);
+    cbCnt(kcnt);
+    cb(tBlock->_bars, kcnt, true);
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}读取完成,共{}条bar", barFile, kcnt));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}读取完成,共{}条bar", barFile, kcnt));
 
-	return (WtUInt32)kcnt;
+    return (WtUInt32)kcnt;
 }
 
 WtUInt32 read_dmb_ticks(WtString tickFile, FuncGetTicksCallback cb, FuncCountDataCallback cbCnt, FuncLogCallback cbLogger /* = NULL */)
 {
-	std::string path = tickFile;
+    std::string path = tickFile;
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-	std::string buffer;
-	StdFile::read_file_content(path.c_str(), buffer);
-	if (buffer.size() < sizeof(RTTickBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", tickFile));
-		return 0;
-	}
+    std::string buffer;
+    StdFile::read_file_content(path.c_str(), buffer);
+    if (buffer.size() < sizeof(RTTickBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", tickFile));
+        return 0;
+    }
 
-	RTTickBlock* tBlock = (RTTickBlock*)buffer.c_str();
-	auto tcnt = tBlock->_size;
-	if (tcnt <= 0)
-	{
-		cbCnt(0);
-		return 0;
-	}
+    RTTickBlock* tBlock = (RTTickBlock*)buffer.c_str();
+    auto tcnt = tBlock->_size;
+    if (tcnt <= 0) {
+        cbCnt(0);
+        return 0;
+    }
 
-	cbCnt(tcnt);
-	cb(tBlock->_ticks, tcnt, true);
+    cbCnt(tcnt);
+    cb(tBlock->_ticks, tcnt, true);
 
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}读取完成,共{}条tick数据", tickFile, tcnt));
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}读取完成,共{}条tick数据", tickFile, tcnt));
 
-	return (WtUInt32)tcnt;
+    return (WtUInt32)tcnt;
 }
 
-
 WtUInt32 resample_bars(WtString barFile, FuncGetBarsCallback cb, FuncCountDataCallback cbCnt, WtUInt64 fromTime, WtUInt64 endTime,
-	WtString period, WtUInt32 times, WtString sessInfo, FuncLogCallback cbLogger /* = NULL */, bool bAlignSec/* = false*/)
+                       WtString period, WtUInt32 times, WtString sessInfo, FuncLogCallback cbLogger /* = NULL */, bool bAlignSec /* = false*/)
 {
-	WTSKlinePeriod kp;
-	if(wt_stricmp(period, "m1") == 0)
-	{
-		kp = KP_Minute1;
-	}
-	else if (wt_stricmp(period, "m5") == 0)
-	{
-		kp = KP_Minute5;
-	}
-	else if (wt_stricmp(period, "d") == 0)
-	{
-		kp = KP_DAY;
-	}
-	else if (period[0] == 'h')
-	{
-		kp = KP_Minute5;
-		times = PERIOD_TIMES_HOUR;
-	}
-	else if (period[0] == 'f')
-	{
-		kp = KP_Minute5;
-		times = PERIOD_TIMES_HALF;
-	}
-	else
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"周期{}不是基础周期...", period));
-		return 0;
-	}
+    WTSKlinePeriod kp;
+    if (wt_stricmp(period, "m1") == 0) {
+        kp = KP_Minute1;
+    }
+    else if (wt_stricmp(period, "m5") == 0) {
+        kp = KP_Minute5;
+    }
+    else if (wt_stricmp(period, "d") == 0) {
+        kp = KP_DAY;
+    }
+    else if (period[0] == 'h') {
+        kp = KP_Minute5;
+        times = PERIOD_TIMES_HOUR;
+    }
+    else if (period[0] == 'f') {
+        kp = KP_Minute5;
+        times = PERIOD_TIMES_HALF;
+    }
+    else {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"周期{}不是基础周期...", period));
+        return 0;
+    }
 
-	bool isDay = (kp == KP_DAY);
+    bool isDay = (kp == KP_DAY);
 
-	if(isDay)
-	{
-		if(fromTime >= 100000000 || endTime > 100000000)
-		{
-			if (cbLogger)
-				cbLogger(u8"日线基础数据的开始时间结束时间应为日期，格式如yyyymmdd");
-			return 0;
-		}
-	}
-	else
-	{
-		if (fromTime < 100000000 || endTime < 100000000)
-		{
-			if (cbLogger)
-				cbLogger(u8"分钟线基础数据的开始时间结束时间应为时间，格式如yyyymmddHHMM");
-			return 0;
-		}
-	}
+    if (isDay) {
+        if (fromTime >= 100000000 || endTime > 100000000) {
+            if (cbLogger)
+                cbLogger(u8"日线基础数据的开始时间结束时间应为日期，格式如yyyymmdd");
+            return 0;
+        }
+    }
+    else {
+        if (fromTime < 100000000 || endTime < 100000000) {
+            if (cbLogger)
+                cbLogger(u8"分钟线基础数据的开始时间结束时间应为时间，格式如yyyymmddHHMM");
+            return 0;
+        }
+    }
 
-	if(fromTime > endTime)
-	{
-		std::swap(fromTime, endTime);
-	}
+    if (fromTime > endTime) {
+        std::swap(fromTime, endTime);
+    }
 
-	WTSSessionInfo* sInfo = NULL;
-	{
-		rj::Document root;
-		if (root.Parse(sessInfo).HasParseError())
-		{
-			if (cbLogger)
-				cbLogger(u8"交易时间模板解析失败");
-			return 0;
-		}
+    WTSSessionInfo* sInfo = NULL;
+    {
+        rj::Document root;
+        if (root.Parse(sessInfo).HasParseError()) {
+            if (cbLogger)
+                cbLogger(u8"交易时间模板解析失败");
+            return 0;
+        }
 
-		int32_t offset = root["offset"].GetInt();
+        int32_t offset = root["offset"].GetInt();
 
-		sInfo = WTSSessionInfo::create("tmp", "tmp", offset);
+        sInfo = WTSSessionInfo::create("tmp", "tmp", offset);
 
-		if (!root["auction"].IsNull())
-		{
-			const rj::Value& jAuc = root["auction"];
-			sInfo->setAuctionTime(jAuc["from"].GetUint(), jAuc["to"].GetUint());
-		}
+        if (!root["auction"].IsNull()) {
+            const rj::Value& jAuc = root["auction"];
+            sInfo->setAuctionTime(jAuc["from"].GetUint(), jAuc["to"].GetUint());
+        }
 
-		const rj::Value& jSecs = root["sections"];
-		if (jSecs.IsNull() || !jSecs.IsArray())
-		{
-			if (cbLogger)
-				cbLogger(u8"交易时间模板格式错误");
-			return 0;
-		}
+        const rj::Value& jSecs = root["sections"];
+        if (jSecs.IsNull() || !jSecs.IsArray()) {
+            if (cbLogger)
+                cbLogger(u8"交易时间模板格式错误");
+            return 0;
+        }
 
-		for (const rj::Value& jSec : jSecs.GetArray())
-		{
-			sInfo->addTradingSection(jSec["from"].GetUint(), jSec["to"].GetUint());
-		}
-	}
+        for (const rj::Value& jSec : jSecs.GetArray()) {
+            sInfo->addTradingSection(jSec["from"].GetUint(), jSec["to"].GetUint());
+        }
+    }
 
-	std::string path = barFile;
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
+    std::string path = barFile;
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"正在读取数据文件{}...", path.c_str()));
 
-	std::string buffer;
-	StdFile::read_file_content(path.c_str(), buffer);
-	if (buffer.size() < sizeof(HisKlineBlock))
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"文件{}头部校验失败", barFile));
-		return 0;
-	}
+    std::string buffer;
+    StdFile::read_file_content(path.c_str(), buffer);
+    if (buffer.size() < sizeof(HisKlineBlock)) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"文件{}头部校验失败", barFile));
+        return 0;
+    }
 
-	proc_block_data(buffer, true, false);
+    proc_block_data(buffer, true, false);
 
-	auto kcnt = buffer.size() / sizeof(WTSBarStruct);
-	if (kcnt <= 0)
-	{
-		if (cbLogger)
-			cbLogger(fmtutil::format(u8"{}数据为空", barFile));
-		return 0;
-	}
+    auto kcnt = buffer.size() / sizeof(WTSBarStruct);
+    if (kcnt <= 0) {
+        if (cbLogger)
+            cbLogger(fmtutil::format(u8"{}数据为空", barFile));
+        return 0;
+    }
 
-	WTSBarStruct* bars = (WTSBarStruct*)buffer.c_str();
+    WTSBarStruct* bars = (WTSBarStruct*)buffer.c_str();
 
-	//确定第一条K线的位置
-	WTSBarStruct bar;
-	if (isDay)
-		bar.date = (uint32_t)fromTime;
-	else
-	{
+    // 确定第一条K线的位置
+    WTSBarStruct bar;
+    if (isDay)
+        bar.date = (uint32_t)fromTime;
+    else {
+        bar.time = fromTime % 100000000 + ((fromTime / 100000000) - 1990) * 100000000;
+    }
 
-		bar.time = fromTime % 100000000 + ((fromTime / 100000000) - 1990) * 100000000;
-	}
+    WTSBarStruct* pBar = std::lower_bound(bars, bars + (kcnt - 1), bar, [isDay](const WTSBarStruct& a, const WTSBarStruct& b) {
+        if (isDay)
+            return a.date < b.date;
+        else
+            return a.time < b.time;
+    });
 
-	WTSBarStruct* pBar = std::lower_bound(bars, bars + (kcnt - 1), bar, [isDay](const WTSBarStruct& a, const WTSBarStruct& b) {
-		if (isDay)
-			return a.date < b.date;
-		else
-			return a.time < b.time;
-	});
+    uint32_t sIdx = (uint32_t)(pBar - bars);
+    if ((isDay && pBar->date < bar.date) || (!isDay && pBar->time < bar.time)) {
+        // 如果返回的K线的时间小于要查找的时间，说明没有符合条件的数据
+        if (cbLogger)
+            cbLogger(u8"没有找到指定时间范围的K线");
+        return 0;
+    }
+    else if (sIdx != 0 && ((isDay && pBar->date > bar.date) || (!isDay && pBar->time > bar.time))) {
+        pBar--;
+        sIdx--;
+    }
 
+    // 确定最后一条K线的位置
+    if (isDay)
+        bar.date = (uint32_t)endTime;
+    else {
+        bar.time = endTime % 100000000 + ((endTime / 100000000) - 1990) * 100000000;
+    }
+    pBar = std::lower_bound(bars, bars + (kcnt - 1), bar, [isDay](const WTSBarStruct& a, const WTSBarStruct& b) {
+        if (isDay)
+            return a.date < b.date;
+        else
+            return a.time < b.time;
+    });
 
-	uint32_t sIdx = (uint32_t)(pBar - bars);
-	if((isDay && pBar->date < bar.date) || (!isDay && pBar->time < bar.time))
-	{
-		//如果返回的K线的时间小于要查找的时间，说明没有符合条件的数据
-		if (cbLogger)
-			cbLogger(u8"没有找到指定时间范围的K线");
-		return 0;
-	}
-	else if (sIdx != 0 && ((isDay && pBar->date > bar.date) || (!isDay && pBar->time > bar.time)))
-	{
-		pBar--;
-		sIdx--;
-	}
+    uint32_t eIdx = 0;
+    if (pBar == NULL)
+        eIdx = kcnt - 1;
+    else
+        eIdx = (uint32_t)(pBar - bars);
 
-	//确定最后一条K线的位置
-	if (isDay)
-		bar.date = (uint32_t)endTime;
-	else
-	{
+    if (eIdx != 0 && ((isDay && pBar->date > bar.date) || (!isDay && pBar->time > bar.time))) {
+        pBar--;
+        eIdx--;
+    }
 
-		bar.time = endTime % 100000000 + ((endTime / 100000000) - 1990) * 100000000;
-	}
-	pBar = std::lower_bound(bars, bars + (kcnt - 1), bar, [isDay](const WTSBarStruct& a, const WTSBarStruct& b) {
-		if (isDay)
-			return a.date < b.date;
-		else
-			return a.time < b.time;
-	});
+    uint32_t hitCnt = eIdx - sIdx + 1;
+    WTSKlineSlice* slice = WTSKlineSlice::create("", kp, 1, &bars[sIdx], hitCnt);
+    WTSDataFactory fact;
+    WTSKlineData* kline = fact.extractKlineData(slice, kp, times, sInfo, true, bAlignSec);
+    if (kline == NULL) {
+        if (cbLogger)
+            cbLogger(u8"K线重采样失败");
+        return 0;
+    }
 
-	uint32_t eIdx = 0;
-	if (pBar == NULL)
-		eIdx = kcnt - 1;
-	else
-		eIdx = (uint32_t)(pBar - bars);
+    uint32_t newCnt = kline->size();
+    cbCnt(newCnt);
+    cb(&kline->getDataRef().at(0), newCnt, true);
 
-	if (eIdx != 0 && ((isDay && pBar->date > bar.date) || (!isDay && pBar->time > bar.time)))
-	{
-		pBar--;
-		eIdx--;
-	}
+    if (cbLogger)
+        cbLogger(fmtutil::format(u8"{}重采样完成,共将{}条bar重采样为{}条新bar", barFile, hitCnt, newCnt));
 
-	uint32_t hitCnt = eIdx - sIdx + 1;
-	WTSKlineSlice* slice = WTSKlineSlice::create("", kp, 1, &bars[sIdx], hitCnt);
-	WTSDataFactory fact;
-	WTSKlineData* kline = fact.extractKlineData(slice, kp, times, sInfo, true, bAlignSec);
-	if(kline == NULL)
-	{
-		if (cbLogger)
-			cbLogger(u8"K线重采样失败");
-		return 0;
-	}
+    kline->release();
+    sInfo->release();
+    slice->release();
 
-	uint32_t newCnt = kline->size();
-	cbCnt(newCnt);
-	cb(&kline->getDataRef().at(0),newCnt, true);
-
-	if (cbLogger)
-		cbLogger(fmtutil::format(u8"{}重采样完成,共将{}条bar重采样为{}条新bar", barFile, hitCnt, newCnt));
-
-	
-	kline->release();
-	sInfo->release();
-	slice->release();
-
-	return (WtUInt32)newCnt;
+    return (WtUInt32)newCnt;
 }
 
 bool store_bars(WtString barFile, WTSBarStruct* firstBar, int count, WtString period, FuncLogCallback cbLogger /* = NULL */)
 {
-	if (count == 0)
-	{
-		if (cbLogger)
-			cbLogger(u8"K线数据条数为0");
-		return false;
-	}
+    if (count == 0) {
+        if (cbLogger)
+            cbLogger(u8"K线数据条数为0");
+        return false;
+    }
 
-	BlockType bType = BT_HIS_Day;
-	if (wt_stricmp(period, "m1") == 0)
-		bType = BT_HIS_Minute1;
-	else if (wt_stricmp(period, "m5") == 0)
-		bType = BT_HIS_Minute5;
-	else if (wt_stricmp(period, "d") == 0)
-		bType = BT_HIS_Day;
-	else
-	{
-		if (cbLogger)
-			cbLogger(u8"周期只能为m1、m5或d");
-		return false;
-	}
+    BlockType bType = BT_HIS_Day;
+    if (wt_stricmp(period, "m1") == 0)
+        bType = BT_HIS_Minute1;
+    else if (wt_stricmp(period, "m5") == 0)
+        bType = BT_HIS_Minute5;
+    else if (wt_stricmp(period, "d") == 0)
+        bType = BT_HIS_Day;
+    else {
+        if (cbLogger)
+            cbLogger(u8"周期只能为m1、m5或d");
+        return false;
+    }
 
-	std::string buffer;
-	buffer.resize(sizeof(WTSBarStruct)*count);
-	WTSBarStruct* bars = (WTSBarStruct*)buffer.c_str();
-	memcpy(bars, firstBar, sizeof(WTSBarStruct)*count);
+    std::string buffer;
+    buffer.resize(sizeof(WTSBarStruct) * count);
+    WTSBarStruct* bars = (WTSBarStruct*)buffer.c_str();
+    memcpy(bars, firstBar, sizeof(WTSBarStruct) * count);
 
-	if (cbLogger)
-		cbLogger(u8"K线数据已经读取完成，准备写入文件");
+    if (cbLogger)
+        cbLogger(u8"K线数据已经读取完成，准备写入文件");
 
-	std::string content;
-	content.resize(sizeof(HisKlineBlockV2));
-	HisKlineBlockV2* block = (HisKlineBlockV2*)content.data();
-	strcpy(block->_blk_flag, BLK_FLAG);
-	block->_version = BLOCK_VERSION_CMP_V2;
-	block->_type = bType;
-	std::string cmp_data = WTSCmpHelper::compress_data(bars, buffer.size());
-	block->_size = cmp_data.size();
-	content.append(cmp_data);
+    std::string content;
+    content.resize(sizeof(HisKlineBlockV2));
+    HisKlineBlockV2* block = (HisKlineBlockV2*)content.data();
+    strcpy(block->_blk_flag, BLK_FLAG);
+    block->_version = BLOCK_VERSION_CMP_V2;
+    block->_type = bType;
+    std::string cmp_data = WTSCmpHelper::compress_data(bars, buffer.size());
+    block->_size = cmp_data.size();
+    content.append(cmp_data);
 
-	BoostFile bf;
-	if (bf.create_new_file(barFile))
-	{
-		bf.write_file(content);
-	}
-	bf.close_file();
+    BoostFile bf;
+    if (bf.create_new_file(barFile)) {
+        bf.write_file(content);
+    }
+    bf.close_file();
 
-	if (cbLogger)
-		cbLogger(u8"K线数据写入文件成功");
-	return true;
+    if (cbLogger)
+        cbLogger(u8"K线数据写入文件成功");
+    return true;
 }
 
-bool store_ticks(WtString tickFile, WTSTickStruct* firstTick, int count, FuncLogCallback cbLogger/* = NULL*/)
+bool store_ticks(WtString tickFile, WTSTickStruct* firstTick, int count, FuncLogCallback cbLogger /* = NULL*/)
 {
-	if (count == 0)
-	{
-		if (cbLogger)
-			cbLogger(u8"Tick数据条数为0");
-		return false;
-	}
+    if (count == 0) {
+        if (cbLogger)
+            cbLogger(u8"Tick数据条数为0");
+        return false;
+    }
 
-	std::string buffer;
-	buffer.resize(sizeof(WTSTickStruct)*count);
-	WTSTickStruct* ticks = (WTSTickStruct*)buffer.c_str();
-	memcpy(ticks, firstTick, sizeof(WTSTickStruct)*count);
+    std::string buffer;
+    buffer.resize(sizeof(WTSTickStruct) * count);
+    WTSTickStruct* ticks = (WTSTickStruct*)buffer.c_str();
+    memcpy(ticks, firstTick, sizeof(WTSTickStruct) * count);
 
-	if (cbLogger)
-		cbLogger(u8"Tick数据已经读取完成，准备写入文件");
+    if (cbLogger)
+        cbLogger(u8"Tick数据已经读取完成，准备写入文件");
 
-	std::string content;
-	content.resize(sizeof(HisTickBlockV2));
-	HisTickBlockV2* block = (HisTickBlockV2*)content.data();
-	strcpy(block->_blk_flag, BLK_FLAG);
-	block->_version = BLOCK_VERSION_CMP_V2;
-	block->_type = BT_HIS_Ticks;
-	std::string cmp_data = WTSCmpHelper::compress_data(ticks, buffer.size());
-	block->_size = cmp_data.size();
-	content.append(cmp_data);
+    std::string content;
+    content.resize(sizeof(HisTickBlockV2));
+    HisTickBlockV2* block = (HisTickBlockV2*)content.data();
+    strcpy(block->_blk_flag, BLK_FLAG);
+    block->_version = BLOCK_VERSION_CMP_V2;
+    block->_type = BT_HIS_Ticks;
+    std::string cmp_data = WTSCmpHelper::compress_data(ticks, buffer.size());
+    block->_size = cmp_data.size();
+    content.append(cmp_data);
 
-	BoostFile bf;
-	if (bf.create_new_file(tickFile))
-	{
-		bf.write_file(content);
-	}
-	bf.close_file();
+    BoostFile bf;
+    if (bf.create_new_file(tickFile)) {
+        bf.write_file(content);
+    }
+    bf.close_file();
 
-	if (cbLogger)
-		cbLogger(u8"Tick数据写入文件成功");
+    if (cbLogger)
+        cbLogger(u8"Tick数据写入文件成功");
 
-	return true;
+    return true;
 }
 
-bool store_order_details(WtString tickFile, WTSOrdDtlStruct* firstItem, int count, FuncLogCallback cbLogger/* = NULL*/)
+bool store_order_details(WtString tickFile, WTSOrdDtlStruct* firstItem, int count, FuncLogCallback cbLogger /* = NULL*/)
 {
-	if (count == 0)
-	{
-		if (cbLogger)
-			cbLogger("Size of OrderDetail is 0");
-		return false;
-	}
+    if (count == 0) {
+        if (cbLogger)
+            cbLogger("Size of OrderDetail is 0");
+        return false;
+    }
 
-	std::string buffer;
-	buffer.resize(sizeof(WTSOrdDtlStruct)*count);
-	WTSOrdDtlStruct* items = (WTSOrdDtlStruct*)buffer.c_str();
-	memcpy(items, firstItem, sizeof(WTSOrdDtlStruct)*count);
+    std::string buffer;
+    buffer.resize(sizeof(WTSOrdDtlStruct) * count);
+    WTSOrdDtlStruct* items = (WTSOrdDtlStruct*)buffer.c_str();
+    memcpy(items, firstItem, sizeof(WTSOrdDtlStruct) * count);
 
-	if (cbLogger)
-		cbLogger("Reading order details done, prepare to write...");
+    if (cbLogger)
+        cbLogger("Reading order details done, prepare to write...");
 
-	std::string content;
-	content.resize(sizeof(HisOrdDtlBlockV2));
-	HisOrdDtlBlockV2* block = (HisOrdDtlBlockV2*)content.data();
-	strcpy(block->_blk_flag, BLK_FLAG);
-	block->_version = BLOCK_VERSION_CMP_V2;
-	block->_type = BT_HIS_OrdDetail;
-	std::string cmp_data = WTSCmpHelper::compress_data(items, buffer.size());
-	block->_size = cmp_data.size();
-	content.append(cmp_data);
+    std::string content;
+    content.resize(sizeof(HisOrdDtlBlockV2));
+    HisOrdDtlBlockV2* block = (HisOrdDtlBlockV2*)content.data();
+    strcpy(block->_blk_flag, BLK_FLAG);
+    block->_version = BLOCK_VERSION_CMP_V2;
+    block->_type = BT_HIS_OrdDetail;
+    std::string cmp_data = WTSCmpHelper::compress_data(items, buffer.size());
+    block->_size = cmp_data.size();
+    content.append(cmp_data);
 
-	BoostFile bf;
-	if (bf.create_new_file(tickFile))
-	{
-		bf.write_file(content);
-	}
-	bf.close_file();
+    BoostFile bf;
+    if (bf.create_new_file(tickFile)) {
+        bf.write_file(content);
+    }
+    bf.close_file();
 
-	if (cbLogger)
-		cbLogger("Writing order details succeed");
+    if (cbLogger)
+        cbLogger("Writing order details succeed");
 
-	return true;
+    return true;
 }
 
-bool store_order_queues(WtString tickFile, WTSOrdQueStruct* firstItem, int count, FuncLogCallback cbLogger/* = NULL*/)
+bool store_order_queues(WtString tickFile, WTSOrdQueStruct* firstItem, int count, FuncLogCallback cbLogger /* = NULL*/)
 {
-	if (count == 0)
-	{
-		if (cbLogger)
-			cbLogger("Size of order queues is 0");
-		return false;
-	}
+    if (count == 0) {
+        if (cbLogger)
+            cbLogger("Size of order queues is 0");
+        return false;
+    }
 
-	std::string buffer;
-	buffer.resize(sizeof(WTSOrdQueStruct)*count);
-	WTSOrdQueStruct* items = (WTSOrdQueStruct*)buffer.c_str();
-	memcpy(items, firstItem, sizeof(WTSOrdQueStruct)*count);
+    std::string buffer;
+    buffer.resize(sizeof(WTSOrdQueStruct) * count);
+    WTSOrdQueStruct* items = (WTSOrdQueStruct*)buffer.c_str();
+    memcpy(items, firstItem, sizeof(WTSOrdQueStruct) * count);
 
-	if (cbLogger)
-		cbLogger("Reading order queues done, prepare to write...");
+    if (cbLogger)
+        cbLogger("Reading order queues done, prepare to write...");
 
-	std::string content;
-	content.resize(sizeof(HisOrdQueBlockV2));
-	HisOrdQueBlockV2* block = (HisOrdQueBlockV2*)content.data();
-	strcpy(block->_blk_flag, BLK_FLAG);
-	block->_version = BLOCK_VERSION_CMP_V2;
-	block->_type = BT_HIS_OrdQueue;
-	std::string cmp_data = WTSCmpHelper::compress_data(items, buffer.size());
-	block->_size = cmp_data.size();
-	content.append(cmp_data);
+    std::string content;
+    content.resize(sizeof(HisOrdQueBlockV2));
+    HisOrdQueBlockV2* block = (HisOrdQueBlockV2*)content.data();
+    strcpy(block->_blk_flag, BLK_FLAG);
+    block->_version = BLOCK_VERSION_CMP_V2;
+    block->_type = BT_HIS_OrdQueue;
+    std::string cmp_data = WTSCmpHelper::compress_data(items, buffer.size());
+    block->_size = cmp_data.size();
+    content.append(cmp_data);
 
-	BoostFile bf;
-	if (bf.create_new_file(tickFile))
-	{
-		bf.write_file(content);
-	}
-	bf.close_file();
+    BoostFile bf;
+    if (bf.create_new_file(tickFile)) {
+        bf.write_file(content);
+    }
+    bf.close_file();
 
-	if (cbLogger)
-		cbLogger("Writing order queues to file succeedd");
+    if (cbLogger)
+        cbLogger("Writing order queues to file succeedd");
 
-	return true;
+    return true;
 }
 
-bool store_transactions(WtString tickFile, WTSTransStruct* firstItem, int count, FuncLogCallback cbLogger/* = NULL*/)
+bool store_transactions(WtString tickFile, WTSTransStruct* firstItem, int count, FuncLogCallback cbLogger /* = NULL*/)
 {
-	if (count == 0)
-	{
-		if (cbLogger)
-			cbLogger("Size of transations is 0");
-		return false;
-	}
+    if (count == 0) {
+        if (cbLogger)
+            cbLogger("Size of transations is 0");
+        return false;
+    }
 
-	std::string buffer;
-	buffer.resize(sizeof(WTSTransStruct)*count);
-	WTSTransStruct* items = (WTSTransStruct*)buffer.c_str();
-	memcpy(items, firstItem, sizeof(WTSTransStruct)*count);
+    std::string buffer;
+    buffer.resize(sizeof(WTSTransStruct) * count);
+    WTSTransStruct* items = (WTSTransStruct*)buffer.c_str();
+    memcpy(items, firstItem, sizeof(WTSTransStruct) * count);
 
-	if (cbLogger)
-		cbLogger("Reading transactions done, prepare to write...");
+    if (cbLogger)
+        cbLogger("Reading transactions done, prepare to write...");
 
-	std::string content;
-	content.resize(sizeof(HisTransBlockV2));
-	HisTransBlockV2* block = (HisTransBlockV2*)content.data();
-	strcpy(block->_blk_flag, BLK_FLAG);
-	block->_version = BLOCK_VERSION_CMP_V2;
-	block->_type = BT_HIS_Trnsctn;
-	std::string cmp_data = WTSCmpHelper::compress_data(items, buffer.size());
-	block->_size = cmp_data.size();
-	content.append(cmp_data);
+    std::string content;
+    content.resize(sizeof(HisTransBlockV2));
+    HisTransBlockV2* block = (HisTransBlockV2*)content.data();
+    strcpy(block->_blk_flag, BLK_FLAG);
+    block->_version = BLOCK_VERSION_CMP_V2;
+    block->_type = BT_HIS_Trnsctn;
+    std::string cmp_data = WTSCmpHelper::compress_data(items, buffer.size());
+    block->_size = cmp_data.size();
+    content.append(cmp_data);
 
-	BoostFile bf;
-	if (bf.create_new_file(tickFile))
-	{
-		bf.write_file(content);
-	}
-	bf.close_file();
+    BoostFile bf;
+    if (bf.create_new_file(tickFile)) {
+        bf.write_file(content);
+    }
+    bf.close_file();
 
-	if (cbLogger)
-		cbLogger("Write transactions to file succeedd");
+    if (cbLogger)
+        cbLogger("Write transactions to file succeedd");
 
-	return true;
+    return true;
 }
