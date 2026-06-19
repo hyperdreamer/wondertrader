@@ -18,56 +18,55 @@
 NS_WTP_BEGIN
 class MQManager;
 
-class MQClient
-{
+class MQClient {
 public:
-	MQClient(MQManager* mgr);
-	~MQClient();
+    MQClient(MQManager* mgr);
+    ~MQClient();
 
 private:
-	void	extract_buffer();
+    void extract_buffer();
 
-	inline bool	is_allowed(const char* topic)
-	{
-		if (_topics.empty())
-			return true;
+    inline bool is_allowed(const char* topic)
+    {
+        if (_topics.empty())
+            return true;
 
-		auto it = _topics.find(topic);
-		if (it != _topics.end())
-			return true;
+        auto it = _topics.find(topic);
+        if (it != _topics.end())
+            return true;
 
-		return false;
-	}
+        return false;
+    }
 
 public:
-	inline uint32_t id() const { return _id; }
+    inline uint32_t id() const { return _id; }
 
-	bool	init(const char* url, FuncMQCallback cb);
+    bool init(const char* url, FuncMQCallback cb);
 
-	void	start();
+    void start();
 
-	inline void	sub_topic(const char* topic)
-	{
-		_topics.insert(topic);
-	}
+    inline void sub_topic(const char* topic)
+    {
+        _topics.insert(topic);
+    }
 
 private:
-	std::string		m_strURL;
-	bool			m_bReady;
-	int				_sock;
-	MQManager*		_mgr;
-	uint32_t		_id;
+    std::string m_strURL;
+    bool m_bReady;
+    int _sock;
+    MQManager* _mgr;
+    uint32_t _id;
 
-	StdThreadPtr	m_thrdRecv;
-	bool			m_bTerminated;
-	int64_t			m_iCheckTime;
-	bool			m_bNeedCheck;
+    StdThreadPtr m_thrdRecv;
+    bool m_bTerminated;
+    int64_t m_iCheckTime;
+    bool m_bNeedCheck;
 
-	std::string		_buffer;
-	FuncMQCallback	_cb_message;
+    std::string _buffer;
+    FuncMQCallback _cb_message;
 
-	wt_hashset<std::string> _topics;
-	char			_recv_buf[1024 * 1024];
+    wt_hashset<std::string> _topics;
+    char _recv_buf[1024 * 1024];
 };
 
 NS_WTP_END
