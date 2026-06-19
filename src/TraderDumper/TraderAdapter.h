@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #pragma once
 #include <atomic>
@@ -28,99 +28,98 @@ class ITrdNotifySink;
 
 class TraderAdapterMgr;
 
-class TraderAdapter : public ITraderSpi
-{
+class TraderAdapter : public ITraderSpi {
 public:
-	TraderAdapter(TraderAdapterMgr* mgr);
-	~TraderAdapter();
-
-public:
-	bool init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr);
-
-	void release();
-
-	bool run();
-
-	inline const char* id() const{ return _id.c_str(); }
-
-	bool isDone() const { return _done; }
-
-	void queryFund();
-	void queryPosition();
+    TraderAdapter(TraderAdapterMgr* mgr);
+    ~TraderAdapter();
 
 public:
-	//////////////////////////////////////////////////////////////////////////
-	//ITraderSpi½Ó¿Ú
-	virtual void handleEvent(WTSTraderEvent e, int32_t ec) override;
+    bool init(const char* id, WTSVariant* params, IBaseDataMgr* bdMgr);
 
-	virtual void onLoginResult(bool bSucc, const char* msg, uint32_t tradingdate) override;
+    void release();
 
-	virtual void onLogout() override;
+    bool run();
 
-	virtual void onRspAccount(WTSArray* ayAccounts) override;
+    inline const char* id() const { return _id.c_str(); }
 
-	virtual void onRspPosition(const WTSArray* ayPositions) override;
+    bool isDone() const { return _done; }
 
-	virtual void onRspTrades(const WTSArray* ayTrades) override;
+    void queryFund();
+    void queryPosition();
 
-	virtual void onRspOrders(const WTSArray* ayOrders) override;
+public:
+    //////////////////////////////////////////////////////////////////////////
+    // ITraderSpi½Ó¿Ú
+    virtual void handleEvent(WTSTraderEvent e, int32_t ec) override;
 
-	virtual void onPushTrade(WTSTradeInfo* tradeRecord) override;
+    virtual void onLoginResult(bool bSucc, const char* msg, uint32_t tradingdate) override;
 
-	virtual void onPushOrder(WTSOrderInfo* orderInfo) override;
+    virtual void onLogout() override;
 
-	virtual void onTraderError(WTSError* err, void* pData = NULL) override;
+    virtual void onRspAccount(WTSArray* ayAccounts) override;
 
-	virtual IBaseDataMgr* getBaseDataMgr() override;
+    virtual void onRspPosition(const WTSArray* ayPositions) override;
 
-	virtual void handleTraderLog(WTSLogLevel ll, const char* message) override;
+    virtual void onRspTrades(const WTSArray* ayTrades) override;
+
+    virtual void onRspOrders(const WTSArray* ayOrders) override;
+
+    virtual void onPushTrade(WTSTradeInfo* tradeRecord) override;
+
+    virtual void onPushOrder(WTSOrderInfo* orderInfo) override;
+
+    virtual void onTraderError(WTSError* err, void* pData = NULL) override;
+
+    virtual IBaseDataMgr* getBaseDataMgr() override;
+
+    virtual void handleTraderLog(WTSLogLevel ll, const char* message) override;
 
 private:
-	TraderAdapterMgr*	_mgr;
-	WTSVariant*			_cfg;
-	std::string			_id;
+    TraderAdapterMgr* _mgr;
+    WTSVariant* _cfg;
+    std::string _id;
 
-	ITraderApi*			_trader_api;
-	FuncDeleteTrader	_remover;
+    ITraderApi* _trader_api;
+    FuncDeleteTrader _remover;
 
-	IBaseDataMgr*		_bd_mgr;
-	uint32_t			_date;
+    IBaseDataMgr* _bd_mgr;
+    uint32_t _date;
 
-	bool				_done;
+    bool _done;
 };
 
-typedef std::shared_ptr<TraderAdapter>				TraderAdapterPtr;
-typedef std::unordered_map<std::string, TraderAdapterPtr>	TraderAdapterMap;
+typedef std::shared_ptr<TraderAdapter> TraderAdapterPtr;
+typedef std::unordered_map<std::string, TraderAdapterPtr> TraderAdapterMap;
 
 //////////////////////////////////////////////////////////////////////////
-//TraderAdapterMgr
-class TraderAdapterMgr : private boost::noncopyable
-{
+// TraderAdapterMgr
+class TraderAdapterMgr : private boost::noncopyable {
 public:
-	void	release();
+    void release();
 
-	void	run();
+    void run();
 
-	const TraderAdapterMap& getAdapters() const { return _adapters; }
+    const TraderAdapterMap& getAdapters() const { return _adapters; }
 
-	TraderAdapterPtr getAdapter(const char* tname);
+    TraderAdapterPtr getAdapter(const char* tname);
 
-	bool	addAdapter(const char* tname, TraderAdapterPtr& adapter);
+    bool addAdapter(const char* tname, TraderAdapterPtr& adapter);
 
-	bool	isAnyAlive() const {
-		return _live_cnt != 0;
-	}
+    bool isAnyAlive() const
+    {
+        return _live_cnt != 0;
+    }
 
-	std::size_t size() const { return _adapters.size(); }
+    std::size_t size() const { return _adapters.size(); }
 
-	void decAlive();
+    void decAlive();
 
-	void refresh();
+    void refresh();
 
 private:
-	TraderAdapterMap		_adapters;
-	std::mutex				_mutex;
-	std::atomic<uint32_t>	_live_cnt;
+    TraderAdapterMap _adapters;
+    std::mutex _mutex;
+    std::atomic<uint32_t> _live_cnt;
 };
 
 NS_WTP_END
