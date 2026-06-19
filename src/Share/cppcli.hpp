@@ -15,106 +15,103 @@
 #include <vector>
 
 #if defined(WIN32) || defined(_WIN64) || defined(__WIN32__)
-    #include "direct.h"
-    #include <windows.h>
-    #define CPPCLI_SEPARATOR_TYPE    "\\"
-    #define CPPCLI_SEPARATOR_NO_TYPE "/"
+#include "direct.h"
+#include <windows.h>
+#define CPPCLI_SEPARATOR_TYPE "\\"
+#define CPPCLI_SEPARATOR_NO_TYPE "/"
 #else
-    #include <unistd.h>
-    #define CPPCLI_SEPARATOR_TYPE    "/"
-    #define CPPCLI_SEPARATOR_NO_TYPE "\\"
+#include <unistd.h>
+#define CPPCLI_SEPARATOR_TYPE "/"
+#define CPPCLI_SEPARATOR_NO_TYPE "\\"
 #endif
 
 // #define CPPCLI_DEBUG
 
 namespace cppcli {
-    static std::mutex _coutMutex;
+static std::mutex _coutMutex;
 
 #ifdef CPPCLI_DEBUG
-    template <class... Args>
-    void __cppcli_debug_print(const Args &...args)
-    {
-        std::unique_lock<std::mutex> lock(_coutMutex);
-        std::cout << "[CPPCLI_DEBUG] ";
-        auto printFunc = [](auto i) { std::cout << i; };
-        std::initializer_list<int>{(printFunc(args), 0)...};
-        std::cout << std::endl;
-    }
+template<class... Args>
+void __cppcli_debug_print(const Args&... args)
+{
+    std::unique_lock<std::mutex> lock(_coutMutex);
+    std::cout << "[CPPCLI_DEBUG] ";
+    auto printFunc = [](auto i) { std::cout << i; };
+    std::initializer_list<int>{ (printFunc(args), 0)... };
+    std::cout << std::endl;
+}
 
 #endif
-}   // namespace cppcli
+} // namespace cppcli
 
 #ifdef CPPCLI_DEBUG
-    #define CPPCLI_DEBUG_PRINT(...) cppcli::__cppcli_debug_print(__VA_ARGS__)
+#define CPPCLI_DEBUG_PRINT(...) cppcli::__cppcli_debug_print(__VA_ARGS__)
 #endif
 
 namespace cppcli {
-    class Option;
-    class Rule;
+class Option;
+class Rule;
 
-    enum ErrorExitEnum {
-        EXIT_PRINT_RULE = 0x00,
-        EXIT_PRINT_RULE_HELPDOC = 0x01,
-    };
-    enum HelpDocEnum {
-        USE_DEFAULT_HELPDOC = 0x00,
-        USE_UER_DEFINED_HELPDOC = 0x01,
-    };
+enum ErrorExitEnum {
+    EXIT_PRINT_RULE = 0x00,
+    EXIT_PRINT_RULE_HELPDOC = 0x01,
+};
+enum HelpDocEnum {
+    USE_DEFAULT_HELPDOC = 0x00,
+    USE_UER_DEFINED_HELPDOC = 0x01,
+};
 
-    namespace detail {
-        enum ErrorEventType {
-            MECESSARY_ERROR = 0x00,
-            VALUETYPE_ERROR = 0x01,
-            ONEOF_ERROR = 0x02,
-            NUMRANGE_ERROR = 0x03,
-        };
+namespace detail {
+enum ErrorEventType {
+    MECESSARY_ERROR = 0x00,
+    VALUETYPE_ERROR = 0x01,
+    ONEOF_ERROR = 0x02,
+    NUMRANGE_ERROR = 0x03,
+};
 
-        enum ValueTypeEnum {
-            STRING = 0x00,
-            INT = 0x01,
-            DOUBLE = 0x02,
-        };
+enum ValueTypeEnum {
+    STRING = 0x00,
+    INT = 0x01,
+    DOUBLE = 0x02,
+};
 
-        class pathUtil final {
-          private:
-            static int replace_all(std::string &str, const std::string &pattern, const std::string &newpat);
+class pathUtil final {
+private:
+    static int replace_all(std::string& str, const std::string& pattern, const std::string& newpat);
 
-          public:
-            static std::string getFilename(const std::string &filePath);
-            static std::string getFilenameWithOutSuffix(const std::string &filePath);
-            static std::string getFileSuffix(const std::string &filePath);
-            static std::string getFileDir(const std::string &filePath);
-        };
-        class algoUtil final {
-          private:
-          public:
-            // command params add to map
-            static void InitCommandMap(int length, char *strArr[], std::map<std::string, std::string> &stringMap);
-            static bool isInt(const std::string &value);
-            static bool isDouble(const std::string &value);
-            static bool verifyDouble(const std::string &value);
-        };
+public:
+    static std::string getFilename(const std::string& filePath);
+    static std::string getFilenameWithOutSuffix(const std::string& filePath);
+    static std::string getFileSuffix(const std::string& filePath);
+    static std::string getFileDir(const std::string& filePath);
+};
+class algoUtil final {
+private:
+public:
+    // command params add to map
+    static void InitCommandMap(int length, char* strArr[], std::map<std::string, std::string>& stringMap);
+    static bool isInt(const std::string& value);
+    static bool isDouble(const std::string& value);
+    static bool verifyDouble(const std::string& value);
+};
 
+} // namespace detail
+} // namespace cppcli
 
-    }   // namespace detail
-}   // namespace cppcli
-
-int cppcli::detail::pathUtil::replace_all(std::string &str, const std::string &pattern, const std::string &newpat)
+int cppcli::detail::pathUtil::replace_all(std::string& str, const std::string& pattern, const std::string& newpat)
 {
-
     int count = 0;
     const size_t nsize = newpat.size();
     const size_t psize = pattern.size();
 
-    for (size_t pos = str.find(pattern, 0); pos != std::string::npos; pos = str.find(pattern, pos + nsize))
-    {
+    for (size_t pos = str.find(pattern, 0); pos != std::string::npos; pos = str.find(pattern, pos + nsize)) {
         str.replace(pos, psize, newpat);
         count++;
     }
     return count;
 }
 
-std::string cppcli::detail::pathUtil::getFilename(const std::string &filePath)
+std::string cppcli::detail::pathUtil::getFilename(const std::string& filePath)
 {
     std::string filePathCopy(filePath);
     replace_all(filePathCopy, CPPCLI_SEPARATOR_NO_TYPE, CPPCLI_SEPARATOR_TYPE);
@@ -124,19 +121,19 @@ std::string cppcli::detail::pathUtil::getFilename(const std::string &filePath)
     return std::move(filePathCopy.substr(pos, filePathCopy.length() - pos));
 }
 
-std::string cppcli::detail::pathUtil::getFilenameWithOutSuffix(const std::string &filePath)
+std::string cppcli::detail::pathUtil::getFilenameWithOutSuffix(const std::string& filePath)
 {
     std::string filename = getFilename(filePath);
     return std::move(filename.substr(0, filename.rfind(".")));
 }
 
-std::string cppcli::detail::pathUtil::getFileSuffix(const std::string &filePath)
+std::string cppcli::detail::pathUtil::getFileSuffix(const std::string& filePath)
 {
     std::string filename = getFilename(filePath);
     return std::move(filename.substr(filename.find_last_of('.') + 1));
 }
 
-std::string cppcli::detail::pathUtil::getFileDir(const std::string &filePath)
+std::string cppcli::detail::pathUtil::getFileDir(const std::string& filePath)
 {
     std::string filePathCopy(filePath);
     replace_all(filePathCopy, CPPCLI_SEPARATOR_NO_TYPE, CPPCLI_SEPARATOR_TYPE);
@@ -144,29 +141,22 @@ std::string cppcli::detail::pathUtil::getFileDir(const std::string &filePath)
     return std::move(filePathCopy.substr(0, pos));
 }
 
-
-
-void cppcli::detail::algoUtil::InitCommandMap(int length, char *strArr[], std::map<std::string, std::string> &stringMap)
+void cppcli::detail::algoUtil::InitCommandMap(int length, char* strArr[], std::map<std::string, std::string>& stringMap)
 {
-
     // command params add to map
     std::string keyTmp;
     std::string valueTmp;
     int keyIndex = -1;
 
-    for (int currentIndex = 1; currentIndex < length; currentIndex++)
-    {
+    for (int currentIndex = 1; currentIndex < length; currentIndex++) {
         std::string theStr(strArr[currentIndex]);
-        if (keyIndex != -1 && theStr.size() > 0 && currentIndex == keyIndex + 1)
-        {
+        if (keyIndex != -1 && theStr.size() > 0 && currentIndex == keyIndex + 1) {
             // if theStr is command key, set value as ""
-            if(theStr.find_first_of('-') == 0 && theStr.size() > 1 && !isdigit(theStr.at(1)))
-            {
+            if (theStr.find_first_of('-') == 0 && theStr.size() > 1 && !isdigit(theStr.at(1))) {
                 valueTmp = "";
             }
-            else
-            {   
-                valueTmp =  theStr;
+            else {
+                valueTmp = theStr;
             }
             // valueTmp = theStr.find_first_of('-') == 0 && theStr.size() > 1 ? "" : theStr;
 
@@ -177,59 +167,51 @@ void cppcli::detail::algoUtil::InitCommandMap(int length, char *strArr[], std::m
             keyIndex = -1;
         }
 
-        if (theStr.find_first_of('-') == 0  && int(std::count(theStr.begin(), theStr.end(), '-')) < theStr.size() && !isdigit(theStr.at(1)) )
-        {
+        if (theStr.find_first_of('-') == 0 && int(std::count(theStr.begin(), theStr.end(), '-')) < theStr.size() && !isdigit(theStr.at(1))) {
             keyIndex = currentIndex;
             keyTmp = std::move(theStr);
         }
 
-        if (currentIndex == length - 1 && keyIndex != -1)
-        {
-
+        if (currentIndex == length - 1 && keyIndex != -1) {
             stringMap.insert(std::make_pair(std::move(keyTmp), std::move("")));
         }
     }
 }
-bool cppcli::detail::algoUtil::isInt(const std::string &value)
+bool cppcli::detail::algoUtil::isInt(const std::string& value)
 {
-    if (value.empty())
-    {
+    if (value.empty()) {
         return false;
     }
 
     int startPos = value.at(0) == '-' ? 1 : 0;
-    for (int i = startPos; i < value.size(); i++)
-    {
+    for (int i = startPos; i < value.size(); i++) {
         if (isdigit(value.at(i)) == 0)
             return false;
     }
     return true;
 }
 
-bool cppcli::detail::algoUtil::isDouble(const std::string &value)
+bool cppcli::detail::algoUtil::isDouble(const std::string& value)
 {
-    if (value.empty())
-    {
+    if (value.empty()) {
         return false;
     }
     if (value.size() < 3)
         return false;
-    std::string tmpValue = value.at(0) == '-' ?  value.substr(0, value.npos): value;
+    std::string tmpValue = value.at(0) == '-' ? value.substr(0, value.npos) : value;
     int numCount = 0;
-    for (char const &c : tmpValue)
-    {
+    for (char const& c : tmpValue) {
         if (isdigit(c) != 0)
             numCount++;
     }
 
-    if (numCount == tmpValue.size() - 1 && tmpValue.rfind('.') > 0 && tmpValue.rfind('.') < tmpValue.size() - 1)
-    {
+    if (numCount == tmpValue.size() - 1 && tmpValue.rfind('.') > 0 && tmpValue.rfind('.') < tmpValue.size() - 1) {
         return true;
     }
     return false;
 }
 
-bool cppcli::detail::algoUtil::verifyDouble(const std::string &value)
+bool cppcli::detail::algoUtil::verifyDouble(const std::string& value)
 {
     if (isInt(value) || isDouble(value))
         return true;
@@ -244,147 +226,148 @@ bool cppcli::detail::algoUtil::verifyDouble(const std::string &value)
 
 namespace cppcli {
 
-    class Rule {
-      private:
-        class detail {
-          public:
-            struct HelpDocStruct {
-                static cppcli::HelpDocEnum _helpDocType;
-                static cppcli::Rule *rule;
-            };
+class Rule {
+private:
+    class detail {
+    public:
+        struct HelpDocStruct {
+            static cppcli::HelpDocEnum _helpDocType;
+            static cppcli::Rule* rule;
         };
-
-      private:
-        friend class Option;
-
-        std::string _inputValue;
-        std::string _shortParam;
-        std::string _longParam;
-        std::string _helpInfo;
-        bool _necessary = false;
-        std::vector<std::string> _limitOneVec;
-        std::pair<double, double> _limitNumRange;
-        cppcli::detail::ValueTypeEnum _valueType = cppcli::detail::ValueTypeEnum::STRING;
-        std::string _default = "[EMPTY]";
-        std::string _errorInfo;
-        bool _existsInMap = false;
-
-      public:
-        Rule() = delete;
-
-        Rule(const std::string &, const std::string &) = delete;
-        Rule(const std::string &) = delete;
-
-        // Rule& operator=(const cppcli::Rule&) = delete;
-        Rule(const std::string &shortParam, const std::string &longParam, const std::string helpInfo)
-            : _shortParam(shortParam), _longParam(longParam), _helpInfo(helpInfo),
-              _limitNumRange(std::make_pair(double(-1), double(-1))){};
-
-        Rule(const std::string &shortParam, const std::string &longParam, const std::string helpInfo, bool necessary)
-            : _shortParam(shortParam), _longParam(longParam), _helpInfo(helpInfo), _necessary(necessary),
-              _limitNumRange(std::make_pair(double(-1), double(-1))){};
-
-        Rule *limitInt();   /// valid after setting input type
-        Rule *limitDouble();
-        Rule *asHelpParam();
-        bool exists();
-
-        template <class T, class = typename std::enable_if<std::is_same<T, std::string>::value>::type>
-        const std::string get()
-        {
-            return _inputValue;
-        }
-
-        template <class T, class = typename std::enable_if<std::is_same<T, int>::value>::type>
-        int get()
-        {
-            return std::stoi(_inputValue);
-        }
-
-        template <class T, class = typename std::enable_if<std::is_same<T, double>::value>::type>
-        double get()
-        {
-            return std::stod(_inputValue);
-        }
-
-        template <class... Args>
-        Rule *limitOneOf(Args... args)
-        {
-            std::ostringstream oss;
-
-            auto addToVec = [this, &oss](auto i) {
-                oss << i;
-                _limitOneVec.push_back(std::move(oss.str()));
-                oss.str("");
-            };
-            std::initializer_list<int>{(addToVec(args), 0)...};
-            return this;
-        }
-
-        template <class T,
-                  class = typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, float>::value ||
-                                                  std::is_same<T, double>::value>::type>
-        Rule *limitNumRange(T min, T max)
-        {
-            _limitNumRange = std::make_pair(double(min), double(max));
-            return this;
-        }
-
-        template <class T>
-        Rule *setDefault(const T &defaultValue)
-        {
-            std::ostringstream oss;
-            oss << defaultValue;
-            _default = oss.str();
-            return this;
-        }
-
-      private:
-        const std::string getError(cppcli::detail::ErrorEventType errorEventType);
-
-        std::string buildHelpInfoLine();
-
-#ifdef CPPCLI_DEBUG
-        std::string debugInfo() const;
-#endif
     };
 
-}   // namespace cppcli
+private:
+    friend class Option;
+
+    std::string _inputValue;
+    std::string _shortParam;
+    std::string _longParam;
+    std::string _helpInfo;
+    bool _necessary = false;
+    std::vector<std::string> _limitOneVec;
+    std::pair<double, double> _limitNumRange;
+    cppcli::detail::ValueTypeEnum _valueType = cppcli::detail::ValueTypeEnum::STRING;
+    std::string _default = "[EMPTY]";
+    std::string _errorInfo;
+    bool _existsInMap = false;
+
+public:
+    Rule() = delete;
+
+    Rule(const std::string&, const std::string&) = delete;
+    Rule(const std::string&) = delete;
+
+    // Rule& operator=(const cppcli::Rule&) = delete;
+    Rule(const std::string& shortParam, const std::string& longParam, const std::string helpInfo)
+        : _shortParam(shortParam), _longParam(longParam), _helpInfo(helpInfo),
+          _limitNumRange(std::make_pair(double(-1), double(-1))) {};
+
+    Rule(const std::string& shortParam, const std::string& longParam, const std::string helpInfo, bool necessary)
+        : _shortParam(shortParam), _longParam(longParam), _helpInfo(helpInfo), _necessary(necessary),
+          _limitNumRange(std::make_pair(double(-1), double(-1))) {};
+
+    Rule* limitInt(); /// valid after setting input type
+    Rule* limitDouble();
+    Rule* asHelpParam();
+    bool exists();
+
+    template<class T, class = typename std::enable_if<std::is_same<T, std::string>::value>::type>
+    const std::string get()
+    {
+        return _inputValue;
+    }
+
+    template<class T, class = typename std::enable_if<std::is_same<T, int>::value>::type>
+    int get()
+    {
+        return std::stoi(_inputValue);
+    }
+
+    template<class T, class = typename std::enable_if<std::is_same<T, double>::value>::type>
+    double get()
+    {
+        return std::stod(_inputValue);
+    }
+
+    template<class... Args>
+    Rule* limitOneOf(Args... args)
+    {
+        std::ostringstream oss;
+
+        auto addToVec = [this, &oss](auto i) {
+            oss << i;
+            _limitOneVec.push_back(std::move(oss.str()));
+            oss.str("");
+        };
+        std::initializer_list<int>{ (addToVec(args), 0)... };
+        return this;
+    }
+
+    template<class T,
+             class = typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, float>::value ||
+                                             std::is_same<T, double>::value>::type>
+    Rule* limitNumRange(T min, T max)
+    {
+        _limitNumRange = std::make_pair(double(min), double(max));
+        return this;
+    }
+
+    template<class T>
+    Rule* setDefault(const T& defaultValue)
+    {
+        std::ostringstream oss;
+        oss << defaultValue;
+        _default = oss.str();
+        return this;
+    }
+
+private:
+    const std::string getError(cppcli::detail::ErrorEventType errorEventType);
+
+    std::string buildHelpInfoLine();
+
+#ifdef CPPCLI_DEBUG
+    std::string debugInfo() const;
+#endif
+};
+
+} // namespace cppcli
 
 cppcli::HelpDocEnum cppcli::Rule::detail::HelpDocStruct::_helpDocType = cppcli::HelpDocEnum::USE_DEFAULT_HELPDOC;
-cppcli::Rule *cppcli::Rule::detail::HelpDocStruct::rule = nullptr;
+cppcli::Rule* cppcli::Rule::detail::HelpDocStruct::rule = nullptr;
 
-cppcli::Rule *cppcli::Rule::limitInt()
+cppcli::Rule* cppcli::Rule::limitInt()
 {
     _valueType = cppcli::detail::ValueTypeEnum::INT;
     return this;
 }
 
-cppcli::Rule *cppcli::Rule::limitDouble()
+cppcli::Rule* cppcli::Rule::limitDouble()
 {
     _valueType = cppcli::detail::ValueTypeEnum::DOUBLE;
     return this;
 }
 
-cppcli::Rule *cppcli::Rule::asHelpParam()
+cppcli::Rule* cppcli::Rule::asHelpParam()
 {
-    if (_necessary == true)
-    {
+    if (_necessary == true) {
         _necessary = false;
     }
     cppcli::Rule::detail::HelpDocStruct::rule = this;
     return this;
 }
 
-bool cppcli::Rule::exists() { return _existsInMap; }
+bool cppcli::Rule::exists()
+{
+    return _existsInMap;
+}
 
 const std::string cppcli::Rule::getError(cppcli::detail::ErrorEventType errorEventType)
 {
     std::ostringstream oss;
 
     oss << "[";
-    switch (errorEventType)
-    {
+    switch (errorEventType) {
     case cppcli::detail::ErrorEventType::MECESSARY_ERROR: {
         if (_longParam.empty())
             oss << _shortParam;
@@ -400,10 +383,8 @@ const std::string cppcli::Rule::getError(cppcli::detail::ErrorEventType errorEve
         break;
     }
     case cppcli::detail::ErrorEventType::ONEOF_ERROR: {
-        for (int i = 0; i < _limitOneVec.size(); i++)
-        {
-            if (i == (_limitOneVec.size() - 1))
-            {
+        for (int i = 0; i < _limitOneVec.size(); i++) {
+            if (i == (_limitOneVec.size() - 1)) {
                 oss << _limitOneVec.at(i);
                 break;
             }
@@ -437,9 +418,8 @@ std::string cppcli::Rule::buildHelpInfoLine()
                                                                  : int((_helpInfo.size() / (helpInfoDis - theDis))) + 1;
     std::string necessaryOutStr = _necessary ? "true" : "false";
     std::string defaultValueOutStr = _default == "[EMPTY]" ? _default : "=" + _default;
- 
-    if (writeTime == 1)
-    {
+
+    if (writeTime == 1) {
         oss << std::setw(helpInfoDis) << std::left << _helpInfo;
         oss << std::setw(necessaryDis) << std::left << "MUST-ENTER[" + necessaryOutStr + "]";
         oss << std::setw(defaultStrDis) << std::left << "DEFAULT->" + _default;
@@ -447,18 +427,15 @@ std::string cppcli::Rule::buildHelpInfoLine()
         return std::move(oss.str());
     }
     int pos = 0;
-    for (int i = 0; i < writeTime; i++)
-    {
-        if (i == 0)
-        {
+    for (int i = 0; i < writeTime; i++) {
+        if (i == 0) {
             oss << std::setw(helpInfoDis) << std::setw(helpInfoDis) << _helpInfo.substr(pos, helpInfoDis - theDis);
             oss << std::setw(necessaryDis) << std::left << "MUST-ENTER[" + necessaryOutStr + "]";
             oss << std::setw(defaultStrDis) << std::left << "DEFAULT->" + _default;
             oss << std::endl;
             pos += helpInfoDis - theDis;
         }
-        else
-        {
+        else {
             oss << std::setw(commandsDis + 4) << std::left << "";
             oss << _helpInfo.substr(pos, helpInfoDis - theDis);
             oss << std::endl;
@@ -472,15 +449,12 @@ std::string cppcli::Rule::buildHelpInfoLine()
 #ifdef CPPCLI_DEBUG
 std::string cppcli::Rule::debugInfo() const
 {
-
     std::ostringstream oss;
 
-    if (_longParam.empty())
-    {
+    if (_longParam.empty()) {
         oss << "command params --> " << _shortParam << std::endl;
     }
-    else
-    {
+    else {
         oss << "command params --> " << _shortParam << "|" << _longParam << std::endl;
     }
 
@@ -491,10 +465,8 @@ std::string cppcli::Rule::debugInfo() const
     oss << "[CPPCLI_DEBUG]     exist = " << _existsInMap << std::endl;
 
     oss << "[CPPCLI_DEBUG]     limitOneVec = (";
-    for (int i = 0; i < _limitOneVec.size(); i++)
-    {
-        if (i == _limitOneVec.size() - 1)
-        {
+    for (int i = 0; i < _limitOneVec.size(); i++) {
+        if (i == _limitOneVec.size() - 1) {
             oss << _limitOneVec.at(i);
             break;
         }
@@ -516,133 +488,120 @@ std::string cppcli::Rule::debugInfo() const
 
 namespace cppcli {
 
-    class Option {
-      private:
-        class detail {
-            detail() = delete;
-            detail(const detail &) = delete;
-            friend class cppcli::Option;
-            static int necessaryVerify(Option &opt);
-            static int valueTypeVerify(Option &opt);
-            static int numRangeVerify(Option &opt);
-            static int oneOfVerify(Option &opt);
-        };
-
-      public:
-        Option(int argc, char *argv[]);
-        Option(const cppcli::Option &) = delete;
-        Option operator=(const cppcli::Option &) = delete;
-        cppcli::Rule *operator()(const std::string &shortParam, const std::string &longParam,
-                                 const std::string helpInfo);
-        cppcli::Rule *operator()(const std::string &shortParam, const std::string &longParam,
-                                 const std::string helpInfo, bool necessary);
-        ~Option();
-        void parse();
-        bool exists(const std::string shortParam);
-        bool exists(const cppcli::Rule *rule);
-
-
-
-
-
-#ifdef CPPCLI_DEBUG
-        void printCommandMap();
-#endif
-
-        const std::string getWorkPath();
-        const std::string getExecPath();
-
-      private:
-        cppcli::ErrorExitEnum _exitType = cppcli::ErrorExitEnum::EXIT_PRINT_RULE;
-        std::map<std::string, std::string> _commandMap;
-        std::vector<cppcli::Rule *> _ruleVec;
-
-        std::string _workPath;   // exe path
-        std::string _execPath;   // exec command path
-
-      private:
-        void rulesGainInputValue();
-        std::string getInputValue(const cppcli::Rule &rule);
-        std::string buildHelpDoc();
-        void printHelpDoc();
-        bool mapExists(const cppcli::Rule *rule);
-        void pathInit(int argc, char *argv[]);
-
-        void errorExitFunc(const std::string errorInfo, int index, cppcli::ErrorExitEnum exitType,
-                           cppcli::detail::ErrorEventType eventType);
-
-        template <class T, class = typename std::enable_if<std::is_same<T, std::string>::value>::type>
-        std::string get(const std::string shortParam)
-        {
-            for (cppcli::Rule *rule : _ruleVec)
-            {
-                if (rule->_shortParam == shortParam)
-                {
-                    return rule->get<std::string>();
-                }
-            }
-            std::cout << "error: don't set where short-param = " << shortParam << std::endl;
-            std::exit(-1);
-        }
-
-        template <class T, class = typename std::enable_if<std::is_same<T, int>::value>::type>
-        int get(const std::string shortParam)
-        {
-            for (cppcli::Rule *rule : _ruleVec)
-            {
-                if (rule->_shortParam == shortParam)
-                {
-                    return rule->get<int>();
-                }
-            }
-            std::cout << "error: don't set where short-param = " << shortParam << std::endl;
-            std::exit(-1);
-        }
-
-        template <class T, class = typename std::enable_if<std::is_same<T, double>::value>::type>
-        double get(const std::string shortParam)
-        {
-            for (cppcli::Rule *rule : _ruleVec)
-            {
-                if (rule->_shortParam == shortParam)
-                {
-                    return rule->get<double>();
-                }
-            }
-            std::cout << "error: don't set where short-param = " << shortParam << std::endl;
-            std::exit(-1);
-        }
-
-        template <class T, class = typename std::enable_if<std::is_same<T, std::string>::value>::type>
-        std::string get(cppcli::Rule *rule)
-        {
-            return rule->get<std::string>();
-        }
-
-        template <class T, class = typename std::enable_if<std::is_same<T, int>::value>::type>
-        int get(cppcli::Rule *rule)
-        {
-            return rule->get<int>();
-        }
-
-        template <class T, class = typename std::enable_if<std::is_same<T, double>::value>::type>
-        double get(cppcli::Rule *rule)
-        {
-            return rule->get<double>();
-        }
-
+class Option {
+private:
+    class detail {
+        detail() = delete;
+        detail(const detail&) = delete;
+        friend class cppcli::Option;
+        static int necessaryVerify(Option& opt);
+        static int valueTypeVerify(Option& opt);
+        static int numRangeVerify(Option& opt);
+        static int oneOfVerify(Option& opt);
     };
 
-}   // namespace cppcli
+public:
+    Option(int argc, char* argv[]);
+    Option(const cppcli::Option&) = delete;
+    Option operator=(const cppcli::Option&) = delete;
+    cppcli::Rule* operator()(const std::string& shortParam, const std::string& longParam,
+                             const std::string helpInfo);
+    cppcli::Rule* operator()(const std::string& shortParam, const std::string& longParam,
+                             const std::string helpInfo, bool necessary);
+    ~Option();
+    void parse();
+    bool exists(const std::string shortParam);
+    bool exists(const cppcli::Rule* rule);
 
-int cppcli::Option::Option::detail::necessaryVerify(Option &opt)
-{
-    cppcli::Rule *rule = nullptr;
-    for (int index = 0; index < opt._ruleVec.size(); index ++)
+#ifdef CPPCLI_DEBUG
+    void printCommandMap();
+#endif
+
+    const std::string getWorkPath();
+    const std::string getExecPath();
+
+private:
+    cppcli::ErrorExitEnum _exitType = cppcli::ErrorExitEnum::EXIT_PRINT_RULE;
+    std::map<std::string, std::string> _commandMap;
+    std::vector<cppcli::Rule*> _ruleVec;
+
+    std::string _workPath; // exe path
+    std::string _execPath; // exec command path
+
+private:
+    void rulesGainInputValue();
+    std::string getInputValue(const cppcli::Rule& rule);
+    std::string buildHelpDoc();
+    void printHelpDoc();
+    bool mapExists(const cppcli::Rule* rule);
+    void pathInit(int argc, char* argv[]);
+
+    void errorExitFunc(const std::string errorInfo, int index, cppcli::ErrorExitEnum exitType,
+                       cppcli::detail::ErrorEventType eventType);
+
+    template<class T, class = typename std::enable_if<std::is_same<T, std::string>::value>::type>
+    std::string get(const std::string shortParam)
     {
+        for (cppcli::Rule* rule : _ruleVec) {
+            if (rule->_shortParam == shortParam) {
+                return rule->get<std::string>();
+            }
+        }
+        std::cout << "error: don't set where short-param = " << shortParam << std::endl;
+        std::exit(-1);
+    }
+
+    template<class T, class = typename std::enable_if<std::is_same<T, int>::value>::type>
+    int get(const std::string shortParam)
+    {
+        for (cppcli::Rule* rule : _ruleVec) {
+            if (rule->_shortParam == shortParam) {
+                return rule->get<int>();
+            }
+        }
+        std::cout << "error: don't set where short-param = " << shortParam << std::endl;
+        std::exit(-1);
+    }
+
+    template<class T, class = typename std::enable_if<std::is_same<T, double>::value>::type>
+    double get(const std::string shortParam)
+    {
+        for (cppcli::Rule* rule : _ruleVec) {
+            if (rule->_shortParam == shortParam) {
+                return rule->get<double>();
+            }
+        }
+        std::cout << "error: don't set where short-param = " << shortParam << std::endl;
+        std::exit(-1);
+    }
+
+    template<class T, class = typename std::enable_if<std::is_same<T, std::string>::value>::type>
+    std::string get(cppcli::Rule* rule)
+    {
+        return rule->get<std::string>();
+    }
+
+    template<class T, class = typename std::enable_if<std::is_same<T, int>::value>::type>
+    int get(cppcli::Rule* rule)
+    {
+        return rule->get<int>();
+    }
+
+    template<class T, class = typename std::enable_if<std::is_same<T, double>::value>::type>
+    double get(cppcli::Rule* rule)
+    {
+        return rule->get<double>();
+    }
+};
+
+} // namespace cppcli
+
+int cppcli::Option::Option::detail::necessaryVerify(Option& opt)
+{
+    cppcli::Rule* rule = nullptr;
+    for (int index = 0; index < opt._ruleVec.size(); index++) {
         rule = opt._ruleVec.at(index);
-        if (rule->_necessary && !opt.mapExists(rule))
-        {
+        if (rule->_necessary && !opt.mapExists(rule)) {
 #ifdef CPPCLI_DEBUG
             CPPCLI_DEBUG_PRINT("failed in necessaryVerify, fail rule in following");
             CPPCLI_DEBUG_PRINT(rule->debugInfo(), "\n");
@@ -653,61 +612,52 @@ int cppcli::Option::Option::detail::necessaryVerify(Option &opt)
     return -1;
 };
 
-int cppcli::Option::Option::detail::valueTypeVerify(Option &opt)
+int cppcli::Option::Option::detail::valueTypeVerify(Option& opt)
 {
-    cppcli::Rule *rule = nullptr;
-    for (int index = 0; index < opt._ruleVec.size(); index ++)
-    {
+    cppcli::Rule* rule = nullptr;
+    for (int index = 0; index < opt._ruleVec.size(); index++) {
         rule = opt._ruleVec.at(index);
-        if (rule->_valueType == cppcli::detail::ValueTypeEnum::STRING || !opt.mapExists(rule))
-        {
+        if (rule->_valueType == cppcli::detail::ValueTypeEnum::STRING || !opt.mapExists(rule)) {
             continue;
         }
 
         if (rule->_valueType == cppcli::detail::ValueTypeEnum::INT &&
-            !cppcli::detail::algoUtil::isInt(rule->_inputValue))
-        {
+            !cppcli::detail::algoUtil::isInt(rule->_inputValue)) {
 #ifdef CPPCLI_DEBUG
             CPPCLI_DEBUG_PRINT("failed in valueTypeVerify, fail rule in following");
             CPPCLI_DEBUG_PRINT(rule->debugInfo(), "\n");
 #endif
-           
+
             return index;
         }
 
         if (rule->_valueType == cppcli::detail::ValueTypeEnum::DOUBLE &&
-            !cppcli::detail::algoUtil::verifyDouble(rule->_inputValue))
-        {
+            !cppcli::detail::algoUtil::verifyDouble(rule->_inputValue)) {
 #ifdef CPPCLI_DEBUG
             CPPCLI_DEBUG_PRINT("failed in valueTypeVerify, fail rule in following");
             CPPCLI_DEBUG_PRINT(rule->debugInfo(), "\n");
 #endif
             return index;
         }
-
     }
     return -1;
 }
 
-int cppcli::Option::Option::detail::numRangeVerify(Option &opt)
+int cppcli::Option::Option::detail::numRangeVerify(Option& opt)
 {
-    cppcli::Rule *rule = nullptr;
-    for (int index = 0; index < opt._ruleVec.size(); index ++)
-    {
+    cppcli::Rule* rule = nullptr;
+    for (int index = 0; index < opt._ruleVec.size(); index++) {
         rule = opt._ruleVec.at(index);
-        if (rule->_valueType == cppcli::detail::ValueTypeEnum::STRING || !opt.mapExists(rule))
-        {
+        if (rule->_valueType == cppcli::detail::ValueTypeEnum::STRING || !opt.mapExists(rule)) {
             continue;
         }
 
         // no set it
-        if (rule->_limitNumRange.first == -1 && rule->_limitNumRange.second == -1)
-        {
+        if (rule->_limitNumRange.first == -1 && rule->_limitNumRange.second == -1) {
             continue;
         }
 
-        if(rule->_inputValue.empty() || !cppcli::detail::algoUtil::verifyDouble(rule->_inputValue))
-        {
+        if (rule->_inputValue.empty() || !cppcli::detail::algoUtil::verifyDouble(rule->_inputValue)) {
 #ifdef CPPCLI_DEBUG
             CPPCLI_DEBUG_PRINT("failed in numRangeVerify, fail rule in following");
             CPPCLI_DEBUG_PRINT(rule->debugInfo(), "\n");
@@ -716,8 +666,7 @@ int cppcli::Option::Option::detail::numRangeVerify(Option &opt)
         }
 
         if (std::stod(rule->_inputValue) < rule->_limitNumRange.first ||
-            std::stod(rule->_inputValue) > rule->_limitNumRange.second)
-        {
+            std::stod(rule->_inputValue) > rule->_limitNumRange.second) {
 #ifdef CPPCLI_DEBUG
             CPPCLI_DEBUG_PRINT("failed in numRangeVerify, fail rule in following");
             CPPCLI_DEBUG_PRINT(rule->debugInfo(), "\n");
@@ -728,22 +677,17 @@ int cppcli::Option::Option::detail::numRangeVerify(Option &opt)
     return -1;
 }
 
-int cppcli::Option::Option::detail::oneOfVerify(Option &opt)
+int cppcli::Option::Option::detail::oneOfVerify(Option& opt)
 {
-
-    cppcli::Rule *rule = nullptr;
-    for (int index = 0; index < opt._ruleVec.size(); index ++)
-    {
+    cppcli::Rule* rule = nullptr;
+    for (int index = 0; index < opt._ruleVec.size(); index++) {
         rule = opt._ruleVec.at(index);
-        if (rule->_limitOneVec.size() == 0 || !opt.mapExists(rule))
-        {
+        if (rule->_limitOneVec.size() == 0 || !opt.mapExists(rule)) {
             continue;
         }
 
         if (std::find(rule->_limitOneVec.begin(), rule->_limitOneVec.end(), rule->_inputValue) ==
-            rule->_limitOneVec.end())
-        {
-
+            rule->_limitOneVec.end()) {
 #ifdef CPPCLI_DEBUG
             CPPCLI_DEBUG_PRINT("failed in oneOfVerify, fail rule in following");
             CPPCLI_DEBUG_PRINT(rule->debugInfo(), "\n");
@@ -759,8 +703,7 @@ int cppcli::Option::Option::detail::oneOfVerify(Option &opt)
 void cppcli::Option::Option::printCommandMap()
 {
     CPPCLI_DEBUG_PRINT("-- commandMap, size = ", _commandMap.size());
-    for (const std::pair<std::string, std::string> &pr : _commandMap)
-    {
+    for (const std::pair<std::string, std::string>& pr : _commandMap) {
         CPPCLI_DEBUG_PRINT("    ", pr.first, "=", pr.second);
     }
     CPPCLI_DEBUG_PRINT("-- end commandMap");
@@ -770,16 +713,15 @@ void cppcli::Option::Option::printCommandMap()
 void cppcli::Option::errorExitFunc(const std::string errorInfo, int index, cppcli::ErrorExitEnum exitType,
                                    cppcli::detail::ErrorEventType eventType)
 {
-
     cppcli::Rule rule = *_ruleVec.at(index);
 
     // std::unique_lock<std::mutex> lock(cppcli::_coutMutex);
     std::ostringstream oss;
     if (eventType != cppcli::detail::ErrorEventType::MECESSARY_ERROR)
         oss << ", where command param = [" << rule._shortParam << "]";
-    if (cppcli::Rule::detail::HelpDocStruct::rule != nullptr)
-    {
-        oss << std::endl << "Use [" << cppcli::Rule::detail::HelpDocStruct::rule->_shortParam << "] gain help doc";
+    if (cppcli::Rule::detail::HelpDocStruct::rule != nullptr) {
+        oss << std::endl
+            << "Use [" << cppcli::Rule::detail::HelpDocStruct::rule->_shortParam << "] gain help doc";
     }
 
     std::cout << errorInfo << rule.getError(eventType) << oss.str() << std::endl;
@@ -789,7 +731,7 @@ void cppcli::Option::errorExitFunc(const std::string errorInfo, int index, cppcl
     std::exit(0);
 }
 
-cppcli::Option::Option(int argc, char *argv[])
+cppcli::Option::Option(int argc, char* argv[])
 {
     // init work path and exec path
     pathInit(argc, argv);
@@ -817,46 +759,38 @@ cppcli::Option::Option(int argc, char *argv[])
 
 cppcli::Option::~Option()
 {
-    for (cppcli::Rule *rule : _ruleVec)
-    {
-        if (rule != nullptr)
-        {
+    for (cppcli::Rule* rule : _ruleVec) {
+        if (rule != nullptr) {
             delete (rule);
         }
     }
     _ruleVec.clear();
 }
 
-
-cppcli::Rule *cppcli::Option::operator()(const std::string &shortParam, const std::string &longParam,
+cppcli::Rule* cppcli::Option::operator()(const std::string& shortParam, const std::string& longParam,
                                          const std::string helpInfo)
 {
-    if (shortParam.find("-") == shortParam.npos)
-    {
+    if (shortParam.find("-") == shortParam.npos) {
         std::cout << "short-param must contains \"-\" " << std::endl;
         std::exit(-1);
     }
-    if (!longParam.empty() && longParam.find("-") == longParam.npos)
-    {
+    if (!longParam.empty() && longParam.find("-") == longParam.npos) {
         std::cout << "long-param must empty or contains \"-\" " << std::endl;
         std::exit(-1);
     }
-
 
     _ruleVec.push_back(new cppcli::Rule(shortParam, longParam, helpInfo));
     return _ruleVec.back();
 }
 
-cppcli::Rule *cppcli::Option::operator()(const std::string &shortParam, const std::string &longParam,
+cppcli::Rule* cppcli::Option::operator()(const std::string& shortParam, const std::string& longParam,
                                          const std::string helpInfo, bool necessary)
 {
-    if (shortParam.find("-") == shortParam.npos)
-    {
+    if (shortParam.find("-") == shortParam.npos) {
         std::cout << "short-param must contains \"-\" " << std::endl;
         std::exit(-1);
     }
-    if (!longParam.empty() && longParam.find("-") == longParam.npos)
-    {
+    if (!longParam.empty() && longParam.find("-") == longParam.npos) {
         std::cout << "long-param must empty or contains \"-\" " << std::endl;
         std::exit(-1);
     }
@@ -865,9 +799,8 @@ cppcli::Rule *cppcli::Option::operator()(const std::string &shortParam, const st
     return _ruleVec.back();
 }
 
-void cppcli::Option::pathInit(int argc, char *argv[])
+void cppcli::Option::pathInit(int argc, char* argv[])
 {
-
     char execBuf[1024];
     char workBuf[1024];
 #if defined(WIN32) || defined(_WIN64) || defined(__WIN32__)
@@ -885,16 +818,13 @@ void cppcli::Option::pathInit(int argc, char *argv[])
 #endif
 }
 
-std::string cppcli::Option::getInputValue(const cppcli::Rule &rule)
+std::string cppcli::Option::getInputValue(const cppcli::Rule& rule)
 {
-
     std::string inputValue;
-    if (_commandMap.find(rule._shortParam) != _commandMap.end())
-    {
+    if (_commandMap.find(rule._shortParam) != _commandMap.end()) {
         inputValue = _commandMap[rule._shortParam];
     }
-    if (_commandMap.find(rule._longParam) != _commandMap.end())
-    {
+    if (_commandMap.find(rule._longParam) != _commandMap.end()) {
         inputValue = _commandMap[rule._longParam];
     }
 
@@ -905,38 +835,34 @@ void cppcli::Option::rulesGainInputValue()
 {
     std::string inputValue;
 
-    for (cppcli::Rule *rule : _ruleVec)
-    {
+    for (cppcli::Rule* rule : _ruleVec) {
         if (!mapExists(rule))
             continue;
-            
+
         rule->_existsInMap = true;
         inputValue = getInputValue(*rule);
-        
-        if (!inputValue.empty())
-        {
+
+        if (!inputValue.empty()) {
             rule->_inputValue = inputValue;
-            
+
             continue;
         }
-        if(inputValue.empty() && rule->_default != "[EMPTY]")
-        {
+        if (inputValue.empty() && rule->_default != "[EMPTY]") {
             rule->_inputValue = rule->_default;
         }
     }
 }
 
-bool cppcli::Option::mapExists(const cppcli::Rule *rule)
+bool cppcli::Option::mapExists(const cppcli::Rule* rule)
 {
-    if (rule != nullptr)
-    {
+    if (rule != nullptr) {
         return _commandMap.find(rule->_shortParam) != _commandMap.end() ||
                _commandMap.find(rule->_longParam) != _commandMap.end();
     }
     return false;
 }
 
-bool cppcli::Option::exists(const cppcli::Rule *rule)
+bool cppcli::Option::exists(const cppcli::Rule* rule)
 {
 #ifdef CPPCLI_DEBUG
     CPPCLI_DEBUG_PRINT("---------------- exist rule");
@@ -947,11 +873,8 @@ bool cppcli::Option::exists(const cppcli::Rule *rule)
 
 bool cppcli::Option::exists(const std::string shortParam)
 {
-
-    for (cppcli::Rule *rule : _ruleVec)
-    {
-        if (rule->_shortParam == shortParam)
-        {
+    for (cppcli::Rule* rule : _ruleVec) {
+        if (rule->_shortParam == shortParam) {
 #ifdef CPPCLI_DEBUG
             CPPCLI_DEBUG_PRINT("---------------- exist rule");
             CPPCLI_DEBUG_PRINT(rule->debugInfo());
@@ -966,8 +889,7 @@ std::string cppcli::Option::buildHelpDoc()
 {
     std::ostringstream oss;
     oss << "options:" << std::endl;
-    for (cppcli::Rule *rule : _ruleVec)
-    {
+    for (cppcli::Rule* rule : _ruleVec) {
         oss << rule->buildHelpInfoLine();
     }
     return oss.str();
@@ -976,14 +898,12 @@ std::string cppcli::Option::buildHelpDoc()
 void cppcli::Option::printHelpDoc()
 {
 #ifdef CPPCLI_DEBUG
-    if (nullptr == cppcli::Rule::detail::HelpDocStruct::rule)
-    {
+    if (nullptr == cppcli::Rule::detail::HelpDocStruct::rule) {
         CPPCLI_DEBUG_PRINT("warning: you don't set help param\n");
     }
 #endif
 
-    if (!mapExists(cppcli::Rule::detail::HelpDocStruct::rule))
-    {
+    if (!mapExists(cppcli::Rule::detail::HelpDocStruct::rule)) {
         return;
     }
 
@@ -991,8 +911,14 @@ void cppcli::Option::printHelpDoc()
     std::exit(0);
 }
 
-const std::string cppcli::Option::getWorkPath() { return _workPath; }
-const std::string cppcli::Option::getExecPath() { return _execPath; }
+const std::string cppcli::Option::getWorkPath()
+{
+    return _workPath;
+}
+const std::string cppcli::Option::getExecPath()
+{
+    return _execPath;
+}
 
 void cppcli::Option::parse()
 {
@@ -1001,8 +927,7 @@ void cppcli::Option::parse()
 
 #ifdef CPPCLI_DEBUG
     CPPCLI_DEBUG_PRINT("---------------- rules vector start");
-    for (int i = 0; i < _ruleVec.size(); i++)
-    {
+    for (int i = 0; i < _ruleVec.size(); i++) {
         CPPCLI_DEBUG_PRINT("vec index = ", i, "  ", _ruleVec[i]->debugInfo());
     }
 
@@ -1023,26 +948,22 @@ void cppcli::Option::parse()
 
 #endif
 
-    if (necessaryResult > -1)
-    {
+    if (necessaryResult > -1) {
         errorExitFunc("Must enter this param: ", necessaryResult, _exitType,
                       cppcli::detail::ErrorEventType::MECESSARY_ERROR);
     }
 
-    if (valueTypeResult > -1)
-    {
+    if (valueTypeResult > -1) {
         errorExitFunc("Please enter the correct type: ", valueTypeResult, _exitType,
                       cppcli::detail::ErrorEventType::VALUETYPE_ERROR);
     }
 
-    if (oneOfResult > -1)
-    {
+    if (oneOfResult > -1) {
         errorExitFunc("Must be one of these values: ", oneOfResult, _exitType,
                       cppcli::detail::ErrorEventType::ONEOF_ERROR);
     }
 
-    if (numRangeResult > -1)
-    {
+    if (numRangeResult > -1) {
         errorExitFunc("Must be within this range: ", numRangeResult, _exitType,
                       cppcli::detail::ErrorEventType::NUMRANGE_ERROR);
     }
