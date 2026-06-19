@@ -4,8 +4,8 @@
  *
  * /author Wesley
  * /date 2020/03/30
- * 
- * /brief 
+ *
+ * /brief
  */
 #pragma once
 #include <string>
@@ -38,63 +38,61 @@ NS_WTP_END
 
 USING_NS_WTP;
 
-class WtRunner : public ILogHandler
-{
+class WtRunner : public ILogHandler {
 public:
-	WtRunner();
-	~WtRunner();
+    WtRunner();
+    ~WtRunner();
 
 public:
-	void init(const std::string& filename);
+    void init(const std::string& filename);
 
-	bool config(const std::string& filename);
+    bool config(const std::string& filename);
 
-	void run(bool bAsync = false);
+    void run(bool bAsync = false);
 
 private:
-	bool initTraders(WTSVariant* cfgTrader);
-	bool initParsers(WTSVariant* cfgParser);
-	bool initExecuters(WTSVariant* cfgExecuter);
-	bool initDataMgr();
-	bool initEvtNotifier();
-	bool initCtaStrategies();
-	bool initHftStrategies();
-	bool initActionPolicy();
+    bool initTraders(WTSVariant* cfgTrader);
+    bool initParsers(WTSVariant* cfgParser);
+    bool initExecuters(WTSVariant* cfgExecuter);
+    bool initDataMgr();
+    bool initEvtNotifier();
+    bool initCtaStrategies();
+    bool initHftStrategies();
+    bool initActionPolicy();
 
-	bool initEngine();
+    bool initEngine();
 
-//////////////////////////////////////////////////////////////////////////
-//ILogHandler
+    //////////////////////////////////////////////////////////////////////////
+    // ILogHandler
 public:
-	virtual void handleLogAppend(WTSLogLevel ll, const char* msg) override;
+    virtual void handleLogAppend(WTSLogLevel ll, const char* msg) override;
 
 private:
-	WTSVariant*			_config;
-	TraderAdapterMgr	_traders;
-	ParserAdapterMgr	_parsers;
-	WtExecuterFactory	_exe_factory;
+    WTSVariant* _config;
+    TraderAdapterMgr _traders;
+    ParserAdapterMgr _parsers;
+    WtExecuterFactory _exe_factory;
 
-	WtCtaEngine			_cta_engine;
-	WtHftEngine			_hft_engine;
-	WtSelEngine			_sel_engine;
-	WtEngine*			_engine;
+    WtCtaEngine _cta_engine;
+    WtHftEngine _hft_engine;
+    WtSelEngine _sel_engine;
+    WtEngine* _engine;
 
-	WtDataStorage*		_data_store;
+    WtDataStorage* _data_store;
 
-	WtDtMgr				_data_mgr;
+    WtDtMgr _data_mgr;
 
-	WTSBaseDataMgr		_bd_mgr;
-	WTSHotMgr			_hot_mgr;
-	EventNotifier		_notifier;
+    WTSBaseDataMgr _bd_mgr;
+    WTSHotMgr _hot_mgr;
+    EventNotifier _notifier;
 
-	CtaStrategyMgr		_cta_stra_mgr;
-	HftStrategyMgr		_hft_stra_mgr;
-	SelStrategyMgr		_sel_stra_mgr;
-	ActionPolicyMgr		_act_policy;
+    CtaStrategyMgr _cta_stra_mgr;
+    HftStrategyMgr _hft_stra_mgr;
+    SelStrategyMgr _sel_stra_mgr;
+    ActionPolicyMgr _act_policy;
 
-	bool				_is_hft;
-	bool				_is_sel;
+    bool _is_hft;
+    bool _is_sel;
 
-	bool				_to_exit;
+    bool _to_exit;
 };
-
