@@ -3,7 +3,7 @@
 
 #if defined(_MSC_VER) ||                                            \
     (defined(__GNUC__) && (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || \
-     (__GNUC__ >= 4))  // GCC supports "pragma once" correctly since 3.4
+     (__GNUC__ >= 4)) // GCC supports "pragma once" correctly since 3.4
 #pragma once
 #endif
 
@@ -88,216 +88,228 @@ const char* const INVALID_ALIAS = "invalid alias";
 const char* const INVALID_TAG = "invalid tag";
 const char* const BAD_FILE = "bad file";
 
-template <typename T>
+template<typename T>
 inline const std::string KEY_NOT_FOUND_WITH_KEY(
-    const T&, typename disable_if<is_numeric<T>>::type* = 0) {
-  return KEY_NOT_FOUND;
+    const T&, typename disable_if<is_numeric<T>>::type* = 0)
+{
+    return KEY_NOT_FOUND;
 }
 
-inline const std::string KEY_NOT_FOUND_WITH_KEY(const std::string& key) {
-  std::stringstream stream;
-  stream << KEY_NOT_FOUND << ": " << key;
-  return stream.str();
+inline const std::string KEY_NOT_FOUND_WITH_KEY(const std::string& key)
+{
+    std::stringstream stream;
+    stream << KEY_NOT_FOUND << ": " << key;
+    return stream.str();
 }
 
-inline const std::string KEY_NOT_FOUND_WITH_KEY(const char* key) {
-  std::stringstream stream;
-  stream << KEY_NOT_FOUND << ": " << key;
-  return stream.str();
+inline const std::string KEY_NOT_FOUND_WITH_KEY(const char* key)
+{
+    std::stringstream stream;
+    stream << KEY_NOT_FOUND << ": " << key;
+    return stream.str();
 }
 
-template <typename T>
+template<typename T>
 inline const std::string KEY_NOT_FOUND_WITH_KEY(
-    const T& key, typename enable_if<is_numeric<T>>::type* = 0) {
-  std::stringstream stream;
-  stream << KEY_NOT_FOUND << ": " << key;
-  return stream.str();
+    const T& key, typename enable_if<is_numeric<T>>::type* = 0)
+{
+    std::stringstream stream;
+    stream << KEY_NOT_FOUND << ": " << key;
+    return stream.str();
 }
 
-template <typename T>
+template<typename T>
 inline const std::string BAD_SUBSCRIPT_WITH_KEY(
-    const T&, typename disable_if<is_numeric<T>>::type* = nullptr) {
-  return BAD_SUBSCRIPT;
+    const T&, typename disable_if<is_numeric<T>>::type* = nullptr)
+{
+    return BAD_SUBSCRIPT;
 }
 
-inline const std::string BAD_SUBSCRIPT_WITH_KEY(const std::string& key) {
-  std::stringstream stream;
-  stream << BAD_SUBSCRIPT << " (key: \"" << key << "\")";
-  return stream.str();
+inline const std::string BAD_SUBSCRIPT_WITH_KEY(const std::string& key)
+{
+    std::stringstream stream;
+    stream << BAD_SUBSCRIPT << " (key: \"" << key << "\")";
+    return stream.str();
 }
 
-inline const std::string BAD_SUBSCRIPT_WITH_KEY(const char* key) {
-  std::stringstream stream;
-  stream << BAD_SUBSCRIPT << " (key: \"" << key << "\")";
-  return stream.str();
+inline const std::string BAD_SUBSCRIPT_WITH_KEY(const char* key)
+{
+    std::stringstream stream;
+    stream << BAD_SUBSCRIPT << " (key: \"" << key << "\")";
+    return stream.str();
 }
 
-template <typename T>
+template<typename T>
 inline const std::string BAD_SUBSCRIPT_WITH_KEY(
-    const T& key, typename enable_if<is_numeric<T>>::type* = nullptr) {
-  std::stringstream stream;
-  stream << BAD_SUBSCRIPT << " (key: \"" << key << "\")";
-  return stream.str();
+    const T& key, typename enable_if<is_numeric<T>>::type* = nullptr)
+{
+    std::stringstream stream;
+    stream << BAD_SUBSCRIPT << " (key: \"" << key << "\")";
+    return stream.str();
 }
 
-inline const std::string INVALID_NODE_WITH_KEY(const std::string& key) {
-  std::stringstream stream;
-  if (key.empty()) {
-    return INVALID_NODE;
-  }
-  stream << "invalid node; first invalid key: \"" << key << "\"";
-  return stream.str();
+inline const std::string INVALID_NODE_WITH_KEY(const std::string& key)
+{
+    std::stringstream stream;
+    if (key.empty()) {
+        return INVALID_NODE;
+    }
+    stream << "invalid node; first invalid key: \"" << key << "\"";
+    return stream.str();
 }
-}  // namespace ErrorMsg
+} // namespace ErrorMsg
 
 class YAML_CPP_API Exception : public std::runtime_error {
- public:
-  Exception(const Mark& mark_, const std::string& msg_)
-      : std::runtime_error(build_what(mark_, msg_)), mark(mark_), msg(msg_) {}
-  ~Exception() YAML_CPP_NOEXCEPT override;
+public:
+    Exception(const Mark& mark_, const std::string& msg_)
+        : std::runtime_error(build_what(mark_, msg_)), mark(mark_), msg(msg_) {}
+    ~Exception() YAML_CPP_NOEXCEPT override;
 
-  Exception(const Exception&) = default;
+    Exception(const Exception&) = default;
 
-  Mark mark;
-  std::string msg;
+    Mark mark;
+    std::string msg;
 
- private:
-  static const std::string build_what(const Mark& mark,
-                                      const std::string& msg) {
-    if (mark.is_null()) {
-      return msg;
+private:
+    static const std::string build_what(const Mark& mark,
+                                        const std::string& msg)
+    {
+        if (mark.is_null()) {
+            return msg;
+        }
+
+        std::stringstream output;
+        output << "yaml-cpp: error at line " << mark.line + 1 << ", column "
+               << mark.column + 1 << ": " << msg;
+        return output.str();
     }
-
-    std::stringstream output;
-    output << "yaml-cpp: error at line " << mark.line + 1 << ", column "
-           << mark.column + 1 << ": " << msg;
-    return output.str();
-  }
 };
 
 class YAML_CPP_API ParserException : public Exception {
- public:
-  ParserException(const Mark& mark_, const std::string& msg_)
-      : Exception(mark_, msg_) {}
-  ParserException(const ParserException&) = default;
-  ~ParserException() YAML_CPP_NOEXCEPT override;
+public:
+    ParserException(const Mark& mark_, const std::string& msg_)
+        : Exception(mark_, msg_) {}
+    ParserException(const ParserException&) = default;
+    ~ParserException() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API RepresentationException : public Exception {
- public:
-  RepresentationException(const Mark& mark_, const std::string& msg_)
-      : Exception(mark_, msg_) {}
-  RepresentationException(const RepresentationException&) = default;
-  ~RepresentationException() YAML_CPP_NOEXCEPT override;
+public:
+    RepresentationException(const Mark& mark_, const std::string& msg_)
+        : Exception(mark_, msg_) {}
+    RepresentationException(const RepresentationException&) = default;
+    ~RepresentationException() YAML_CPP_NOEXCEPT override;
 };
 
 // representation exceptions
 class YAML_CPP_API InvalidScalar : public RepresentationException {
- public:
-  InvalidScalar(const Mark& mark_)
-      : RepresentationException(mark_, ErrorMsg::INVALID_SCALAR) {}
-  InvalidScalar(const InvalidScalar&) = default;
-  ~InvalidScalar() YAML_CPP_NOEXCEPT override;
+public:
+    InvalidScalar(const Mark& mark_)
+        : RepresentationException(mark_, ErrorMsg::INVALID_SCALAR) {}
+    InvalidScalar(const InvalidScalar&) = default;
+    ~InvalidScalar() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API KeyNotFound : public RepresentationException {
- public:
-  template <typename T>
-  KeyNotFound(const Mark& mark_, const T& key_)
-      : RepresentationException(mark_, ErrorMsg::KEY_NOT_FOUND_WITH_KEY(key_)) {
-  }
-  KeyNotFound(const KeyNotFound&) = default;
-  ~KeyNotFound() YAML_CPP_NOEXCEPT override;
+public:
+    template<typename T>
+    KeyNotFound(const Mark& mark_, const T& key_)
+        : RepresentationException(mark_, ErrorMsg::KEY_NOT_FOUND_WITH_KEY(key_))
+    {
+    }
+    KeyNotFound(const KeyNotFound&) = default;
+    ~KeyNotFound() YAML_CPP_NOEXCEPT override;
 };
 
-template <typename T>
+template<typename T>
 class YAML_CPP_API TypedKeyNotFound : public KeyNotFound {
- public:
-  TypedKeyNotFound(const Mark& mark_, const T& key_)
-      : KeyNotFound(mark_, key_), key(key_) {}
-  ~TypedKeyNotFound() YAML_CPP_NOEXCEPT override = default;
+public:
+    TypedKeyNotFound(const Mark& mark_, const T& key_)
+        : KeyNotFound(mark_, key_), key(key_) {}
+    ~TypedKeyNotFound() YAML_CPP_NOEXCEPT override = default;
 
-  T key;
+    T key;
 };
 
-template <typename T>
+template<typename T>
 inline TypedKeyNotFound<T> MakeTypedKeyNotFound(const Mark& mark,
-                                                const T& key) {
-  return TypedKeyNotFound<T>(mark, key);
+                                                const T& key)
+{
+    return TypedKeyNotFound<T>(mark, key);
 }
 
 class YAML_CPP_API InvalidNode : public RepresentationException {
- public:
-  InvalidNode(const std::string& key)
-      : RepresentationException(Mark::null_mark(),
-                                ErrorMsg::INVALID_NODE_WITH_KEY(key)) {}
-  InvalidNode(const InvalidNode&) = default;
-  ~InvalidNode() YAML_CPP_NOEXCEPT override;
+public:
+    InvalidNode(const std::string& key)
+        : RepresentationException(Mark::null_mark(),
+                                  ErrorMsg::INVALID_NODE_WITH_KEY(key)) {}
+    InvalidNode(const InvalidNode&) = default;
+    ~InvalidNode() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API BadConversion : public RepresentationException {
- public:
-  explicit BadConversion(const Mark& mark_)
-      : RepresentationException(mark_, ErrorMsg::BAD_CONVERSION) {}
-  BadConversion(const BadConversion&) = default;
-  ~BadConversion() YAML_CPP_NOEXCEPT override;
+public:
+    explicit BadConversion(const Mark& mark_)
+        : RepresentationException(mark_, ErrorMsg::BAD_CONVERSION) {}
+    BadConversion(const BadConversion&) = default;
+    ~BadConversion() YAML_CPP_NOEXCEPT override;
 };
 
-template <typename T>
+template<typename T>
 class TypedBadConversion : public BadConversion {
- public:
-  explicit TypedBadConversion(const Mark& mark_) : BadConversion(mark_) {}
+public:
+    explicit TypedBadConversion(const Mark& mark_): BadConversion(mark_) {}
 };
 
 class YAML_CPP_API BadDereference : public RepresentationException {
- public:
-  BadDereference()
-      : RepresentationException(Mark::null_mark(), ErrorMsg::BAD_DEREFERENCE) {}
-  BadDereference(const BadDereference&) = default;
-  ~BadDereference() YAML_CPP_NOEXCEPT override;
+public:
+    BadDereference()
+        : RepresentationException(Mark::null_mark(), ErrorMsg::BAD_DEREFERENCE) {}
+    BadDereference(const BadDereference&) = default;
+    ~BadDereference() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API BadSubscript : public RepresentationException {
- public:
-  template <typename Key>
-  BadSubscript(const Mark& mark_, const Key& key)
-      : RepresentationException(mark_, ErrorMsg::BAD_SUBSCRIPT_WITH_KEY(key)) {}
-  BadSubscript(const BadSubscript&) = default;
-  ~BadSubscript() YAML_CPP_NOEXCEPT override;
+public:
+    template<typename Key>
+    BadSubscript(const Mark& mark_, const Key& key)
+        : RepresentationException(mark_, ErrorMsg::BAD_SUBSCRIPT_WITH_KEY(key)) {}
+    BadSubscript(const BadSubscript&) = default;
+    ~BadSubscript() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API BadPushback : public RepresentationException {
- public:
-  BadPushback()
-      : RepresentationException(Mark::null_mark(), ErrorMsg::BAD_PUSHBACK) {}
-  BadPushback(const BadPushback&) = default;
-  ~BadPushback() YAML_CPP_NOEXCEPT override;
+public:
+    BadPushback()
+        : RepresentationException(Mark::null_mark(), ErrorMsg::BAD_PUSHBACK) {}
+    BadPushback(const BadPushback&) = default;
+    ~BadPushback() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API BadInsert : public RepresentationException {
- public:
-  BadInsert()
-      : RepresentationException(Mark::null_mark(), ErrorMsg::BAD_INSERT) {}
-  BadInsert(const BadInsert&) = default;
-  ~BadInsert() YAML_CPP_NOEXCEPT override;
+public:
+    BadInsert()
+        : RepresentationException(Mark::null_mark(), ErrorMsg::BAD_INSERT) {}
+    BadInsert(const BadInsert&) = default;
+    ~BadInsert() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API EmitterException : public Exception {
- public:
-  EmitterException(const std::string& msg_)
-      : Exception(Mark::null_mark(), msg_) {}
-  EmitterException(const EmitterException&) = default;
-  ~EmitterException() YAML_CPP_NOEXCEPT override;
+public:
+    EmitterException(const std::string& msg_)
+        : Exception(Mark::null_mark(), msg_) {}
+    EmitterException(const EmitterException&) = default;
+    ~EmitterException() YAML_CPP_NOEXCEPT override;
 };
 
 class YAML_CPP_API BadFile : public Exception {
- public:
-  explicit BadFile(const std::string& filename)
-      : Exception(Mark::null_mark(),
-                  std::string(ErrorMsg::BAD_FILE) + ": " + filename) {}
-  BadFile(const BadFile&) = default;
-  ~BadFile() YAML_CPP_NOEXCEPT override;
+public:
+    explicit BadFile(const std::string& filename)
+        : Exception(Mark::null_mark(),
+                    std::string(ErrorMsg::BAD_FILE) + ": " + filename) {}
+    BadFile(const BadFile&) = default;
+    ~BadFile() YAML_CPP_NOEXCEPT override;
 };
-}  // namespace YAML
+} // namespace YAML
 
-#endif  // EXCEPTIONS_H_62B23520_7C8E_11DE_8A39_0800200C9A66
+#endif // EXCEPTIONS_H_62B23520_7C8E_11DE_8A39_0800200C9A66
