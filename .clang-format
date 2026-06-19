@@ -1,0 +1,27 @@
+# WonderTrader (my_dev_latest) - codifies hyperdreamer's hand-applied style
+# from branch my_dev: Stroustrup braces, 4-space indent, no tabs.
+# ColumnLimit:0 keeps clang-format conservative (no line reflow) to
+# preserve author-intended line breaks; only braces/indent/spacing change.
+---
+Language: Cpp
+BasedOnStyle: LLVM
+BreakBeforeBraces: Stroustrup
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 0
+AccessModifierOffset: -4
+NamespaceIndentation: None
+PointerAlignment: Left
+ReferenceAlignment: Left
+SortIncludes: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+KeepEmptyLinesAtTheStartOfBlocks: false
+SpaceBeforeParens: ControlStatements
+SpaceAfterTemplateKeyword: false
+SpaceBeforeCtorInitializerColon: false
+Cpp11BracedListStyle: false
+SpacesInParentheses: false
