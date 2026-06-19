@@ -8,49 +8,47 @@
 
 NS_WTP_BEGIN
 
-#pragma warning(disable:4200)
+#pragma warning(disable : 4200)
 
-#pragma pack(push,1)
-//UDPÇëÇó°ü
-typedef struct _MQPacket
-{
-	char			_topic[32];
-	uint32_t		_length;
-	char			_data[0];
+#pragma pack(push, 1)
+// UDPÇëÇó°ü
+typedef struct _MQPacket {
+    char _topic[32];
+    uint32_t _length;
+    char _data[0];
 } MQPacket;
 #pragma pack(pop)
 
 typedef std::shared_ptr<MQServer> MQServerPtr;
 typedef std::shared_ptr<MQClient> MQClientPtr;
 
-class MQManager
-{
+class MQManager {
 public:
-	MQManager() : _cb_log(NULL) {}
+    MQManager(): _cb_log(NULL) {}
 
 public:
-	inline void		regiter_callbacks(FuncLogCallback cbLog) { _cb_log = cbLog; }
+    inline void regiter_callbacks(FuncLogCallback cbLog) { _cb_log = cbLog; }
 
-	WtUInt32	create_server(const char* url, bool confirm);
-	void		destroy_server(WtUInt32 id);
-	void		publish_message(WtUInt32 id, const char* topic, const void* data, WtUInt32 dataLen);
+    WtUInt32 create_server(const char* url, bool confirm);
+    void destroy_server(WtUInt32 id);
+    void publish_message(WtUInt32 id, const char* topic, const void* data, WtUInt32 dataLen);
 
-	WtUInt32	create_client(const char* url, FuncMQCallback cb);
-	void		destroy_client(WtUInt32 id);
-	void		sub_topic(WtUInt32 id, const char* topic);
-	void		start_client(WtUInt32 id);
+    WtUInt32 create_client(const char* url, FuncMQCallback cb);
+    void destroy_client(WtUInt32 id);
+    void sub_topic(WtUInt32 id, const char* topic);
+    void start_client(WtUInt32 id);
 
-	void		log_server(WtUInt32 id, const char* message);
-	void		log_client(WtUInt32 id, const char* message);
+    void log_server(WtUInt32 id, const char* message);
+    void log_client(WtUInt32 id, const char* message);
 
 private:
-	typedef wt_hashmap<uint32_t, MQServerPtr> ServerMap;
-	ServerMap	_servers;
+    typedef wt_hashmap<uint32_t, MQServerPtr> ServerMap;
+    ServerMap _servers;
 
-	typedef wt_hashmap<uint32_t, MQClientPtr> ClientMap;
-	ClientMap	_clients;
+    typedef wt_hashmap<uint32_t, MQClientPtr> ClientMap;
+    ClientMap _clients;
 
-	FuncLogCallback	_cb_log;
+    FuncLogCallback _cb_log;
 };
 
 NS_WTP_END
