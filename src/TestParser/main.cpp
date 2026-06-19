@@ -13,178 +13,163 @@
 #include "../WTSUtils/WTSCfgLoader.h"
 #include "../WTSUtils/SignalHook.hpp"
 
-WTSBaseDataMgr	g_bdMgr;
+WTSBaseDataMgr g_bdMgr;
 
 USING_NS_WTP;
 
-class ParserSpi : public IParserSpi
-{
+class ParserSpi : public IParserSpi {
 public:
-	ParserSpi(){}
+    ParserSpi() {}
 
-	bool init(WTSVariant* params, const char* ttype)
-	{
-		m_pParams = params;
-		if (m_pParams)
-			m_pParams->retain();
+    bool init(WTSVariant* params, const char* ttype)
+    {
+        m_pParams = params;
+        if (m_pParams)
+            m_pParams->retain();
 
-		m_strModule = ttype;
-		return true;
-	}
+        m_strModule = ttype;
+        return true;
+    }
 
-	void release()
-	{
-		if (_api)
-		{
-			_api->release();
-		}
-	}
+    void release()
+    {
+        if (_api) {
+            _api->release();
+        }
+    }
 
-	void run(bool bRestart = false)
-	{
-		if (!createParser(m_strModule.c_str()))
-		{
-			return;
-		}
+    void run(bool bRestart = false)
+    {
+        if (!createParser(m_strModule.c_str())) {
+            return;
+        }
 
-		_api->registerSpi(this);
+        _api->registerSpi(this);
 
-		if (!_api->init(m_pParams))
-		{
-			return;
-		}
+        if (!_api->init(m_pParams)) {
+            return;
+        }
 
-		ContractSet contractSet;
-		WTSArray* ayContract = g_bdMgr.getContracts();
-		WTSArray::Iterator it = ayContract->begin();
-		for (; it != ayContract->end(); it++)
-		{
-			WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
-			contractSet.insert(contract->getFullCode());
-		}
+        ContractSet contractSet;
+        WTSArray* ayContract = g_bdMgr.getContracts();
+        WTSArray::Iterator it = ayContract->begin();
+        for (; it != ayContract->end(); it++) {
+            WTSContractInfo* contract = STATIC_CONVERT(*it, WTSContractInfo*);
+            contractSet.insert(contract->getFullCode());
+        }
 
-		ayContract->release();
-		_api->subscribe(contractSet);
-		_api->connect();
-	}
+        ayContract->release();
+        _api->subscribe(contractSet);
+        _api->connect();
+    }
 
-	bool createParser(const char* moduleName)
-	{
+    bool createParser(const char* moduleName)
+    {
         DllHandle hInst = DLLHelper::load_library(moduleName);
-		if (hInst == NULL)
-		{
-			WTSLogger::error("Loading module {} failed", moduleName);
-			return false;
-		}
+        if (hInst == NULL) {
+            WTSLogger::error("Loading module {} failed", moduleName);
+            return false;
+        }
 
-		FuncCreateParser pCreator = (FuncCreateParser)DLLHelper::get_symbol(hInst, "createParser");
-		if (NULL == pCreator)
-		{
-			WTSLogger::error("Entry function createParser not found");
-			return false;
-		}
+        FuncCreateParser pCreator = (FuncCreateParser)DLLHelper::get_symbol(hInst, "createParser");
+        if (NULL == pCreator) {
+            WTSLogger::error("Entry function createParser not found");
+            return false;
+        }
 
-		_api = pCreator();
-		if (NULL == _api)
-		{
-			WTSLogger::error("Creating parser api failed");
-			return false;
-		}
+        _api = pCreator();
+        if (NULL == _api) {
+            WTSLogger::error("Creating parser api failed");
+            return false;
+        }
 
-		m_funcRemover = (FuncDeleteParser)DLLHelper::get_symbol(hInst, "deleteParser");
-		return true;
-	}
+        m_funcRemover = (FuncDeleteParser)DLLHelper::get_symbol(hInst, "deleteParser");
+        return true;
+    }
 
 public:
-	virtual void handleParserLog(WTSLogLevel ll, const char* message) override
-	{
-		WTSLogger::log_raw(ll, message);
-	}
+    virtual void handleParserLog(WTSLogLevel ll, const char* message) override
+    {
+        WTSLogger::log_raw(ll, message);
+    }
 
-	virtual void handleQuote(WTSTickData *quote, uint32_t procFlag) override
-	{
-		WTSLogger::info("{}@{}.{}, price:{}, voume:{}, limit: [{},{}], bid_price: {}, ask_price: {}", 
-			quote->code(), quote->actiondate(), quote->actiontime(), quote->price(), 
-			quote->totalvolume(), quote->lowerlimit(), quote->upperlimit(),
-			quote->bidprice(0), quote->askprice(0));
-	}
+    virtual void handleQuote(WTSTickData* quote, uint32_t procFlag) override
+    {
+        WTSLogger::info("{}@{}.{}, price:{}, voume:{}, limit: [{},{}], bid_price: {}, ask_price: {}",
+                        quote->code(), quote->actiondate(), quote->actiontime(), quote->price(),
+                        quote->totalvolume(), quote->lowerlimit(), quote->upperlimit(),
+                        quote->bidprice(0), quote->askprice(0));
+    }
 
-	virtual void handleSymbolList(const WTSArray* aySymbols) override
-	{
-
-	}
+    virtual void handleSymbolList(const WTSArray* aySymbols) override
+    {
+    }
 
 public:
-	virtual IBaseDataMgr*	getBaseDataMgr()
-	{
-		return &g_bdMgr;
-	}
-	
+    virtual IBaseDataMgr* getBaseDataMgr()
+    {
+        return &g_bdMgr;
+    }
 
 private:
-	IParserApi*			_api;
-	FuncDeleteParser	m_funcRemover;
-	std::string			m_strModule;
-	WTSVariant*			m_pParams;
+    IParserApi* _api;
+    FuncDeleteParser m_funcRemover;
+    std::string m_strModule;
+    WTSVariant* m_pParams;
 };
 
 int main()
 {
-	WTSLogger::init("./logcfg.yaml");
+    WTSLogger::init("./logcfg.yaml");
 
-	WTSVariant* root = WTSCfgLoader::load_from_file("config.yaml");
-	if (root == NULL)
-	{
-		WTSLogger::log_raw(LL_ERROR, "Loading config.yaml failed");
-		return 0;
-	}
+    WTSVariant* root = WTSCfgLoader::load_from_file("config.yaml");
+    if (root == NULL) {
+        WTSLogger::log_raw(LL_ERROR, "Loading config.yaml failed");
+        return 0;
+    }
 
-	WTSVariant* cfg = root->get("config");
-	if (cfg->has("session"))
-		g_bdMgr.loadSessions(cfg->getCString("session"));
+    WTSVariant* cfg = root->get("config");
+    if (cfg->has("session"))
+        g_bdMgr.loadSessions(cfg->getCString("session"));
 
-	if (cfg->has("commodity"))
-		g_bdMgr.loadCommodities(cfg->getCString("commodity"));
+    if (cfg->has("commodity"))
+        g_bdMgr.loadCommodities(cfg->getCString("commodity"));
 
-	if (cfg->has("contract"))
-		g_bdMgr.loadContracts(cfg->getCString("contract"));
+    if (cfg->has("contract"))
+        g_bdMgr.loadContracts(cfg->getCString("contract"));
 
-	std::string module = cfg->getCString("parser");
-	std::string profile = cfg->getCString("profile");
-	WTSVariant* params = root->get(profile.c_str());
-	if (params == NULL)
-	{
-		WTSLogger::error("Configure {} not exist", profile);
-		return 0;
-	}
+    std::string module = cfg->getCString("parser");
+    std::string profile = cfg->getCString("profile");
+    WTSVariant* params = root->get(profile.c_str());
+    if (params == NULL) {
+        WTSLogger::error("Configure {} not exist", profile);
+        return 0;
+    }
 
-	ParserSpi* parser = new ParserSpi;
-	parser->init(params, module.c_str());
+    ParserSpi* parser = new ParserSpi;
+    parser->init(params, module.c_str());
 
-	parser->run();
+    parser->run();
 
-	root->release();
+    root->release();
 
-	bool bExit = false;
-	install_signal_hooks([&bExit](const char* message) {
+    bool bExit = false;
+    install_signal_hooks([&bExit](const char* message) {
 		if (!bExit)
-			WTSLogger::error(message);
-	}, [&bExit](bool toExit) {
+			WTSLogger::error(message); }, [&bExit](bool toExit) {
 		if (bExit)
 			return;
 
 		bExit = toExit;
-		WTSLogger::info("Exit flag is {}", bExit);
-	});
+		WTSLogger::info("Exit flag is {}", bExit); });
 
-	while (!bExit)
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-	
-	//exit(9);
-	parser->release();
-	delete parser;
+    while (!bExit) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
-	return 0;
+    // exit(9);
+    parser->release();
+    delete parser;
+
+    return 0;
 }
