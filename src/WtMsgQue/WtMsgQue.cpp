@@ -4,8 +4,8 @@
  *
  * \author Wesley
  * \date 2020/03/30
- * 
- * \brief 
+ *
+ * \brief
  */
 #include "WtMsgQue.h"
 #include "MQManager.h"
@@ -20,46 +20,46 @@ USING_NS_WTP;
 
 MQManager& getMgr()
 {
-	static MQManager runner;
-	return runner;
+    static MQManager runner;
+    return runner;
 }
 
 void regiter_callbacks(FuncLogCallback cbLog)
 {
-	getMgr().regiter_callbacks(cbLog);
+    getMgr().regiter_callbacks(cbLog);
 }
 
 WtUInt32 create_server(const char* url, bool confirm)
 {
-	return getMgr().create_server(url, confirm);
+    return getMgr().create_server(url, confirm);
 }
 
 void destroy_server(WtUInt32 id)
 {
-	getMgr().destroy_server(id);
+    getMgr().destroy_server(id);
 }
 
 void publish_message(WtUInt32 id, const char* topic, const char* data, WtUInt32 dataLen)
 {
-	getMgr().publish_message(id, topic, data, dataLen);
+    getMgr().publish_message(id, topic, data, dataLen);
 }
 
 WtUInt32 create_client(const char* url, FuncMQCallback cb)
 {
-	return getMgr().create_client(url, cb);
+    return getMgr().create_client(url, cb);
 }
 
 void destroy_client(WtUInt32 id)
 {
-	getMgr().destroy_client(id);
+    getMgr().destroy_client(id);
 }
 
 void subscribe_topic(WtUInt32 id, const char* topic)
 {
-	return getMgr().sub_topic(id, topic);
+    return getMgr().sub_topic(id, topic);
 }
 
 void start_client(WtUInt32 id)
 {
-	getMgr().start_client(id);
+    getMgr().start_client(id);
 }
