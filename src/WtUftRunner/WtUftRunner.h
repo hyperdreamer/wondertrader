@@ -4,8 +4,8 @@
  *
  * /author Wesley
  * /date 2020/03/30
- * 
- * /brief 
+ *
+ * /brief
  */
 #pragma once
 #include <string>
@@ -31,48 +31,46 @@ NS_WTP_END
 
 USING_NS_WTP;
 
-class WtUftRunner : public ILogHandler
-{
+class WtUftRunner : public ILogHandler {
 public:
-	WtUftRunner();
-	~WtUftRunner();
+    WtUftRunner();
+    ~WtUftRunner();
 
 public:
-	void init(const std::string& filename);
+    void init(const std::string& filename);
 
-	bool config(const std::string& filename);
+    bool config(const std::string& filename);
 
-	void run(bool bAsync = false);
+    void run(bool bAsync = false);
 
 private:
-	bool initTraders(WTSVariant* cfgTrader);
-	bool initParsers(WTSVariant* cfgParser);
-	bool initDataMgr();
-	bool initUftStrategies();
-	bool initEvtNotifier();
-	bool initEngine();
+    bool initTraders(WTSVariant* cfgTrader);
+    bool initParsers(WTSVariant* cfgParser);
+    bool initDataMgr();
+    bool initUftStrategies();
+    bool initEvtNotifier();
+    bool initEngine();
 
-//////////////////////////////////////////////////////////////////////////
-//ILogHandler
+    //////////////////////////////////////////////////////////////////////////
+    // ILogHandler
 public:
-	virtual void handleLogAppend(WTSLogLevel ll, const char* msg) override;
+    virtual void handleLogAppend(WTSLogLevel ll, const char* msg) override;
 
 private:
-	WTSVariant*			_config;
-	TraderAdapterMgr	_traders;
-	ParserAdapterMgr	_parsers;
+    WTSVariant* _config;
+    TraderAdapterMgr _traders;
+    ParserAdapterMgr _parsers;
 
-	WtUftEngine			_uft_engine;
+    WtUftEngine _uft_engine;
 
-	WtUftDtMgr			_data_mgr;
+    WtUftDtMgr _data_mgr;
 
-	WTSBaseDataMgr		_bd_mgr;
-	EventNotifier		_notifier;
+    WTSBaseDataMgr _bd_mgr;
+    EventNotifier _notifier;
 
-	UftStrategyMgr		_uft_stra_mgr;
+    UftStrategyMgr _uft_stra_mgr;
 
-	ActionPolicyMgr		_act_policy;
+    ActionPolicyMgr _act_policy;
 
-	bool				_to_exit;
+    bool _to_exit;
 };
-
