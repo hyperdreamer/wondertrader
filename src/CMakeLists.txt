@@ -127,3 +127,40 @@ ADD_SUBDIRECTORY(TestTrader)
 ADD_SUBDIRECTORY(TestParser)
 ADD_SUBDIRECTORY(TestUnits)
 
+# ------------------------------------------------------------------
+# LSP / clangd index-only plugins (default OFF)
+# ------------------------------------------------------------------
+# These plugin directories are NOT part of the regular Linux build
+# (official release builds them on Windows only, or they need SDKs that
+# are not available on this platform). Configuring with -DWT_LSP_INDEX=ON
+# registers them so CMAKE_EXPORT_COMPILE_COMMANDS covers every source
+# file and clangd can index them. All targets are EXCLUDE_FROM_ALL and
+# must NOT be built - this is for IDE/indexing only.
+OPTION(WT_LSP_INDEX "Add index-only plugin targets for clangd/LSP (do not build)" OFF)
+IF (WT_LSP_INDEX)
+	INCLUDE_DIRECTORIES(${INCS}
+		${CMAKE_CURRENT_SOURCE_DIR}/API/oesApi0.17.5.8/include
+		${CMAKE_CURRENT_SOURCE_DIR}/API/AtpTradeApi/include)
+	ADD_SUBDIRECTORY(WtCtaStraFact)
+	ADD_SUBDIRECTORY(WtHftStraFact)
+	ADD_SUBDIRECTORY(WtSelStraFact)
+	ADD_SUBDIRECTORY(ParserOES)
+	ADD_SUBDIRECTORY(ParserYD)
+	ADD_SUBDIRECTORY(TraderATP)
+	ADD_SUBDIRECTORY(TraderDD)
+	ADD_SUBDIRECTORY(TraderOES)
+
+	# dirs with broken/missing CMakeLists.txt (upstream copy-paste bugs):
+	# TraderXTPXAlgo defines target TraderXTP with wrong sources,
+	# TraderHTS defines target TraderDD with missing sources,
+	# ParserHuaX/TraderHuaX have no CMakeLists.txt at all
+	ADD_LIBRARY(ParserHuaX SHARED EXCLUDE_FROM_ALL ParserHuaX/ParserHuaX.cpp)
+	ADD_LIBRARY(TraderHuaX SHARED EXCLUDE_FROM_ALL TraderHuaX/TraderHuaX.cpp)
+	ADD_LIBRARY(TraderHTS SHARED EXCLUDE_FROM_ALL TraderHTS/TraderHTS.cpp)
+	ADD_LIBRARY(TraderXTPXAlgo SHARED EXCLUDE_FROM_ALL TraderXTPXAlgo/TraderXTPXAlgo.cpp)
+
+	FOREACH(t WtCtaStraFact WtHftStraFact WtSelStraFact ParserOES ParserYD TraderATP TraderDD TraderOES)
+		SET_TARGET_PROPERTIES(${t} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+	ENDFOREACH()
+ENDIF()
+
